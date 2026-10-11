@@ -301,6 +301,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 /* ── header ─────────────────────────────────────────── */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--panel);
   border-bottom:1px solid var(--line);padding:10px var(--gut) 0}
+@media (max-width:640px),(max-height:500px){.top{position:relative;top:auto}}   /* phones: the header scrolls away instead of covering half the screen */
 .topbar{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:9px}
 .brand{font-family:Fraunces,Georgia,serif;font-size:17px;font-weight:700;letter-spacing:-.015em}
 .brand span{color:var(--verdigris)}
@@ -3576,7 +3577,7 @@ function fcOpen(abs){
 }
 function fcScrollTo(cell, smooth){            /* centre a day in the part of the window the sticky header and span bar leave free */
   var top = document.querySelector('header.top'), bar = document.getElementById('fcbar');
-  var off = (top ? top.offsetHeight : 0) + (bar && getComputedStyle(bar).position==='sticky' ? bar.offsetHeight + 12 : 0);
+  var off = (top && getComputedStyle(top).position==='sticky' ? top.offsetHeight : 0) + (bar && getComputedStyle(bar).position==='sticky' ? bar.offsetHeight + 12 : 0);
   var r = cell.getBoundingClientRect(), y = window.scrollY + r.top + r.height/2 - (off + (window.innerHeight - off)/2);
   window.scrollTo({top:Math.max(0, y), behavior: smooth ? 'smooth' : 'auto'});
 }

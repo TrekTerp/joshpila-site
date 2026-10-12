@@ -1095,6 +1095,9 @@ details.pcbox .fact{margin-top:8px}
 }
 
 /* ==== Character Kit ==== */
+/* an entry opened from the kit sits above it (and below the flag/note dialog, 90) */
+body.kitunder .scrim{z-index:86}
+body.kitunder .pop{z-index:88}
 .kitbox{width:min(1120px,100%)}
 .kitbody{flex:1 1 auto;overflow-y:auto;padding:4px 20px 26px}
 .kmsg{margin:40px auto;max-width:42ch;text-align:center;color:var(--ink-2);font-size:15px}
@@ -4015,9 +4018,9 @@ window.addEventListener('scroll', function(){ if(FC.tipCell && !document.getElem
       toolsHTML(KS.pc) + '<div class="kgrid"><div class="kleft">'+stageHTML(k)+'</div><aside class="kside">'+sideHTML(k)+'</aside></div>' + barHTML(k);
     box.scrollTop = sc;
   }
-  function open(){ document.getElementById('kit').hidden = false; subscribe(); if(LIVE.user && !KS.me && LIVE.user.me) LIVE.user.me().then(function(m){ KS.me = (m && m.name) || ''; }, function(){});
+  function open(){ document.getElementById('kit').hidden = false; document.body.classList.add('kitunder'); subscribe(); if(LIVE.user && !KS.me && LIVE.user.me) LIVE.user.me().then(function(m){ KS.me = (m && m.name) || ''; }, function(){});
     render(); setTimeout(function(){ var b = document.querySelector('#kit .popx'); if(b) b.focus(); }, 30); }
-  function close(){ document.getElementById('kit').hidden = true; KS.sel = null; var b = document.getElementById('kitbtn'); if(b) b.focus({preventScroll:true}); }
+  function close(){ document.getElementById('kit').hidden = true; document.body.classList.remove('kitunder'); KS.sel = null; var b = document.getElementById('kitbtn'); if(b) b.focus({preventScroll:true}); }
 
   /* the button, beside Index, and the dialog */
   var ixb = document.getElementById('ixbtn');
@@ -4031,6 +4034,20 @@ window.addEventListener('scroll', function(){ if(FC.tipCell && !document.getElem
   document.body.appendChild(dlg);
 
   btn.addEventListener('click', open);
+
+  /* an entry opened from the kit slides in over it (body.kitunder lifts the entry above the dialog). Closing the entry
+     (×, Back, the scrim, Escape) leaves the kit where it was; anything else that shuts the entry (a session link, a board,
+     a town) is leaving, so the kit closes too */
+  document.addEventListener('click', function(ev){ if(ev.target.closest('#popx,#popback,#scrim')) KS.uc = Date.now(); }, true);
+  var popOn = false;
+  new MutationObserver(function(){
+    var on = pop.classList.contains('on');
+    if(popOn && !on && !dlg.hidden){
+      if(Date.now() - (KS.uc || 0) > 600) close();
+      else { var b = KS.from && dlg.querySelector('[data-e="'+KS.from+'"]'); if(b) b.focus({preventScroll:true}); }
+    }
+    popOn = on;
+  }).observe(pop, {attributes:true, attributeFilter:['class']});
   dlg.addEventListener('click', function(ev){
     if(ev.target===dlg || ev.target.closest('[data-kclose]')){ close(); return; }
     var t = ev.target.closest('[data-kpc]'); if(t){ KS.pc = t.getAttribute('data-kpc'); KS.sel = null; render(); return; }
@@ -4038,9 +4055,10 @@ window.addEventListener('scroll', function(){ if(FC.tipCell && !document.getElem
     if((t = ev.target.closest('[data-kreset]'))){ if(confirm('Put '+byId[KS.pc].name+'’s gear back the way the character sheet has it?')) resetKit(KS.pc); return; }
     if((t = ev.target.closest('[data-ksel]'))){ pick(KS.pc, t.getAttribute('data-ksel')); return; }
     if((t = ev.target.closest('[data-kact]'))){ if(!t.disabled) act(KS.pc, t.getAttribute('data-kact')); return; }
-    if(ev.target.closest('[data-e]')){ KS.sel = null; dlg.hidden = true; }     /* the page's own handler opens the entry */
+    if((t = ev.target.closest('[data-e]'))){ KS.sel = null; KS.from = t.getAttribute('data-e'); }   /* the page's own handler opens the entry, over the kit */
   });
   document.addEventListener('keydown', function(ev){
+    if(!dlg.hidden && ev.key==='Escape' && pop.classList.contains('on')){ KS.uc = Date.now(); return; }   /* the entry closes first */
     if(!dlg.hidden && ev.key==='Escape'){ ev.stopPropagation(); if(KS.sel){ KS.sel = null; render(); } else close(); return; }
     if(ev.key!=='k' || ev.metaKey || ev.ctrlKey || ev.altKey || !dlg.hidden) return;
     if(/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) || ev.target.isContentEditable || !document.getElementById('dlg').hidden) return;

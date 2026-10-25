@@ -1230,7 +1230,10 @@ button.kbox.kempty:hover,button.kbox.kempty:focus-visible{box-shadow:0 0 0 2px c
 .plnode:hover .pmed,.plnode:focus-visible .pmed{filter:none;opacity:1}
 .plnode:focus-visible{outline:none}
 .plnode:focus-visible .pmed,.plnode.on .pmed{box-shadow:0 0 0 2px var(--panel),0 0 0 4.5px var(--verdigris),0 3px 10px rgba(30,25,15,.22)}
-.pldet{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.pldet{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.pldet .plx{position:absolute;top:8px;right:10px}
+.pldh{padding-right:28px}
+.plgrid.plone{grid-template-columns:minmax(0,640px);justify-content:center}
 .pldh{display:flex;gap:14px;align-items:center;margin-bottom:10px}
 .pldh h3{font-family:var(--fell,Georgia),serif;font-weight:400;font-size:24px;margin:0 0 4px;color:var(--ink)}
 .pldb{font-size:14px;line-height:1.5;color:var(--ink-2);margin:0 0 10px}
@@ -3242,7 +3245,7 @@ function planeHidden(k){ return k==='farrealm' && !st.dm && planeState(k)==='unk
 function planeCounts(){ return Object.keys(PLN.list).filter(function(k){ return planeState(k)==='reached'; }).length; }
 function boardPlanes(){
   var keys = Object.keys(PLN.list);
-  if(!st.plane || !PLN.list[st.plane] || planeHidden(st.plane)){
+  if(st.plane !== false && (!st.plane || !PLN.list[st.plane] || planeHidden(st.plane))){   /* false: the reader closed the panel */
     var here = sessPlane(st.s); st.plane = here ? here.k : (keys.filter(function(k){ return planeState(k)==='reached'; }).sort(function(a,b){ var x = planeSessions(a), y = planeSessions(b); return y[y.length-1] - x[x.length-1]; })[0] || 'shadowfell');
   }
   var stage = '<div class="plstage"><div class="plring r1"></div><div class="plring r2"></div>' +
@@ -3257,22 +3260,31 @@ function boardPlanes(){
       '<span class="plcap">'+esc(hid ? '?' : p.name)+'</span></button>';
   });
   stage += '</div>';
+  var head = '<div class="bhead"><h2>The planes</h2><span class="lab">as of S'+st.s+'</span></div>' +
+    '<p class="bsub">The Great Wheel as the party knows it. Lit: they have been there. Faded: they have met its powers or heard of its places. Dim: not yet. Pick a plane to see the sessions, places and powers tied to it.</p>';
+  if(st.plane === false) return head + '<div class="plgrid plone">'+stage+'</div>';
   var k = st.plane, p = PLN.list[k], ss = planeSessions(k), pls = planePlaces(k), pws = planePowers(k), stt = planeState(k), ent = p.entity && byId[p.entity];
   var line = stt==='reached' ? 'Reached S'+ss[0]+(ss.length>1 ? ' · '+ss.length+' sessions there' : '') : stt==='heard' ? 'Known of, not yet reached' : 'Not reached';
-  var side = '<aside class="pldet"><div class="pldh">'+planeMed(k, 92)+'<div><h3>'+esc(p.name)+'</h3><span class="lab">'+esc(line)+'</span></div></div>' +
+  var side = '<aside class="pldet" aria-label="'+esc(p.name)+'"><button type="button" class="popx plx" data-plclose aria-label="Close '+esc(p.name)+'">×</button><div class="pldh">'+planeMed(k, 92)+'<div><h3>'+esc(p.name)+'</h3><span class="lab">'+esc(line)+'</span></div></div>' +
     '<p class="pldb">'+esc((ent && ent.summary) || p.blurb || '')+'</p>' + (ent ? '<p><button class="chip" data-e="'+ent.id+'">open entry</button></p>' : '') +
     (ss.length ? '<div class="sec"><span class="lab">Sessions there</span><div class="chips">'+ss.map(function(n){ return sref(n); }).join(' ')+'</div></div>' : '') +
     (pls.length ? '<div class="sec"><span class="lab">Places</span><div class="chips">'+pls.filter(function(id){ return id!==p.entity; }).map(chipFor).join('')+'</div></div>' : '') +
     (pws.length ? '<div class="sec"><span class="lab">Powers and beings</span><div class="chips">'+pws.map(chipFor).join('')+'</div></div>' : '') +
     '</aside>';
-  return '<div class="bhead"><h2>The planes</h2><span class="lab">as of S'+st.s+'</span></div>' +
-    '<p class="bsub">The Great Wheel as the party knows it. Lit: they have been there. Faded: they have met its powers or heard of its places. Dim: not yet. Pick a plane to see the sessions, places and powers tied to it.</p>' +
-    '<div class="plgrid">'+stage+side+'</div>';
+  return head + '<div class="plgrid">'+stage+side+'</div>';
 }
 document.addEventListener('click', function(ev){
-  var b = ev.target.closest && ev.target.closest('[data-plane]'); if(!b) return;
-  st.plane = b.getAttribute('data-plane'); renderBoard();
+  if(!ev.target.closest) return;
+  if(ev.target.closest('[data-plclose]')){ var k = st.plane; st.plane = false; renderBoard(); var n = document.querySelector('.plnode[data-plane="'+k+'"]'); if(n) n.focus({preventScroll:true}); return; }
+  var b = ev.target.closest('[data-plane]'); if(!b) return;
+  st.plane = (st.plane === b.getAttribute('data-plane')) ? false : b.getAttribute('data-plane'); renderBoard();   /* a second click on the open plane closes it */
+  if(st.plane && window.innerWidth <= 900){ var d = document.querySelector('.pldet'); if(d) d.scrollIntoView({behavior:'smooth', block:'start'}); }
 });
+document.addEventListener('keydown', function(ev){   /* Escape closes the plane panel, unless an entry or dialog is open over it */
+  if(ev.key!=='Escape' || st.view!=='planes' || !st.plane) return;
+  if(pop.classList.contains('on') || document.querySelector('.ix:not([hidden])') || !document.getElementById('dlg').hidden || st.town) return;
+  st.plane = false; renderBoard();
+}, true);   /* capture: decide before the page's own Escape handler closes an entry */
 
 /* ==== player boards: Open threads + Promises & debts, kept by the table (player page only) ==== */
 var PB = {

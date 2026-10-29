@@ -1,34 +1,357 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex">
-<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><title>Dragon&#x27;s Bane</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dragon's Bane</title>
+<meta name="description" content="Dragon's Bane, a Greyhawk campaign from Saltmarsh to the Ake River Valley. Campaign tools for the table and planning tools for the DM.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  ============================================================
+  SETUP NOTES
+  1. Links: check the six href="" values below (search "HREF").
+     Bastions is /dnd/bastions/ ; the others are guesses.
+  2. Art: upload the  img/  folder next to this file (card art,
+     hero panorama and the Dangerous Destinations theme kit).
+     Any card image that's missing falls back to a drawn emblem.
+  ============================================================
+-->
 <style>
-:root{--ground:#EFE6CF;--panel:#FBF6E8;--ink:#2B2418;--ink-2:#5A4E3A;--muted:#7C6E56;--line:#CDBF9E;--accent:#2C6D64;--brass:#96762F}
+:root{
+  --parchment:#f4ead3;
+  --parchment-2:#ece0c2;
+  --card:#fbf4e4;
+  --ink:#2a2118;
+  --ink-soft:#5a4a38;
+  --ink-faint:#8a7760;
+  --verdigris:#1f6b5e;
+  --brass:#a8822f;
+  --brass-bright:#d2ad5a;
+  --rule:#cdbb93;
+  --sea:#16303a;
+  --sea-2:#1d3d48;
+  --sea-line:rgba(210,173,90,.22);
+  --shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 10px 28px -14px rgba(60,40,15,.45);
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#F6EED9 0%,var(--ground) 60%,#E2D5B4 100%);color:var(--ink);
-  font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.55;display:flex;flex-direction:column;align-items:center;padding:56px 16px 40px}
-main{width:min(760px,100%)}
-h1{font-family:"IM Fell English",Georgia,serif;font-weight:400;font-size:clamp(34px,6vw,52px);margin:0 0 4px;letter-spacing:.01em}
-.sub{font-family:"IM Fell English",Georgia,serif;font-style:italic;color:var(--ink-2);font-size:19px;margin:0 0 30px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px 22px 22px;
-  box-shadow:0 1px 2px rgba(60,45,20,.08),0 10px 28px rgba(60,45,20,.10);transition:transform .15s,box-shadow .15s}
-a.card:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(60,45,20,.1),0 14px 34px rgba(60,45,20,.16)}
-a.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.card h2{font-family:"IM Fell English SC",Georgia,serif;font-weight:400;font-size:25px;margin:0 0 6px;color:var(--accent)}
-.card p{margin:0;color:var(--ink-2);font-size:15px}
-.card .go{display:inline-block;margin-top:14px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
-.note{margin-top:34px;color:var(--muted);font-size:13.5px}
-.note a{color:var(--accent)}
-</style></head><body><main>
+html{background:var(--parchment)}
+body{
+  margin:0;color:var(--ink);
+  font:400 17px/1.6 "IBM Plex Sans",system-ui,sans-serif;
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(255,250,235,.9), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(196,170,120,.35), transparent 60%),
+    linear-gradient(180deg,rgba(244,234,211,.82),rgba(236,224,194,.82)),
+    url(img/parchment.webp) 0 0/512px;
+  min-height:100vh;
+}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 
-<h1>Dragon's Bane</h1>
-<p class="sub">A Greyhawk campaign, from Saltmarsh to the Ake River Valley</p>
-<div class="cards">
-  <a class="card" href="codex/"><h2>The Codex</h2><p>Every session, person, place and map the party has met, the table’s notes and theories, and the threads and promises you’re tracking.</p><span class="go">Open the Codex →</span></a>
-  <a class="card" href="bastions/"><h2>Bastions</h2><p>The restored Dragon’s Bane Manor: its rooms and facilities, your orders, and what each bastion turn brings.</p><span class="go">Open Bastions →</span></a>
-</div>
-<p class="note">Players: sign in from the Codex’s top bar with the email Josh has on the list. You’ll get a six-digit code, no password.</p>
+/* ---------- header ---------- */
+header.hero{position:relative;overflow:hidden;padding:56px 0 40px}
+.rhumbs{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.55}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:center;gap:28px}
+.hero-text{position:relative}
+.hero-text::before{content:"";position:absolute;width:340px;height:348px;left:-70px;top:50%;transform:translateY(-50%);
+  background:url(img/compass-watermark.webp) center/contain no-repeat;opacity:.55;pointer-events:none}
+.hero-text>*{position:relative}
+.hero-art{margin:0}
+.hero-art img{display:block;width:100%;height:auto;mix-blend-mode:multiply;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
+  mask-composite:intersect}
+.pennant{height:22px;width:auto;vertical-align:-6px;margin-right:10px}
+.kicker{font:500 12px/1 "IBM Plex Sans",sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--brass)}
+h1{font:400 clamp(48px,5.6vw,78px)/.95 "IM Fell English",Georgia,serif;margin:14px 0 12px;letter-spacing:-.01em}
+.tagline{font:italic 400 clamp(20px,2.4vw,26px)/1.3 "IM Fell English",Georgia,serif;color:var(--ink-soft);margin:0}
 
-</main></body></html>
+/* ---------- sections ---------- */
+section{padding:20px 0 56px}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin:0 0 24px}
+.sec-head h2{font:400 clamp(30px,4vw,40px)/1 "IM Fell English SC",Georgia,serif;margin:0;color:var(--verdigris);white-space:nowrap}
+.sec-head .line{flex:1;height:12px;align-self:center;background:url(img/rope.webp) left center/auto 12px repeat-x;
+  -webkit-mask-image:linear-gradient(90deg,#000 55%,transparent);mask-image:linear-gradient(90deg,#000 55%,transparent);opacity:.85}
+.sec-head .kicker{white-space:nowrap}
+
+.grid{display:grid;gap:24px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* ---------- cards ---------- */
+.card{
+  display:flex;flex-direction:column;text-decoration:none;
+  position:relative;background:var(--card) url(img/chart-stock.webp) 0 0/512px;border:1px solid var(--rule);border-radius:6px;
+  box-shadow:var(--shadow);overflow:hidden;
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.card:hover,.card:focus-visible{transform:translateY(-3px);border-color:var(--brass);
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 18px 36px -16px rgba(60,40,15,.55);outline:none}
+.art{position:relative;aspect-ratio:3/2;background:
+  radial-gradient(circle at 50% 55%, #fffaf0 0%, #efe3c6 75%);
+  border-bottom:1px solid var(--rule);overflow:hidden}
+.art .emblem{position:absolute;inset:0;margin:auto;width:42%;height:62%;color:var(--ink-soft);opacity:.7}
+.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.card:hover .art img{transform:scale(1.035)}
+.body{padding:22px 26px 24px;display:flex;flex-direction:column;flex:1}
+.tag{font:500 11px/1 "IBM Plex Sans",sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+.card h3{font:400 30px/1.1 "IM Fell English SC",Georgia,serif;color:var(--verdigris);margin:8px 0 10px}
+.card p{margin:0 0 18px;color:var(--ink-soft)}
+.go{margin-top:auto;font:500 13px/1 "IBM Plex Sans",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.go span{display:inline-block;transition:transform .25s ease}
+.card:hover .go span{transform:translateX(4px)}
+
+.note{margin:22px 2px 0;color:var(--ink-faint);font-size:15px}
+.note b{font-weight:500;color:var(--ink-soft)}
+
+/* ---------- wave divider ---------- */
+.waves{display:block;width:100%;height:46px;color:var(--sea);margin-bottom:-1px}
+
+/* ---------- DM section ---------- */
+.screen{
+  position:relative;background:
+    radial-gradient(900px 400px at 80% 0%, rgba(210,173,90,.10), transparent 60%),
+    linear-gradient(180deg,var(--sea),var(--sea-2));
+  color:#efe4c8;padding:52px 0 60px;overflow:hidden;
+}
+.screen::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background-image:
+    linear-gradient(var(--sea-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--sea-line) 1px,transparent 1px);
+  background-size:80px 80px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 10%,transparent 75%);
+          mask-image:radial-gradient(ellipse at 50% 30%,#000 10%,transparent 75%)}
+.screen .wrap{position:relative}
+.screen .sec-head h2{color:var(--brass-bright)}
+.screen .kicker{color:#c9b487}
+.screen .intro{margin:-8px 0 26px;max-width:640px;color:#cbbd9d}
+.screen .card{border-color:#7a6232;box-shadow:0 18px 40px -18px rgba(0,0,0,.7)}
+.screen .card:hover{border-color:var(--brass-bright)}
+.screen .card::after{content:"";position:absolute;inset:5px;pointer-events:none;z-index:2;
+  background:
+    url(img/corner-tl.webp) left top/42px 38px no-repeat,
+    url(img/corner-tr.webp) right top/38px 42px no-repeat,
+    url(img/corner-bl.webp) left bottom/38px 42px no-repeat,
+    url(img/corner-br.webp) right bottom/42px 38px no-repeat}
+.screen .body{padding:26px 32px 50px}
+.screen .card h3{font-size:26px;color:var(--sea)}
+.screen .note{color:#9f9378}
+
+footer{background:var(--sea-2);color:#9f9378;font-size:14px;padding:0 0 36px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid rgba(210,173,90,.25);padding-top:22px}
+footer a{color:#c9b487;text-decoration:none}
+footer .anchor{height:20px;width:auto;vertical-align:-4px;margin-right:10px;opacity:.85}
+footer a:hover{text-decoration:underline}
+
+@media (max-width:900px){
+  .grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:700px){
+  .wrap{padding:0 16px}
+  header.hero{padding:48px 0 36px}
+  .hero .wrap{grid-template-columns:1fr}
+  .hero-text::before{width:240px;height:246px;left:auto;right:-40px}
+  .grid.two,.grid.three{grid-template-columns:1fr}
+  .sec-head{flex-wrap:wrap;gap:6px 14px}
+  .sec-head .line{display:none}
+  .body{padding:18px 20px 20px}
+  .screen .body{padding:22px 26px 48px}
+  .art{aspect-ratio:16/9}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <svg class="rhumbs" id="rhumbs" aria-hidden="true"></svg>
+  <div class="wrap">
+    <div class="hero-text">
+      <div class="kicker"><img class="pennant" src="img/pennant.webp" alt="">A Greyhawk campaign</div>
+      <h1>Dragon&rsquo;s Bane</h1>
+      <p class="tagline">From Saltmarsh to the Ake River Valley</p>
+    </div>
+    <figure class="hero-art"><img src="img/hero.webp" alt="The Saltmarsh coast giving way to the jungles of the Ake River Valley" width="1916" height="821" onerror="this.parentNode.remove()"></figure>
+  </div>
+</header>
+
+<!-- ============ PLAYER TOOLS ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>For the Table</h2>
+      <span class="line"></span>
+      <span class="kicker">Players &amp; spectators</span>
+    </div>
+
+    <div class="grid three">
+      <a class="card" href="/dnd/codex/"><!-- HREF: Codex -->
+        <div class="art">
+          <svg class="emblem" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M50 16 C38 9 20 9 8 13 V70 C20 66 38 66 50 73 C62 66 80 66 92 70 V13 C80 9 62 9 50 16Z"/>
+            <path d="M50 16 V73"/>
+            <path d="M16 26 H40 M16 34 H40 M16 42 H36 M60 26 H84 M60 34 H84 M60 42 H78" opacity=".6"/>
+            <circle cx="70" cy="56" r="7" opacity=".7"/><path d="M70 49 V63 M63 56 H77" opacity=".7"/>
+          </svg>
+          <img src="img/codex.webp" alt="" onerror="this.remove()">
+        </div>
+        <div class="body">
+          <span class="tag">Campaign bible</span>
+          <h3>The Codex</h3>
+          <p>Every session, person, place and map the party has met, the table&rsquo;s notes and theories, and the threads and promises you&rsquo;re tracking.</p>
+          <span class="go">Open the Codex <span>&rarr;</span></span>
+        </div>
+      </a>
+
+      <a class="card" href="/dnd/bastions/"><!-- HREF: Bastions -->
+        <div class="art">
+          <svg class="emblem" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M8 72 H92"/>
+            <path d="M18 72 V36 L50 14 L82 36 V72"/>
+            <path d="M12 40 L50 12 L88 40"/>
+            <path d="M44 72 V54 Q50 48 56 54 V72"/>
+            <rect x="26" y="44" width="9" height="11"/><rect x="65" y="44" width="9" height="11"/>
+            <path d="M66 22 V12 H72 V27" />
+          </svg>
+          <img src="img/bastions.webp" alt="" onerror="this.remove()">
+        </div>
+        <div class="body">
+          <span class="tag">Dragon&rsquo;s Bane Manor</span>
+          <h3>Bastions</h3>
+          <p>The restored manor: its rooms and facilities, your orders, and what each bastion turn brings.</p>
+          <span class="go">Open Bastions <span>&rarr;</span></span>
+        </div>
+      </a>
+      <a class="card" href="/dnd/dice/"><!-- HREF: Dice Roller -->
+        <div class="art">
+          <svg class="emblem" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M50 6 L84 26 V58 L50 76 L16 58 V26Z"/>
+            <path d="M50 6 L30 46 H70Z M30 46 L50 76 L70 46" />
+            <path d="M16 26 L30 46 M84 26 L70 46 M16 58 L30 46 M84 58 L70 46 M50 6 L16 26 M50 6 L84 26" opacity=".6"/>
+            <text x="50" y="40" text-anchor="middle" font-family="IM Fell English SC,serif" font-size="11" fill="currentColor" stroke="none">20</text>
+          </svg>
+          <img src="img/dice.webp" alt="" onerror="this.remove()">
+        </div>
+        <div class="body">
+          <span class="tag">Open to anyone</span>
+          <h3>Dice Roller</h3>
+          <p>For when the real dice are across the room, or rolled under the couch. No sign-in needed.</p>
+          <span class="go">Roll the dice <span>&rarr;</span></span>
+        </div>
+      </a>
+    </div>
+
+    <p class="note"><b>Signing in:</b> use the Codex&rsquo;s top bar with the email Josh has on the list. You&rsquo;ll get a six-digit code, no password. Bastions shares the same sign-in; the dice roller needs none.</p>
+  </div>
+</section>
+
+<svg class="waves" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
+  <path fill="currentColor" d="M0 30 C100 10 200 10 300 26 S500 44 600 28 800 8 900 24 1100 42 1200 26 V46 H0Z"/>
+  <path fill="none" stroke="var(--brass)" stroke-opacity=".45" stroke-width="1.2" d="M0 22 C100 4 200 4 300 18 S500 36 600 20 800 2 900 16 1100 34 1200 18"/>
+</svg>
+
+<!-- ============ DM TOOLS ============ -->
+<section class="screen">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Behind the Screen</h2>
+      <span class="line"></span>
+      <span class="kicker">The DM&rsquo;s planning tools</span>
+    </div>
+    <p class="intro">Workbenches for building what the party hasn&rsquo;t found yet. Nothing in here is about your characters, but a sailor who reads the captain&rsquo;s charts may not like where they lead.</p>
+
+    <div class="grid three">
+      <a class="card" href="/dnd/trove/"><!-- HREF: The Trove -->
+        <div class="art">
+          <svg class="emblem" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M14 38 H86 V70 H14Z"/>
+            <path d="M14 38 C14 20 86 20 86 38"/>
+            <path d="M14 46 H86" opacity=".6"/>
+            <rect x="44" y="42" width="12" height="12" rx="1"/>
+            <path d="M30 26 V70 M70 26 V70" opacity=".6"/>
+            <path d="M80 8 L92 15 V29 L80 36 L68 29 V15Z"/><path d="M68 15 L80 22 L92 15 M80 22 V36" opacity=".6"/>
+          </svg>
+          <img src="img/trove.webp" alt="" onerror="this.remove()">
+        </div>
+        <div class="body">
+          <span class="tag">Treasure</span>
+          <h3>The Trove</h3>
+          <p>Roll troves the Angry GM way, with Dicey valuation and Fistfuls of Dice, on real dice or the tool&rsquo;s, and keep a ledger of what&rsquo;s been found and sold.</p>
+          <span class="go">Open the Trove <span>&rarr;</span></span>
+        </div>
+      </a>
+
+      <a class="card" href="/dnd/settlements/"><!-- HREF: Spectacular Settlements -->
+        <div class="art">
+          <svg class="emblem" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M6 72 H94"/>
+            <path d="M12 72 V50 L22 42 L32 50 V72"/>
+            <path d="M36 72 V32 L48 20 L60 32 V72"/><path d="M48 20 V8 L56 11 L48 14" />
+            <path d="M64 72 V46 L76 36 L88 46 V72"/>
+            <rect x="44" y="40" width="8" height="10" opacity=".7"/><path d="M44 72 V60 H52 V72" opacity=".7"/>
+          </svg>
+          <img src="img/settlements.webp" alt="" onerror="this.remove()">
+        </div>
+        <div class="body">
+          <span class="tag">Places people live</span>
+          <h3>Spectacular Settlements</h3>
+          <p>Raise trading posts, villages, towns and cities from the ground up: who founded them, who runs them, what they trade, and what&rsquo;s gone wrong.</p>
+          <span class="go">Build a settlement <span>&rarr;</span></span>
+        </div>
+      </a>
+
+      <a class="card" href="/dnd/destinations/"><!-- HREF: Dangerous Destinations -->
+        <div class="art">
+          <svg class="emblem" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M6 72 C24 66 40 70 50 72 S80 66 94 70"/>
+            <path d="M38 70 V30 L42 26 V18 H58 V26 L62 30 V70"/>
+            <path d="M42 18 V13 H46 V18 M50 18 V12 H54 V18" />
+            <path d="M58 30 L66 38 M62 46 L70 50" opacity=".6"/>
+            <path d="M46 70 V58 Q50 53 54 58 V70"/>
+            <path d="M10 56 Q16 50 22 56 M76 58 Q82 52 88 58" opacity=".6"/>
+            <path d="M14 34 Q20 28 26 34 Q32 40 38 34" opacity=".5"/>
+          </svg>
+          <img src="img/destinations.webp" alt="" onerror="this.remove()">
+        </div>
+        <div class="body">
+          <span class="tag">Locations &amp; events</span>
+          <h3>Dangerous Destinations</h3>
+          <p>Design perilous places and the events that unfold in them, from the first sight on the horizon to whatever waits at the bottom.</p>
+          <span class="go">Plan a destination <span>&rarr;</span></span>
+        </div>
+      </a>
+    </div>
+
+    <p class="note">Spectacular Settlements and Dangerous Destinations are Nord Games supplements; these tools are personal table aids built from them.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span><img class="anchor" src="img/anchor.webp" alt="">Dragon&rsquo;s Bane &middot; a Greyhawk campaign</span>
+    <a href="/">&larr; joshpila.com</a>
+  </div>
+</footer>
+
+<script>
+/* faint chart rhumb lines radiating from a point behind the compass */
+(function(){
+  var s=document.getElementById('rhumbs'); if(!s) return;
+  function draw(){
+    var w=s.clientWidth,h=s.clientHeight, t=document.querySelector('.hero-text'), hr=s.getBoundingClientRect(), tr=t.getBoundingClientRect(),
+        cx=tr.left-hr.left+100, cy=tr.top-hr.top+tr.height/2, R=Math.hypot(w,h), out='';
+    for(var i=0;i<32;i++){
+      var a=i*Math.PI/16, x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R;
+      var c = i%4===0 ? '#a8822f' : (i%2? '#cdbb93' : '#1f6b5e');
+      out+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="'+c+'" stroke-width="'+(i%4===0?0.9:0.6)+'" stroke-opacity="'+(i%4===0?0.55:0.4)+'"/>';
+    }
+    s.setAttribute('viewBox','0 0 '+w+' '+h); s.innerHTML=out;
+  }
+  draw(); addEventListener('resize',draw);
+})();
+</script>
+</body>
+</html>

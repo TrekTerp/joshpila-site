@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html,body{margin:0}</style>
+</head>
+<body>
+<title>D&amp;D Dice Tray</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a control rail on the left and a felt-lined walnut tray filling the rest; the roll result floats over the tray. One deliberate dark look, like a game table at night. */
+:root {
+  --bg: #111315; --panel: #171A1D; --panel-2: #1F2327; --line: #2C3137; --fg: #ECE6DA; --muted: #9C968A;
+  --brass: #D2A85B; --brass-ink: #1B1508; --crit: #EDC860; --fail: #E3705F; --felt: #1D3A3C;
+  --f-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --f-ui: 'Alegreya Sans', 'Gill Sans', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-ui); }
+* { box-sizing: border-box; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+.app { height: 100%; display: grid; grid-template-columns: minmax(290px, 330px) minmax(0, 1fr); }
+.rail { overflow: auto; background: var(--panel); border-right: 1px solid var(--line); display: grid; align-content: start; gap: 18px;
+  padding-block: 18px 28px; padding-left: max(18px, env(safe-area-inset-left, 0px)); padding-right: 18px; }
+.brand h1 { margin: 0; font: 700 24px/1.1 var(--f-display); letter-spacing: .04em; color: var(--brass); }
+.brand p { margin: 6px 0 0; color: var(--muted); font-size: 14px; text-wrap: pretty; }
+section { display: grid; gap: 10px; }
+h2 { margin: 0; font: 600 11.5px/1 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.dice-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.die-btn { position: relative; display: grid; justify-items: center; gap: 2px; padding: 9px 4px 7px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); cursor: pointer; }
+.die-btn:hover { border-color: var(--brass); }
+.die-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+.die-btn span { font: 600 13px var(--f-display); }
+.pool { border: 1px dashed var(--line); border-radius: 8px; padding: 8px 10px 10px; display: grid; gap: 7px; }
+.pool-head { display: flex; justify-content: space-between; align-items: center; }
+.pool-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 26px; align-items: center; }
+.qchip { display: inline-flex; gap: 6px; align-items: center; font: 500 13px var(--f-mono); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--brass); background: rgba(210, 168, 91, .12); cursor: pointer; }
+.qchip span { color: var(--muted); }
+.qchip:hover span { color: var(--fail); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--brass); cursor: pointer; font-size: 13px; }
+input[type="text"] { width: 100%; min-width: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; }
+.mono { font-family: var(--f-mono); }
+#bRoll { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.die-btn .count { position: absolute; top: -6px; right: -6px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--brass); color: var(--brass-ink); font: 500 11px/19px var(--f-mono); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 7px; padding: 8px 13px; cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--brass); }
+.btn.primary { background: var(--brass); color: var(--brass-ink); border-color: var(--brass); font-weight: 700; }
+.btn.grow { flex: 1; }
+.field { display: grid; gap: 5px; }
+.field > label, .lbl { font-size: 13px; color: var(--muted); }
+select { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; }
+.stepper { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; width: max-content; }
+.stepper button { width: 36px; border: 0; background: var(--panel-2); cursor: pointer; font-size: 18px; }
+.stepper input { width: 64px; text-align: center; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: var(--panel); font: 500 15px var(--f-mono); -moz-appearance: textfield; }
+.stepper input::-webkit-inner-spin-button { display: none; }
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.presets .btn { text-align: left; white-space: normal; display: grid; gap: 1px; padding: 7px 10px; }
+.presets .btn small { color: var(--muted); font: 12px var(--f-mono); }
+.sets { display: flex; flex-wrap: wrap; gap: 8px; }
+.set { width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; display: grid; place-items: center; font: 700 15px var(--f-display); }
+.set[aria-pressed="true"] { outline: 2px solid var(--brass); outline-offset: 2px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+.check input { accent-color: var(--brass); width: 16px; height: 16px; margin: 0; }
+.hint { margin: 0; font-size: 13px; color: var(--muted); text-wrap: pretty; }
+.history { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.history li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.history .ex { font: 12.5px var(--f-mono); color: var(--muted); overflow-wrap: anywhere; }
+.history .tot { font: 700 17px var(--f-display); grid-row: span 2; align-self: center; }
+.history .vals { font: 12px var(--f-mono); color: var(--muted); opacity: .8; overflow-wrap: anywhere; }
+.history .tot.crit { color: var(--crit); } .history .tot.fail { color: var(--fail); }
+
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
+#c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: default; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.press-ring { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(var(--fail) var(--p, 0%), rgba(227, 112, 95, .18) 0); -webkit-mask: radial-gradient(circle, transparent 25px, #000 26px); mask: radial-gradient(circle, transparent 25px, #000 26px); }
+.labels { position: absolute; inset: 0; pointer-events: none; }
+.tag { position: absolute; transform: translate(-50%, -100%); padding: 2px 8px; border-radius: 999px; background: rgba(17, 19, 21, .82); border: 1px solid rgba(236, 230, 218, .25); font: 700 14px/1.3 var(--f-display); color: var(--fg); white-space: nowrap; }
+.tag.drop { opacity: .45; text-decoration: line-through; }
+.tag.crit { border-color: var(--crit); color: var(--crit); box-shadow: 0 0 14px rgba(237, 200, 96, .45); }
+.tag.fail { border-color: var(--fail); color: var(--fail); }
+.result { position: absolute; top: max(14px, env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); width: min(300px, calc(100% - 28px));
+  background: rgba(23, 26, 29, .9); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 13px; display: grid; gap: 4px; backdrop-filter: blur(6px); }
+.result .ex { font: 13px var(--f-mono); color: var(--muted); overflow-wrap: anywhere; }
+.result .total { font: 700 46px/1 var(--f-display); letter-spacing: .02em; }
+.result .total.rolling { opacity: .35; }
+.result .parts { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font: 12.5px var(--f-mono); padding: 1px 7px; border-radius: 5px; background: var(--panel-2); border: 1px solid var(--line); }
+.chip.drop { opacity: .45; text-decoration: line-through; }
+.chip.crit { color: var(--crit); border-color: var(--crit); } .chip.fail { color: var(--fail); border-color: var(--fail); }
+.callout { font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.callout.crit { color: var(--crit); } .callout.fail { color: var(--fail); }
+.loadmsg { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+.toast { position: absolute; left: 50%; bottom: max(16px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 7px; font-size: 14px; max-width: calc(100% - 32px); }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { display: flex; flex-direction: column; height: auto; }
+  .stage { order: -1; height: calc(60vh + 112px); min-height: 450px; }
+  #c, .labels { bottom: auto; height: calc(100% - 112px); }
+  .rail { border-right: 0; padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+  .result { width: auto; top: auto; bottom: 10px; height: 92px; left: max(12px, env(safe-area-inset-left, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+    padding: 8px 12px; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-content: center; overflow: hidden; }
+  .result .total { font-size: 38px; grid-column: 1; grid-row: 1 / span 3; align-self: center; }
+  .result .ex, .result .parts, .result .callout { grid-column: 2; }
+}
+</style>
+
+<div class="app">
+  <aside class="rail" aria-label="Dice controls">
+    <div class="brand">
+      <h1>Dice Tray</h1>
+      <p>Queue up dice, then press Roll. Grab any die in the tray to fling it by hand. To take a die out, right-click it, or press and hold it on a touchscreen.</p>
+    </div>
+
+    <section>
+      <h2>Build a roll</h2>
+      <div class="dice-grid" id="diceGrid"></div>
+      <div class="pool">
+        <div class="pool-head"><span class="lbl">Queued</span><button class="linkbtn" id="bPoolClear" hidden>Clear queue</button></div>
+        <div class="pool-chips" id="poolChips"></div>
+      </div>
+      <div class="field"><label for="notation">Or type a roll</label>
+        <div class="row" style="flex-wrap:nowrap"><input id="notation" type="text" class="mono" placeholder="2d20+5, 4d6 dl1, 1d100" spellcheck="false" autocomplete="off"><button class="btn" id="bNotation">Roll it</button></div></div>
+      <p class="hint">Click a die to queue it. Right-click a die button, or click a queued chip, to take one off. Shift-click tosses a die straight into the tray. A d100 is a pair of d10s, one for tens and one for units.</p>
+    </section>
+
+    <section>
+      <h2>Roll</h2>
+      <div class="row" style="flex-wrap:nowrap"><button class="btn primary grow" id="bRoll" title="Space">Reroll tray</button><button class="btn" id="bClear" title="Remove every die (C)">Clear tray</button></div>
+      <label class="check"><input type="checkbox" id="keepTray"> Keep the dice already in the tray when rolling the queue</label>
+      <div class="field"><label for="mode">Count</label>
+        <select id="mode"><option value="sum">Add up every die</option><option value="kh">Keep the highest (advantage)</option><option value="kl">Keep the lowest (disadvantage)</option><option value="dl">Drop the lowest</option></select></div>
+      <div class="field"><span class="lbl" id="modLbl">Modifier</span>
+        <div class="stepper" role="group" aria-labelledby="modLbl"><button id="modMinus" aria-label="Lower modifier">−</button><input id="mod" type="number" value="0" step="1" aria-label="Modifier"><button id="modPlus" aria-label="Raise modifier">+</button></div></div>
+    </section>
+
+    <section>
+      <h2>Quick rolls</h2>
+      <div class="presets" id="presets"></div>
+    </section>
+
+    <section>
+      <h2>Dice set</h2>
+      <div class="sets" id="sets"></div>
+      <label class="check"><input type="checkbox" id="sound" checked> Clatter sounds</label>
+    </section>
+
+    <section>
+      <h2>History</h2>
+      <ul class="history" id="history"></ul>
+      <p class="hint" id="histEmpty">Rolls appear here once the dice come to rest.</p>
+    </section>
+  </aside>
+
+  <main class="stage" id="stage">
+    <canvas id="c" aria-label="Dice tray. Drag a die to pick it up and release to throw it."></canvas>
+    <div class="labels" id="labels"></div>
+    <div class="result" id="result" aria-live="polite">
+      <div class="ex" id="rExpr">Empty tray</div>
+      <div class="total" id="rTotal">–</div>
+      <div class="parts" id="rParts"></div>
+      <div class="callout" id="rCall" hidden></div>
+    </div>
+    <div class="loadmsg" id="loadMsg">Setting up the table…</div>
+    <div class="press-ring" id="pressRing" hidden></div>
+    <div class="toast" id="toast" hidden></div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = (id) => document.getElementById(id);
+if (!window.THREE || !window.CANNON) { $('loadMsg').textContent = 'The 3D engine could not load. Check your connection and reload the page.'; return; }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('dicetray:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('dicetray:' + k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+};
+const rand = (a, b) => a + Math.random() * (b - a);
+const V3 = THREE.Vector3;
+
+// ---------------- Dice definitions ----------------
+const TYPES = {
+  d4: { kind: 'd4', r: 1.2 }, d6: { kind: 'd6', r: 1.2 }, d8: { kind: 'd8', r: 1.05 }, d10: { kind: 'd10', r: 1.0 },
+  d12: { kind: 'd12', r: 1.1 }, d20: { kind: 'd20', r: 1.15 }, d100: { kind: 'd10', r: 1.0 },
+};
+const ORDER = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
+const ICONS = {
+  d4: '<polygon points="12,3 21.5,20 2.5,20"/>',
+  d6: '<rect x="4" y="4" width="16" height="16" rx="1.5"/>',
+  d8: '<polygon points="12,2 21,12 12,22 3,12"/><line x1="3" y1="12" x2="21" y2="12"/>',
+  d10: '<polygon points="12,2 21,10.5 12,22 3,10.5"/><polyline points="3,10.5 12,14 21,10.5"/><line x1="12" y1="14" x2="12" y2="22"/>',
+  d12: '<polygon points="12,2.5 21.5,9.4 17.9,20.5 6.1,20.5 2.5,9.4"/><polygon points="12,7 16.3,10.2 14.7,15.3 9.3,15.3 7.7,10.2"/>',
+  d20: '<polygon points="12,2 20.7,7 20.7,17 12,22 3.3,17 3.3,7"/><polygon points="12,6.5 17.5,15.5 6.5,15.5"/>',
+  d100: '<polygon points="8,3 14,9 8,21 2,9"/><polygon points="16,3 22,9 16,21 10,9"/>',
+};
+const SETS = [
+  { id: 'bone', name: 'Bone and ink', body: '#ECE3CF', ink: '#2A2116' },
+  { id: 'dragon', name: "Dragon's blood", body: '#8E1B22', ink: '#F3E3C8' },
+  { id: 'midnight', name: 'Midnight and gold', body: '#1F2A4D', ink: '#E8C46A' },
+  { id: 'jade', name: 'Jade', body: '#2E7A5F', ink: '#F1EEE2' },
+  { id: 'amethyst', name: 'Amethyst', body: '#5C3C8E', ink: '#F3E9FF' },
+  { id: 'obsidian', name: 'Obsidian and brass', body: '#1A1A1E', ink: '#D9B45A' },
+];
+const PRESETS = [
+  { name: 'Check', dice: ['d20'], mode: 'sum', note: '1d20' },
+  { name: 'Advantage', dice: ['d20', 'd20'], mode: 'kh', note: '2d20 kh1' },
+  { name: 'Disadvantage', dice: ['d20', 'd20'], mode: 'kl', note: '2d20 kl1' },
+  { name: 'Ability score', dice: ['d6', 'd6', 'd6', 'd6'], mode: 'dl', note: '4d6 dl1' },
+  { name: 'Fireball', dice: Array(8).fill('d6'), mode: 'sum', note: '8d6' },
+  { name: 'Greatsword', dice: ['d6', 'd6'], mode: 'sum', note: '2d6' },
+  { name: 'Percentile', dice: ['d100'], mode: 'sum', note: '1d100' },
+  { name: 'Full set', dice: ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'], mode: 'sum', note: 'one of each' },
+];
+
+// ---------------- Geometry ----------------
+const PHI = (1 + Math.sqrt(5)) / 2;
+function baseVerts(kind) {
+  const out = [];
+  switch (kind) {
+    case 'd4': return [[1, 1, 1], [-1, -1, 1], [-1, 1, -1], [1, -1, -1]];
+    case 'd6': for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) out.push([x, y, z]); return out;
+    case 'd8': return [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    case 'd10': {
+      // Pentagonal trapezohedron. With apexes at ±1 the kites are planar when the ring height is (1−cos36°)/(1+cos36°).
+      const c = Math.cos(Math.PI / 5), e = (1 - c) / (1 + c);
+      out.push([0, 1, 0], [0, -1, 0]);
+      for (let i = 0; i < 10; i++) { const a = (i * Math.PI) / 5; out.push([Math.cos(a), i % 2 ? -e : e, Math.sin(a)]); }
+      return out;
+    }
+    case 'd12':
+      for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) out.push([x, y, z]);
+      for (const a of [-1, 1]) for (const b of [-1, 1]) { out.push([0, a / PHI, b * PHI], [a / PHI, b * PHI, 0], [a * PHI, 0, b / PHI]); }
+      return out;
+    case 'd20':
+      for (const a of [-1, 1]) for (const b of [-1, 1]) { out.push([0, a, b * PHI], [a, b * PHI, 0], [b * PHI, 0, a]); }
+      return out;
+  }
+}
+// Convex hull for small, symmetric point sets: every plane through three points that has all points on one side is a face.
+function hull(P) {
+  const eps = 1e-5, planes = new Map();
+  const n3 = P.length;
+  for (let i = 0; i < n3; i++) for (let j = i + 1; j < n3; j++) for (let k = j + 1; k < n3; k++) {
+    const n = new V3().subVectors(P[j], P[i]).cross(new V3().subVectors(P[k], P[i]));
+    if (n.length() < 1e-9) continue;
+    n.normalize();
+    let d = n.dot(P[i]), pos = false, neg = false;
+    for (const q of P) { const s = n.dot(q) - d; if (s > eps) pos = true; else if (s < -eps) neg = true; if (pos && neg) break; }
+    if (pos && neg) continue;
+    if (pos) { n.negate(); d = -d; }
+    const key = [n.x, n.y, n.z].map((v) => Math.round(v * 1e4)).join(',');
+    if (planes.has(key)) continue;
+    const on = []; P.forEach((q, m) => { if (Math.abs(n.dot(q) - d) < eps) on.push(m); });
+    planes.set(key, { n, on });
+  }
+  return [...planes.values()].map(({ n, on }) => {
+    const c = new V3(); on.forEach((m) => c.add(P[m])); c.divideScalar(on.length);
+    const u = new V3().subVectors(P[on[0]], c).normalize(), w = new V3().crossVectors(n, u);
+    const ang = (m) => { const d = new V3().subVectors(P[m], c); return Math.atan2(d.dot(w), d.dot(u)); };
+    return { idx: on.slice().sort((a, b) => ang(a) - ang(b)), normal: n.clone(), centroid: c };
+  });
+}
+function assignValues(kind, faces) {
+  if (kind === 'd4') return;
+  const n = faces.length, low = kind === 'd10' ? 0 : 1, pairSum = kind === 'd10' ? 9 : n + 1;
+  const order = faces.slice().sort((a, b) => (b.normal.y - a.normal.y) || (Math.atan2(a.normal.z, a.normal.x) - Math.atan2(b.normal.z, b.normal.x)));
+  let next = low, k = 0;
+  for (const f of order) {
+    if (f.value !== undefined) continue;
+    const g = faces.find((h) => h !== f && h.value === undefined && h.normal.dot(f.normal) < -0.99);
+    let a = next, b = pairSum - next; if (k % 2) [a, b] = [b, a];
+    f.value = a; if (g) g.value = b; next++; k++;
+  }
+}
+const GEO = {};
+function buildKind(kind, r) {
+  const raw = baseVerts(kind);
+  const maxLen = Math.max(...raw.map((p) => Math.hypot(...p)));
+  const P = raw.map((p) => new V3(p[0], p[1], p[2]).multiplyScalar(r / maxLen));
+  const faces = hull(P);
+  assignValues(kind, faces);
+  const pos = [], nor = [], uv = [];
+  const geo = new THREE.BufferGeometry();
+  let start = 0;
+  faces.forEach((f, fi) => {
+    const c = f.centroid, n = f.normal;
+    let far = f.idx[0], fd = -1;
+    for (const m of f.idx) { const d = P[m].distanceTo(c); if (d > fd + 1e-6) { fd = d; far = m; } }
+    const up = new V3().subVectors(P[far], c); up.addScaledVector(n, -up.dot(n)).normalize();
+    const right = new V3().crossVectors(up, n).normalize();
+    let inR = Infinity;
+    for (let a = 0; a < f.idx.length; a++) {
+      const p1 = P[f.idx[a]], p2 = P[f.idx[(a + 1) % f.idx.length]];
+      const e = new V3().subVectors(p2, p1), t = Math.max(0, Math.min(1, new V3().subVectors(c, p1).dot(e) / e.lengthSq()));
+      inR = Math.min(inR, c.distanceTo(p1.clone().addScaledVector(e, t)));
+    }
+    const R = fd;
+    const toUV = (p) => { const d = new V3().subVectors(p, c); return [0.5 + d.dot(right) / (2 * R), 0.5 + d.dot(up) / (2 * R)]; };
+    f.uvs = f.idx.map((m) => toUV(P[m])); f.R = R; f.inR = inR;
+    for (let a = 1; a < f.idx.length - 1; a++) {
+      for (const m of [f.idx[0], f.idx[a], f.idx[a + 1]]) { pos.push(P[m].x, P[m].y, P[m].z); nor.push(n.x, n.y, n.z); uv.push(...toUV(P[m])); }
+    }
+    const cnt = (f.idx.length - 2) * 3; geo.addGroup(start, cnt, fi); start += cnt;
+  });
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.computeBoundingSphere();
+  const vertValues = kind === 'd4' ? [1, 2, 3, 4] : null;
+  GEO[kind] = { P, faces, geo, r, vertValues };
+}
+['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].forEach((k) => buildKind(k, TYPES[k === 'd10' ? 'd10' : k].r));
+
+// ---------------- Face textures ----------------
+const TEX = 256;
+let setId = store.get('set', 'bone');
+if (!SETS.some((s) => s.id === setId)) setId = 'bone';
+const matCache = new Map();
+let anisotropy = 4;
+const DIE_FONT = (px) => `700 ${px}px Cinzel, 'Trajan Pro', Georgia, serif`;
+function drawNumber(ctx, text, x, y, px, ink, rot) {
+  ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot);
+  ctx.font = DIE_FONT(px); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 2; ctx.shadowOffsetY = 1;
+  ctx.fillStyle = ink; ctx.fillText(text, 0, px * 0.04);
+  ctx.shadowColor = 'transparent';
+  if (text === '6' || text === '9') { const w = ctx.measureText(text).width; ctx.fillRect(-w * 0.42, px * 0.42, w * 0.84, Math.max(2, px * 0.07)); }
+  ctx.restore();
+}
+function faceTexture(kind, face, labelMode, set) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = TEX;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = set.body; ctx.fillRect(0, 0, TEX, TEX);
+  const g = ctx.createRadialGradient(TEX / 2, TEX / 2, TEX * 0.1, TEX / 2, TEX / 2, TEX * 0.72);
+  g.addColorStop(0, 'rgba(255,255,255,0.05)'); g.addColorStop(1, 'rgba(0,0,0,0.12)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, TEX, TEX);
+  const geo = GEO[kind];
+  if (kind === 'd4') {
+    const px = TEX * (face.inR / (2 * face.R)) * 0.95;
+    face.idx.forEach((m, a) => {
+      const [u, v] = face.uvs[a];
+      const dx = u - 0.5, dy = -(v - 0.5);
+      const x = TEX * (0.5 + dx * 0.56), y = TEX * (0.5 + dy * 0.56);
+      drawNumber(ctx, String(geo.vertValues[m]), x, y, px, set.ink, Math.atan2(dx, -dy));
+    });
+  } else {
+    let text = String(face.value);
+    if (labelMode === 'tens') text = face.value === 0 ? '00' : String(face.value * 10);
+    const box = TEX * (face.inR / face.R);
+    let px = box * (kind === 'd6' ? 0.72 : kind === 'd20' ? 0.62 : 0.66);
+    ctx.font = DIE_FONT(px);
+    const w = ctx.measureText(text).width, maxW = box * 0.92;
+    if (w > maxW) px *= maxW / w;
+    drawNumber(ctx, text, TEX / 2, TEX / 2 + (kind === 'd10' ? -TEX * 0.04 : 0), px, set.ink, 0);
+  }
+  const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; t.anisotropy = anisotropy;
+  return t;
+}
+function materialsFor(kind, labelMode) {
+  const key = `${kind}|${labelMode}|${setId}`;
+  if (matCache.has(key)) return matCache.get(key);
+  const set = SETS.find((s) => s.id === setId);
+  const mats = GEO[kind].faces.map((f) => new THREE.MeshPhysicalMaterial({ map: faceTexture(kind, f, labelMode, set), roughness: 0.34, metalness: 0, clearcoat: 0.7, clearcoatRoughness: 0.22 }));
+  matCache.set(key, mats);
+  return mats;
+}
+function rebuildMaterials() {
+  for (const mats of matCache.values()) mats.forEach((m) => { m.map.dispose(); m.dispose(); });
+  matCache.clear();
+  for (const d of dice) d.mesh.material = materialsFor(d.kind, d.label);
+}
+
+// ---------------- Scene ----------------
+const stage = $('stage'), canvas = $('c');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); }
+catch (e) { $('loadMsg').textContent = 'This browser could not start WebGL, which the dice need.'; return; }
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x111315, 1);
+anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 200);
+scene.add(new THREE.HemisphereLight(0xfff1dc, 0x10201f, 0.55));
+const key = new THREE.DirectionalLight(0xfff0d8, 1.25);
+key.position.set(-7, 22, 9); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0006; key.shadow.normalBias = 0.02;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fc3ff, 0.28); fill.position.set(9, 10, -6); scene.add(fill);
+const rimGroup = new THREE.Group(); scene.add(rimGroup);
+
+function noiseTexture(base, amt, size = 256) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const ctx = cv.getContext('2d'); ctx.fillStyle = base; ctx.fillRect(0, 0, size, size);
+  const img = ctx.getImageData(0, 0, size, size), d = img.data;
+  for (let i = 0; i < d.length; i += 4) { const n = (Math.random() - 0.5) * amt; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  ctx.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; return t;
+}
+function woodTexture() {
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 64;
+  const ctx = cv.getContext('2d'); ctx.fillStyle = '#4A2F1D'; ctx.fillRect(0, 0, 512, 64);
+  for (let k = 0; k < 70; k++) {
+    ctx.strokeStyle = `rgba(${Math.random() < 0.5 ? '20,10,4' : '120,80,45'},${rand(0.08, 0.25)})`; ctx.lineWidth = rand(0.5, 2.2);
+    ctx.beginPath(); const y = rand(0, 64); ctx.moveTo(0, y);
+    for (let x = 0; x <= 512; x += 32) ctx.lineTo(x, y + Math.sin(x / rand(30, 90) + k) * rand(1, 4));
+    ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; return t;
+}
+const feltTex = noiseTexture('#1D3A3C', 22);
+const feltMat = new THREE.MeshStandardMaterial({ map: feltTex, roughness: 1, metalness: 0 });
+const woodMat = new THREE.MeshStandardMaterial({ map: woodTexture(), roughness: 0.55, metalness: 0.02 });
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), feltMat);
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+// ---------------- Physics ----------------
+const world = new CANNON.World();
+world.gravity.set(0, -42, 0);
+world.broadphase = new CANNON.NaiveBroadphase();
+world.solver.iterations = 14;
+world.allowSleep = true;
+const mDie = new CANNON.Material('die'), mFloor = new CANNON.Material('floor'), mWall = new CANNON.Material('wall');
+world.addContactMaterial(new CANNON.ContactMaterial(mDie, mFloor, { friction: 0.28, restitution: 0.32 }));
+world.addContactMaterial(new CANNON.ContactMaterial(mDie, mWall, { friction: 0.06, restitution: 0.55 }));
+world.addContactMaterial(new CANNON.ContactMaterial(mDie, mDie, { friction: 0.1, restitution: 0.42 }));
+const floorBody = new CANNON.Body({ mass: 0, material: mFloor });
+floorBody.addShape(new CANNON.Plane()); floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+world.add(floorBody);
+let wallBodies = [];
+const RIM_H = 1.4, RIM_T = 0.8, CEIL = 18;
+let trayW = 20, trayD = 12.5;
+
+function buildTray(w, d) {
+  trayW = w; trayD = d;
+  for (const b of wallBodies) world.remove(b);
+  wallBodies = [];
+  const addPlane = (axis, angle, pos) => {
+    const b = new CANNON.Body({ mass: 0, material: mWall }); b.addShape(new CANNON.Plane());
+    b.quaternion.setFromAxisAngle(axis, angle); b.position.set(...pos); world.add(b); wallBodies.push(b);
+  };
+  const Y = new CANNON.Vec3(0, 1, 0), X = new CANNON.Vec3(1, 0, 0);
+  addPlane(Y, Math.PI / 2, [-w / 2, 0, 0]);
+  addPlane(Y, -Math.PI / 2, [w / 2, 0, 0]);
+  addPlane(Y, 0, [0, 0, -d / 2]);
+  addPlane(Y, Math.PI, [0, 0, d / 2]);
+  addPlane(X, Math.PI / 2, [0, CEIL, 0]);
+  floor.scale.set(w + 0.02, d + 0.02, 1);
+  feltTex.repeat.set(w / 4, d / 4);
+  while (rimGroup.children.length) { const m = rimGroup.children.pop(); m.geometry.dispose(); }
+  const rim = (sx, sz, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, RIM_H, sz), woodMat); m.position.set(x, RIM_H / 2, z); m.castShadow = true; m.receiveShadow = true; rimGroup.add(m); };
+  rim(w + 2 * RIM_T, RIM_T, 0, -d / 2 - RIM_T / 2);
+  rim(w + 2 * RIM_T, RIM_T, 0, d / 2 + RIM_T / 2);
+  rim(RIM_T, d, -w / 2 - RIM_T / 2, 0);
+  rim(RIM_T, d, w / 2 + RIM_T / 2, 0);
+  const s = key.shadow.camera, half = Math.max(w, d) / 2 + 3;
+  s.left = -half; s.right = half; s.top = half; s.bottom = -half; s.near = 1; s.far = 60; s.updateProjectionMatrix();
+  for (const die of dice) {
+    const p = die.body.position;
+    p.x = Math.max(-w / 2 + 1, Math.min(w / 2 - 1, p.x)); p.z = Math.max(-d / 2 + 1, Math.min(d / 2 - 1, p.z));
+    die.body.wakeUp();
+  }
+}
+
+// ---------------- Dice ----------------
+const dice = [];
+let groupSeq = 1, rollPending = false;
+function makeBody(kind) {
+  const g = GEO[kind];
+  const body = new CANNON.Body({ mass: 1, material: mDie });
+  if (kind === 'd6') { const h = g.r / Math.sqrt(3); body.addShape(new CANNON.Box(new CANNON.Vec3(h, h, h))); }
+  else body.addShape(new CANNON.ConvexPolyhedron(g.P.map((p) => new CANNON.Vec3(p.x, p.y, p.z)), g.faces.map((f) => f.idx.slice())));
+  body.linearDamping = 0.08; body.angularDamping = 0.12;
+  body.allowSleep = true; body.sleepSpeedLimit = 0.12; body.sleepTimeLimit = 0.5;
+  return body;
+}
+function addDie(type, opts = {}) {
+  if (dice.length >= 40) { toast('The tray holds up to 40 dice'); return null; }
+  const def = TYPES[type];
+  const kind = def.kind;
+  const label = type === 'd100' ? opts.role : 'num';
+  const mesh = new THREE.Mesh(GEO[kind].geo, materialsFor(kind, label));
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const body = makeBody(kind);
+  const d = { type, kind, label, role: opts.role || null, group: opts.group || 0, mesh, body, still: 0, nudges: 0, value: null };
+  mesh.userData.die = d;
+  body.addEventListener('collide', (e) => onCollide(d, e));
+  scene.add(mesh); world.add(body); dice.push(d);
+  return d;
+}
+function addType(type) {
+  if (type === 'd100') {
+    const g = groupSeq++;
+    const a = addDie('d100', { role: 'tens', group: g }); if (!a) return [];
+    const b = addDie('d100', { role: 'units', group: g }); if (!b) { removeDie(a, true); return []; }
+    return [a, b];
+  }
+  const d = addDie(type); return d ? [d] : [];
+}
+function removeDie(d, silent) {
+  if (held && held.die === d) release(null);
+  const pair = d.type === 'd100' ? dice.filter((x) => x.group === d.group) : [d];
+  for (const x of pair) { scene.remove(x.mesh); world.remove(x.body); dice.splice(dice.indexOf(x), 1); const tag = tags.get(x); if (tag) { tag.remove(); tags.delete(x); } }
+  syncCounts();
+  if (!silent) { rollPending = dice.length > 0; if (!dice.length) showEmpty(); }
+}
+function clearTray() { while (dice.length) removeDie(dice[0], true); showEmpty(); rollPending = false; }
+
+function throwDice(list) {
+  const cols = Math.max(1, Math.floor((trayW - 3) / 2));
+  const n = list.length, used = Math.min(n, cols);
+  list.forEach((d, k) => {
+    const row = Math.floor(k / cols), col = k % cols;
+    const x = -((used - 1) * 2) / 2 + col * 2 + rand(-0.3, 0.3);
+    const z = trayD / 2 - 1.5 - (row % 2) * 1.8;
+    const y = 2.6 + Math.floor(row / 2) * 2.2 + rand(0, 0.6);
+    const b = d.body;
+    b.position.set(x, y, z);
+    b.quaternion.setFromEuler(rand(0, 6.28), rand(0, 6.28), rand(0, 6.28));
+    const speed = rand(15, 23) * Math.sqrt(trayD / 12.5);
+    b.velocity.set(rand(-3.5, 3.5) - x * 0.15, rand(1.5, 5), -speed);
+    b.angularVelocity.set(rand(-20, 20), rand(-20, 20), rand(-20, 20));
+    b.wakeUp(); d.still = 0; d.nudges = 0; d.value = null;
+  });
+  rollPending = true; hideTags(); showRolling();
+}
+function rollAll() { if (!dice.length) { toast('Add some dice first'); return; } ensureAudio(); throwDice(dice.slice()); }
+
+// ---------------- Reading results ----------------
+const tmpQ = new THREE.Quaternion(), tmpV = new V3();
+function readDie(d) {
+  const g = GEO[d.kind], q = d.body.quaternion;
+  tmpQ.set(q.x, q.y, q.z, q.w);
+  if (d.kind === 'd4') {
+    let best = -Infinity, val = 1, flat = -Infinity;
+    g.P.forEach((p, m) => { const y = tmpV.copy(p).applyQuaternion(tmpQ).y; if (y > best) { best = y; val = g.vertValues[m]; } });
+    for (const f of g.faces) flat = Math.max(flat, -tmpV.copy(f.normal).applyQuaternion(tmpQ).y);
+    return { value: val, flat };
+  }
+  let best = -Infinity, val = 0;
+  for (const f of g.faces) { const y = tmpV.copy(f.normal).applyQuaternion(tmpQ).y; if (y > best) { best = y; val = f.value; } }
+  return { value: val, flat: best };
+}
+function computeItems() {
+  const items = [], seen = new Set();
+  for (const d of dice) {
+    if (d.type === 'd100') {
+      if (seen.has(d.group)) continue; seen.add(d.group);
+      const pair = dice.filter((x) => x.group === d.group);
+      const t = pair.find((x) => x.role === 'tens'), u = pair.find((x) => x.role === 'units');
+      const tv = t ? t.value * 10 : 0, uv = u ? u.value : 0;
+      const v = tv + uv === 0 ? 100 : tv + uv;
+      items.push({ type: 'd100', value: v, dice: pair, detail: `${tv === 0 ? '00' : tv}+${uv}` });
+    } else items.push({ type: d.type, value: d.type === 'd10' && d.value === 0 ? 10 : d.value, dice: [d] });
+  }
+  items.forEach((it) => { it.kept = true; });
+  const mode = $('mode').value;
+  if (items.length > 1 && mode !== 'sum') {
+    const sorted = items.slice().sort((a, b) => a.value - b.value);
+    if (mode === 'kh') items.forEach((it) => { it.kept = it === sorted[sorted.length - 1]; });
+    else if (mode === 'kl') items.forEach((it) => { it.kept = it === sorted[0]; });
+    else if (mode === 'dl') sorted[0].kept = false;
+  }
+  return items;
+}
+function exprString(items) {
+  const counts = {}; items.forEach((it) => { counts[it.type] = (counts[it.type] || 0) + 1; });
+  let s = ORDER.filter((t) => counts[t]).map((t) => `${counts[t]}${t}`).join(' + ');
+  const mode = $('mode').value;
+  if (items.length > 1 && mode !== 'sum') s += mode === 'kh' ? ' keep highest' : mode === 'kl' ? ' keep lowest' : ' drop lowest';
+  const mod = modifier();
+  if (mod) s += mod > 0 ? ` + ${mod}` : ` − ${-mod}`;
+  return s;
+}
+const modifier = () => { const v = parseInt($('mod').value, 10); return Number.isFinite(v) ? Math.max(-99, Math.min(99, v)) : 0; };
+let lastItems = null;
+function showResult(items, record) {
+  lastItems = items;
+  const mod = modifier();
+  const total = items.filter((it) => it.kept).reduce((a, it) => a + it.value, 0) + mod;
+  const keptD20 = items.filter((it) => it.kept && it.type === 'd20');
+  const nat = keptD20.length === 1 && items.filter((it) => it.type === 'd20').length === items.length ? (keptD20[0].value === 20 ? 'crit' : keptD20[0].value === 1 ? 'fail' : '') : '';
+  $('rExpr').textContent = exprString(items);
+  const tot = $('rTotal'); tot.textContent = total; tot.classList.remove('rolling');
+  $('rParts').innerHTML = items.map((it) => {
+    const cls = !it.kept ? 'drop' : it.type === 'd20' && it.value === 20 ? 'crit' : it.type === 'd20' && it.value === 1 ? 'fail' : '';
+    return `<span class="chip ${cls}">${it.type} ${it.value}${it.detail ? ` <span style="opacity:.6">(${it.detail})</span>` : ''}</span>`;
+  }).join('') + (mod ? `<span class="chip">${mod > 0 ? '+' : '−'}${Math.abs(mod)}</span>` : '');
+  const call = $('rCall');
+  call.hidden = !nat; call.className = 'callout ' + nat; call.textContent = nat === 'crit' ? 'Natural 20' : nat === 'fail' ? 'Natural 1' : '';
+  showTags(items);
+  if (record) addHistory({ ex: exprString(items), total, vals: items.map((it) => (it.kept ? '' : '~') + it.value).join(', '), nat });
+}
+function showRolling() {
+  const items = [], seen = new Set();
+  for (const d of dice) { if (d.type === 'd100') { if (seen.has(d.group)) continue; seen.add(d.group); } items.push({ type: d.type }); }
+  if (items.length) $('rExpr').textContent = 'Rolling ' + exprString(items);
+  $('rTotal').classList.add('rolling'); $('rCall').hidden = true;
+}
+function showEmpty() { lastItems = null; $('rExpr').textContent = 'Empty tray'; $('rTotal').textContent = '–'; $('rTotal').classList.remove('rolling'); $('rParts').innerHTML = ''; $('rCall').hidden = true; hideTags(); }
+
+let history = store.get('history', []);
+function addHistory(h) { history.unshift(h); history = history.slice(0, 30); store.set('history', history); renderHistory(); }
+function renderHistory() {
+  $('histEmpty').hidden = history.length > 0;
+  $('history').innerHTML = history.map((h) => `<li><span class="ex">${esc(h.ex)}</span><span class="tot ${h.nat || ''}">${h.total}</span><span class="vals">${esc(h.vals.replace(/~(\d+)/g, '($1)'))}</span></li>`).join('');
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Floating value tags
+const tags = new Map();
+let tagsVisible = false;
+function showTags(items) {
+  for (const it of items) for (const d of it.dice) {
+    let tag = tags.get(d);
+    if (!tag) { tag = document.createElement('span'); tag.className = 'tag'; $('labels').appendChild(tag); tags.set(d, tag); }
+    tag.textContent = d.type === 'd100' ? (d.role === 'tens' ? (d.value === 0 ? '00' : String(d.value * 10)) : String(d.value)) : String(it.value);
+    const crit = d.type === 'd20' && it.value === 20, fail = d.type === 'd20' && it.value === 1;
+    tag.className = 'tag' + (!it.kept ? ' drop' : crit ? ' crit' : fail ? ' fail' : '');
+    tag.hidden = false;
+  }
+  tagsVisible = true; placeTags();
+}
+function hideTags() { tagsVisible = false; for (const t of tags.values()) t.hidden = true; }
+function placeTags() {
+  if (!tagsVisible) return;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  for (const [d, tag] of tags) {
+    tmpV.set(d.body.position.x, d.body.position.y + d.mesh.geometry.boundingSphere.radius + 0.25, d.body.position.z).project(camera);
+    tag.style.left = ((tmpV.x + 1) / 2) * w + 'px'; tag.style.top = ((1 - tmpV.y) / 2) * h + 'px';
+  }
+}
+
+// ---------------- Sound ----------------
+let actx = null, noiseBuf = null, lastClick = 0;
+function ensureAudio() {
+  if (actx || !$('sound').checked) return;
+  try {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.08), actx.sampleRate);
+    const ch = noiseBuf.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 3);
+  } catch (e) { actx = null; }
+}
+function onCollide(d, e) {
+  if (!actx || !$('sound').checked) return;
+  let v = 0;
+  try { v = Math.abs(e.contact.getImpactVelocityAlongNormal()); } catch (err) { v = d.body.velocity.length(); }
+  const now = actx.currentTime;
+  if (v < 1.2 || now - lastClick < 0.022) return;
+  lastClick = now;
+  const otherDie = e.body && e.body.material === mDie;
+  const src = actx.createBufferSource(); src.buffer = noiseBuf; src.playbackRate.value = rand(0.85, 1.25);
+  const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = otherDie ? rand(2600, 4200) : rand(900, 1700); bp.Q.value = otherDie ? 4 : 1.6;
+  const g = actx.createGain(); g.gain.value = Math.min(0.55, (v / 22) * (otherDie ? 0.9 : 0.6));
+  src.connect(bp); bp.connect(g); g.connect(actx.destination); src.start();
+}
+
+// ---------------- Grab and throw ----------------
+const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
+const LIFT = 3.2;
+const jointBody = new CANNON.Body({ mass: 0 }); jointBody.collisionFilterGroup = 0; jointBody.collisionFilterMask = 0; world.add(jointBody);
+let held = null;
+function setNDC(e) { const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); raycaster.setFromCamera(ndc, camera); }
+function pick(e) { setNDC(e); const hit = raycaster.intersectObjects(dice.map((d) => d.mesh), false)[0]; return hit ? { die: hit.object.userData.die, point: hit.point } : null; }
+function planePoint(e, y) {
+  setNDC(e); const o = raycaster.ray.origin, dir = raycaster.ray.direction;
+  if (Math.abs(dir.y) < 1e-4) return null;
+  const t = (y - o.y) / dir.y; if (t < 0) return null;
+  const p = o.clone().addScaledVector(dir, t);
+  p.x = Math.max(-trayW / 2 + 1, Math.min(trayW / 2 - 1, p.x)); p.z = Math.max(-trayD / 2 + 1, Math.min(trayD / 2 - 1, p.z));
+  return p;
+}
+function startGrab(d, point, e) {
+  ensureAudio();
+  const b = d.body; b.wakeUp();
+  const pw = new CANNON.Vec3(point.x, point.y, point.z);
+  const local = b.pointToLocalFrame(pw);
+  jointBody.position.copy(pw);
+  const c = new CANNON.PointToPointConstraint(b, local, jointBody, new CANNON.Vec3(0, 0, 0), 600);
+  world.addConstraint(c);
+  b.angularDamping = 0.6; b.linearDamping = 0.35;
+  const target = new V3(point.x, LIFT, point.z);
+  held = { die: d, c, target, samples: [{ t: performance.now(), p: target.clone() }] };
+  canvas.style.cursor = 'grabbing';
+  rollPending = true; hideTags(); showRolling();
+}
+function moveGrab(e) {
+  const p = planePoint(e, LIFT); if (!p) return;
+  held.target.copy(p);
+  const now = performance.now();
+  held.samples.push({ t: now, p: p.clone() });
+  while (held.samples.length > 2 && now - held.samples[0].t > 110) held.samples.shift();
+}
+function release() {
+  if (!held) return;
+  const { die, c, samples } = held;
+  world.removeConstraint(c);
+  const b = die.body; b.angularDamping = 0.12; b.linearDamping = 0.08;
+  const now = performance.now();
+  const recent = samples.filter((s) => now - s.t < 140);
+  if (recent.length >= 2) {
+    const a = recent[0], z = recent[recent.length - 1], dt = Math.max(0.016, (z.t - a.t) / 1000);
+    const v = new V3().subVectors(z.p, a.p).divideScalar(dt);
+    let sp = v.length();
+    if (sp > 3) {
+      if (sp > 48) { v.multiplyScalar(48 / sp); sp = 48; }
+      b.velocity.set(v.x * 1.1, Math.min(10, 2 + sp * 0.12), v.z * 1.1);
+      const ax = new V3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize().multiplyScalar(Math.min(32, 6 + sp * 0.8));
+      b.angularVelocity.set(ax.x, ax.y, ax.z);
+    }
+  }
+  b.wakeUp(); die.still = 0; die.nudges = 0;
+  held = null; canvas.style.cursor = 'default';
+}
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+canvas.addEventListener('pointerdown', (e) => {
+  const hit = pick(e);
+  if (e.button === 2) { if (hit) { removeDie(hit.die); if (dice.length) settleCheckSoon(); } return; }
+  if (e.button !== 0 || !hit) return;
+  e.preventDefault();
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  startGrab(hit.die, hit.point, e);
+  if (e.pointerType !== 'mouse') startPress(hit.die, e);
+});
+// Long press (touch and pen): hold a die still for 0.6 s to take it out of the tray.
+const PRESS_MS = 600;
+let press = null;
+function startPress(die, e) {
+  cancelPress();
+  const r = stage.getBoundingClientRect(), ring = $('pressRing');
+  ring.style.left = e.clientX - r.left + 'px'; ring.style.top = e.clientY - r.top + 'px';
+  ring.style.setProperty('--p', '0%'); ring.hidden = false;
+  press = { die, x: e.clientX, y: e.clientY, t0: performance.now() };
+  const tick = () => {
+    if (!press) return;
+    const f = (performance.now() - press.t0) / PRESS_MS;
+    if (f >= 1) { const d = press.die; cancelPress(); release(); removeDie(d); try { navigator.vibrate && navigator.vibrate(15); } catch (err) { /* no haptics */ } toast(`Removed a ${d.type}`); return; }
+    ring.style.setProperty('--p', Math.round(f * 100) + '%');
+    press.raf = requestAnimationFrame(tick);
+  };
+  press.raf = requestAnimationFrame(tick);
+}
+function cancelPress() { if (press) cancelAnimationFrame(press.raf); press = null; $('pressRing').hidden = true; }
+let hoverT = 0;
+canvas.addEventListener('pointermove', (e) => {
+  if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) cancelPress();
+  if (held) { moveGrab(e); return; }
+  const now = performance.now(); if (now - hoverT < 60 || e.pointerType !== 'mouse') return; hoverT = now;
+  canvas.style.cursor = pick(e) ? 'grab' : 'default';
+});
+canvas.addEventListener('pointerup', () => { cancelPress(); release(); });
+canvas.addEventListener('pointercancel', () => { cancelPress(); release(); });
+function settleCheckSoon() { rollPending = true; }
+
+// ---------------- Camera fit ----------------
+let lastShape = '';
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  const shape = camera.aspect >= 1.15 ? 'wide' : camera.aspect <= 0.85 ? 'tall' : 'square';
+  if (shape !== lastShape) {
+    lastShape = shape;
+    if (shape === 'wide') buildTray(20, 12.5); else if (shape === 'tall') buildTray(11.5, 17); else buildTray(15, 14);
+  }
+  const dir = new V3(0, 1, 0.56).normalize();
+  const corners = [];
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const y of [0, RIM_H]) corners.push(new V3(sx * (trayW / 2 + RIM_T), y, sz * (trayD / 2 + RIM_T)));
+  let lo = 5, hi = 200;
+  for (let k = 0; k < 30; k++) {
+    const mid = (lo + hi) / 2;
+    camera.position.copy(dir).multiplyScalar(mid); camera.lookAt(0, 0, 0.4); camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    const fits = corners.every((c) => { const p = c.clone().project(camera); return Math.abs(p.x) < 0.97 && Math.abs(p.y) < 0.95; });
+    if (fits) hi = mid; else lo = mid;
+  }
+  camera.position.copy(dir).multiplyScalar(hi); camera.lookAt(0, 0, 0.4); camera.updateProjectionMatrix();
+  placeTags();
+}
+new ResizeObserver(resize).observe(canvas);
+
+// ---------------- Main loop ----------------
+let lastT = performance.now();
+function loop(t) {
+  const dt = Math.min(0.05, (t - lastT) / 1000); lastT = t;
+  if (held) {
+    const jp = jointBody.position, tg = held.target, k = Math.min(1, dt * 22);
+    jp.x += (tg.x - jp.x) * k; jp.y += (tg.y - jp.y) * k; jp.z += (tg.z - jp.z) * k;
+    held.die.body.wakeUp();
+  }
+  world.step(1 / 120, dt, 8);
+  let moving = !!held;
+  for (const d of dice) {
+    const b = d.body;
+    d.mesh.position.set(b.position.x, b.position.y, b.position.z);
+    d.mesh.quaternion.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
+    if (b.position.y < -4 || Math.abs(b.position.x) > trayW || Math.abs(b.position.z) > trayD) { throwDice([d]); continue; }
+    const v = b.velocity.length(), w = b.angularVelocity.length();
+    if (v < 0.07 && w < 0.12) d.still++; else d.still = 0;
+    if (d.still < 14) moving = true;
+  }
+  if (!moving && rollPending && dice.length) {
+    let nudged = false;
+    for (const d of dice) {
+      const r = readDie(d);
+      d.value = r.value;
+      if (r.flat < 0.92 && d.nudges < 4) {
+        d.nudges++; nudged = true;
+        d.body.velocity.set(rand(-1.5, 1.5), rand(4, 6), rand(-1.5, 1.5));
+        d.body.angularVelocity.set(rand(-8, 8), rand(-8, 8), rand(-8, 8)); d.body.wakeUp(); d.still = 0;
+      }
+    }
+    if (!nudged) { rollPending = false; showResult(computeItems(), true); }
+  }
+  renderer.render(scene, camera);
+  placeTags();
+  requestAnimationFrame(loop);
+}
+
+// ---------------- UI ----------------
+let toastTimer = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+function syncCounts() { syncQueue(); }
+
+// ---------------- Roll queue ----------------
+let queue = [];
+const queueCounts = () => { const c = {}; queue.forEach((t) => { c[t] = (c[t] || 0) + 1; }); return c; };
+const queueBodies = () => queue.reduce((a, t) => a + (t === 'd100' ? 2 : 1), 0);
+const poolNotation = () => { const c = queueCounts(); return ORDER.filter((t) => c[t]).map((t) => `${c[t]}${t}`).join(' + '); };
+function syncQueue() {
+  const c = queueCounts();
+  document.querySelectorAll('.die-btn').forEach((b) => { const n = c[b.dataset.t] || 0; const el = b.querySelector('.count'); el.hidden = !n; el.textContent = n; });
+  $('poolChips').innerHTML = queue.length
+    ? ORDER.filter((t) => c[t]).map((t) => `<button class="qchip" data-t="${t}" title="Take one ${t} off">${c[t]}${t}<span aria-hidden="true">×</span></button>`).join('')
+    : '<span class="hint">Nothing queued. Click dice above to build a roll.</span>';
+  $('bPoolClear').hidden = !queue.length;
+  const r = $('bRoll');
+  r.textContent = queue.length ? `Roll ${poolNotation()}` : 'Reroll tray';
+  r.title = queue.length ? 'Throw the queued dice (Space)' : 'Throw every die in the tray again (Space)';
+}
+function enqueue(t) {
+  if (queueBodies() + (t === 'd100' ? 2 : 1) > 40) { toast('A roll can hold up to 40 dice'); return; }
+  queue.push(t); syncQueue();
+}
+function dequeue(t) { const i = queue.lastIndexOf(t); if (i >= 0) queue.splice(i, 1); syncQueue(); }
+function rollQueue() {
+  ensureAudio();
+  if (!queue.length) { rollAll(); return; }
+  if (!$('keepTray').checked) clearTray();
+  const added = [];
+  for (const t of queue) added.push(...addType(t));
+  queue = []; syncQueue();
+  if (added.length) throwDice(added);
+}
+function parseNotation(str) {
+  let s = String(str).toLowerCase().replace(/\s+/g, '').replace(/d%/g, 'd100');
+  let mode = 'sum';
+  s = s.replace(/(kh1?|kl1?|dl1?|advantage|adv|disadvantage|dis)/g, (m) => { mode = /^(kh|adv)/.test(m) ? 'kh' : /^(kl|dis)/.test(m) ? 'kl' : 'dl'; return ''; });
+  const re = /([+-])?(?:(\d*)d(100|20|12|10|8|6|4)|(\d+))/g;
+  const out = []; let mod = 0, pos = 0, m;
+  while ((m = re.exec(s)) && m.index === pos && m[0]) {
+    pos = re.lastIndex;
+    if (m[3]) {
+      if (m[1] === '-') throw new Error('Dice can be added but not subtracted. Use a negative number for a penalty, like 1d20-1.');
+      const n = m[2] === '' ? 1 : parseInt(m[2], 10);
+      for (let k = 0; k < n && k < 40; k++) out.push('d' + m[3]);
+    } else mod += (m[1] === '-' ? -1 : 1) * parseInt(m[4], 10);
+  }
+  if (pos !== s.length || !out.length) throw new Error('Try something like 2d20+5, 4d6 dl1, 8d6 or 1d100.');
+  if (out.reduce((a, t) => a + (t === 'd100' ? 2 : 1), 0) > 40) throw new Error('A roll can hold up to 40 dice.');
+  return { dice: out, mod: Math.max(-99, Math.min(99, mod)), mode };
+}
+function rollNotation() {
+  const txt = $('notation').value.trim(); if (!txt) { $('notation').focus(); return; }
+  let r;
+  try { r = parseNotation(txt); } catch (e) { toast(e.message); return; }
+  queue = r.dice; $('mod').value = r.mod; store.set('mod', r.mod); $('mode').value = r.mode; store.set('mode', r.mode);
+  rollQueue();
+}
+const grid = $('diceGrid');
+for (const t of ORDER) {
+  const b = document.createElement('button'); b.className = 'die-btn'; b.dataset.t = t; b.title = `Queue a ${t} (Shift-click to toss it in now)`;
+  b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[t]}</svg><span>${t}</span><b class="count" hidden>0</b>`;
+  b.addEventListener('click', (e) => {
+    ensureAudio();
+    if (e.shiftKey) { const added = addType(t); if (added.length) throwDice(added); return; }
+    enqueue(t);
+  });
+  b.addEventListener('contextmenu', (e) => { e.preventDefault(); dequeue(t); });
+  grid.appendChild(b);
+}
+const pre = $('presets');
+for (const p of PRESETS) {
+  const b = document.createElement('button'); b.className = 'btn';
+  b.innerHTML = `<span>${p.name}</span><small>${p.note}</small>`;
+  b.addEventListener('click', () => {
+    ensureAudio(); clearTray(); $('mode').value = p.mode; store.set('mode', p.mode);
+    const all = []; p.dice.forEach((t) => all.push(...addType(t)));
+    syncCounts(); throwDice(all);
+  });
+  pre.appendChild(b);
+}
+const setsEl = $('sets');
+for (const s of SETS) {
+  const b = document.createElement('button'); b.className = 'set'; b.style.background = s.body; b.style.color = s.ink; b.textContent = '20';
+  b.title = s.name; b.setAttribute('aria-label', s.name); b.setAttribute('aria-pressed', String(s.id === setId));
+  b.addEventListener('click', () => { setId = s.id; store.set('set', s.id); setsEl.querySelectorAll('.set').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); rebuildMaterials(); });
+  setsEl.appendChild(b);
+}
+$('bRoll').addEventListener('click', rollQueue);
+$('poolChips').addEventListener('click', (e) => { const c = e.target.closest('.qchip'); if (c) dequeue(c.dataset.t); });
+$('bPoolClear').addEventListener('click', () => { queue = []; syncQueue(); });
+$('bNotation').addEventListener('click', rollNotation);
+$('notation').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); rollNotation(); } });
+$('keepTray').checked = store.get('keepTray', false);
+$('keepTray').addEventListener('change', () => store.set('keepTray', $('keepTray').checked));
+$('bClear').addEventListener('click', clearTray);
+$('mode').value = store.get('mode', 'sum');
+$('mode').addEventListener('change', () => { store.set('mode', $('mode').value); if (lastItems && !rollPending) showResult(computeItems(), false); });
+$('mod').value = store.get('mod', 0);
+const modChanged = () => { $('mod').value = modifier(); store.set('mod', modifier()); if (lastItems && !rollPending) showResult(computeItems(), false); };
+$('mod').addEventListener('change', modChanged);
+$('modMinus').addEventListener('click', () => { $('mod').value = modifier() - 1; modChanged(); });
+$('modPlus').addEventListener('click', () => { $('mod').value = modifier() + 1; modChanged(); });
+$('sound').checked = store.get('sound', true);
+$('sound').addEventListener('change', () => { store.set('sound', $('sound').checked); if ($('sound').checked) ensureAudio(); });
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input, select, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === ' ' || e.key === 'r' || e.key === 'R') { e.preventDefault(); rollQueue(); }
+  else if (e.key === 'c' || e.key === 'C') clearTray();
+});
+renderHistory();
+syncQueue();
+
+// ---------------- Start ----------------
+function start() {
+  $('loadMsg').hidden = true;
+  resize();
+  const first = [];
+  ['d20', 'd12', 'd10', 'd8', 'd6', 'd4'].forEach((t) => first.push(...addType(t)));
+  syncCounts();
+  throwDice(first);
+  requestAnimationFrame((t) => { lastT = t; loop(t); });
+}
+const fontReady = document.fonts && document.fonts.load ? Promise.race([document.fonts.load(DIE_FONT(64)), new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
+fontReady.then(() => {
+  const hadFont = !document.fonts || document.fonts.check(DIE_FONT(64));
+  start();
+  if (!hadFont) document.fonts.ready.then(() => { if (document.fonts.check(DIE_FONT(64))) rebuildMaterials(); });
+});
+})();
+</script>
+
+</body>
+</html>

@@ -15,9 +15,9 @@ Project: `orrery-cabinet` (`skcjspvcinvknkqvgnfk`).
 - No secret key belongs in this repository. The publishable browser key is intentionally public. The server uses Supabase's built-in service-role environment variable.
 - The Edge Function has gateway JWT verification disabled because the archive is public and editing authentication is performed inside the function.
 
-## Remaining account setup
+## Hosting and owner sign-in
 
-1. Repository Settings → Pages → Source: GitHub Actions. Keep custom domain `www.joshpila.com` and enforce HTTPS.
+1. GitHub Pages is configured to deploy through GitHub Actions, with custom domain `www.joshpila.com` and HTTPS enforced. The first deployment succeeded on 2026-11-01.
 2. Supabase Authentication URL configuration is saved: Site URL `https://www.joshpila.com`; allowed redirect URL `https://www.joshpila.com/cocktails/**`.
 3. Use Owner sign-in → Email me a sign-in link, then follow the email. The Supabase account login is separate from this website's Auth user. If the default Supabase mail service does not permit the owner's address, configure SMTP or an appropriate supported Auth provider.
 4. From the deployed card, upload and replace a test photo, refresh, then verify in a separate signed-out browser. Complete this real-account test before considering owner access verified.
@@ -41,5 +41,6 @@ The original GitHub root index remains in Git history. Switch Pages back to its 
 - All 65 original D&D/Games files match the assembled deployment byte-for-byte.
 - Browser: cabinet opens/closes, year links open the embedded calendar, the recovered Daiquiri photo loads at 1844px wide with the correct variant, Return to Orrery navigates correctly.
 - Browser QA used bundled data because the internal preview origin is intentionally outside the production API CORS allowlist. The browser lacks WebGL, so Orrery animation could not be visually verified.
-- Real owner sign-in and authenticated live upload remain unverified pending Auth URL configuration and owner login. No test accounts or test images were added to production.
-- GitHub connection is verified. Publication is in progress through its repository tools.
+- Real owner sign-in and authenticated live upload remain unverified pending the owner's first login. Auth URLs are configured. No test accounts or test images were added to production.
+- GitHub PR #1 merged; the production build and Pages deployment passed. The live homepage, cabinet, archive, SDK, and recovered Daiquiri photo return HTTP 200. The live D&D and Games index files match the originals byte-for-byte.
+- Live browser checks passed for ascending year navigation, embedded 2020 calendar, the 1844px Daiquiri photograph, cabinet close, and Return to Orrery. The QA browser lacks WebGL, so the homepage's fallback navigation was verified instead of the 3D animation.

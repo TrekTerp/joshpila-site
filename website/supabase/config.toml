@@ -1,0 +1,5 @@
+project_id = "orrery-cabinet"
+[functions.cocktails]
+# The function validates each editing token using auth.getUser before any write.
+# Public archive/years requests intentionally work without a signed-in user.
+verify_jwt = false

@@ -1,0 +1,51 @@
+[
+  {
+    "year": 2026,
+    "status": "Upcoming",
+    "photographed": false,
+    "days": 0,
+    "photos": 0
+  },
+  {
+    "year": 2025,
+    "status": "Archive",
+    "photographed": true,
+    "days": 24,
+    "photos": 29
+  },
+  {
+    "year": 2024,
+    "status": "Archive",
+    "photographed": true,
+    "days": 24,
+    "photos": 34
+  },
+  {
+    "year": 2023,
+    "status": "Archive",
+    "photographed": true,
+    "days": 24,
+    "photos": 31
+  },
+  {
+    "year": 2022,
+    "status": "Archive",
+    "photographed": true,
+    "days": 24,
+    "photos": 28
+  },
+  {
+    "year": 2021,
+    "status": "Backfill",
+    "photographed": false,
+    "days": 24,
+    "photos": 0
+  },
+  {
+    "year": 2020,
+    "status": "Backfill",
+    "photographed": true,
+    "days": 24,
+    "photos": 2
+  }
+]

@@ -1,0 +1,180 @@
+.cabinet-transition-owner { position: fixed; inset: 0; z-index: 5000; overflow: hidden; pointer-events: auto; background: transparent; }
+.cabinet-transition-backdrop { position: absolute; inset: 0; background: radial-gradient(circle at 42% 46%, #101c27 0, #050b12 48%, #02050a 100%); opacity: 0; }
+.cabinet-transition-art { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.cabinet-transition-art img { position: absolute; display: block; user-select: none; pointer-events: none; }
+.transition-live-planet { z-index: 1; left: 277px; top: 105px; width: 700px; height: 700px; border-radius: 50%; object-fit: cover; }
+.transition-k1, .transition-k2, .transition-k3 { inset: 0; z-index: 2; width: 1536px; height: 1024px; opacity: 0; }
+.transition-k2 { z-index: 3; }
+.transition-k3 { z-index: 5; }
+.transition-stave-reveal { position: absolute; z-index: 4; left: 277px; top: 105px; width: 700px; height: 700px; border-radius: 50%; opacity: 0; background: repeating-linear-gradient(90deg, transparent 0 54px, #e7984b70 55px 57px, #1a07096b 58px 62px); pointer-events: none; }
+.cabinet-transition-skip { position: absolute; z-index: 10; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); min-height: 44px; padding: 9px 13px; border: 1px solid #a98355; background: #071019e8; color: #ead5b0; cursor: pointer; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+
+.transition-approaching .cabinet-transition-backdrop { animation: cabinet-backdrop-in 1300ms ease both; }
+.transition-approaching .cabinet-transition-art { transition: transform 1300ms cubic-bezier(.18,.72,.18,1); }
+.transition-approaching .transition-live-planet { animation: cabinet-live-recede 1300ms ease both; }
+.transition-approaching .transition-k1 { animation: cabinet-k1-resolve 1300ms ease both; }
+.transition-approaching .transition-k2 { animation: cabinet-k2-build 1300ms cubic-bezier(.25,.7,.2,1) both;  }
+.transition-approaching .transition-stave-reveal { animation: cabinet-staves-build 1300ms ease both; }
+.transition-approaching .transition-k3 { animation: cabinet-k3-finish 1300ms ease both;  }
+.transition-closed .cabinet-transition-backdrop, .transition-handoff .cabinet-transition-backdrop { opacity: 1; }
+.transition-closed .transition-k3, .transition-handoff .transition-k3 { opacity: 1; clip-path: none; }
+.transition-closed .transition-live-planet, .transition-closed .transition-k1, .transition-closed .transition-k2, .transition-closed .transition-stave-reveal,
+.transition-handoff .transition-live-planet, .transition-handoff .transition-k1, .transition-handoff .transition-k2, .transition-handoff .transition-stave-reveal { opacity: 0; }
+.transition-handoff { animation: cabinet-owner-release 320ms ease both; }
+.transition-handoff .cabinet-transition-art { transition: transform 240ms cubic-bezier(.2,.7,.2,1); }
+.transition-reduced.transition-handoff { animation-duration: .01ms; }
+.transition-reduced.transition-handoff .cabinet-transition-art { transition-duration: .01ms; }
+
+@keyframes cabinet-backdrop-in { 0% { opacity: 0; } 28% { opacity: .22; } 72%, 100% { opacity: 1; } }
+@keyframes cabinet-live-recede { 0%, 15% { opacity: 1; } 50% { opacity: .72; } 66%, 100% { opacity: 0; } }
+@keyframes cabinet-k1-resolve { 0% { opacity: 0; } 13%, 49% { opacity: 1; } 72%, 100% { opacity: 0; } }
+@keyframes cabinet-k2-build { 0%, 32% { opacity: 0;  } 48% { opacity: .9; } 70% { opacity: 1;  } 91%, 100% { opacity: 0;  } }
+@keyframes cabinet-staves-build { 0%, 38% { opacity: 0; transform: scaleX(.72); } 56%, 76% { opacity: .75; transform: scaleX(1); } 92%, 100% { opacity: 0; } }
+@keyframes cabinet-k3-finish { 0%, 61% { opacity: 0;  } 82% { opacity: 1;  } 100% { opacity: 1;  } }
+@keyframes cabinet-owner-release { 0%, 72% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+.cabinet-art-scene { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
+.cabinet-art-root { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.cabinet-art-body, .cabinet-art-frame { position: absolute; inset: 0; width: 1536px; height: 1024px; display: block; user-select: none; pointer-events: none; }
+.cabinet-art-body { z-index: 0; }
+.cabinet-art-frame { z-index: 1; opacity: 0; }
+.cabinet-art-frame-0 { opacity: 1; }
+.cabinet-art-status { position: absolute; z-index: 30; left: 50%; top: 50%; min-width: 220px; padding: 14px 18px; border: 1px solid #9f724d; background: #071019ed; color: #d8c7ad; text-align: center; transform: translate(-50%, -50%); }
+.cabinet-art-status.error { border-color: #b96554; color: #f1c4b9; }
+
+.study-cabinet .destination-heading { position: absolute !important; width: 1px !important; height: 1px !important; margin: -1px !important; padding: 0 !important; overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important; }
+.study-cabinet .door-label { backdrop-filter: blur(5px); }
+.study-cabinet .cocktail-workspace { left: var(--anchor-workspace-panel-x, 62%); right: 3%; }
+.study-cabinet .entry-workspace { --entry-width: min(720px, calc(100% - 48px), 58vw); left: clamp(calc(var(--entry-width) / 2 + 24px), var(--anchor-cabinet-center-x, 42%), calc(100% - var(--entry-width) / 2 - 24px)); width: var(--entry-width); }
+.study-cabinet .barrel-shelf { min-height: 44px; transform: translateY(-50%) !important; }
+.study-cabinet .barrel-shelf { width: clamp(84px, calc(var(--anchor-workspace-panel-x, 100%) - var(--shelf-start-x) - 12px), 180px); min-width: 0; }
+.study-cabinet .door-ready .barrel-shelf { transform: translateY(-50%) !important; }
+.study-cabinet .shelf-story { --shelf-referent-x: var(--anchor-backstory-referent-x); }
+.study-cabinet .shelf-advent { --shelf-referent-x: var(--anchor-advent-referent-x); }
+.study-cabinet .shelf-recipes { --shelf-referent-x: var(--anchor-recipes-referent-x); }
+.study-cabinet .barrel-shelf::before { content: ""; position: absolute; right: calc(100% + 8px); top: 50%; width: max(20px, calc(var(--shelf-start-x) - var(--shelf-referent-x) - 16px)); height: 1px; background: linear-gradient(90deg, #d2a660, #8c6a45 68%, #8c6a4500); transform-origin: right center; pointer-events: none; }
+.study-cabinet .barrel-shelf::after { content: ""; position: absolute; right: calc(100% + max(20px, calc(var(--shelf-start-x) - var(--shelf-referent-x) - 16px)) + 4px); top: calc(50% - 4px); width: 8px; height: 8px; border: 1px solid #d2a660; border-radius: 50%; background: #1c0f0b; pointer-events: none; }
+.study-cabinet .archive-open .shelf-advent::after { display: block; }
+
+@media (max-width: 899px) {
+  .cabinet-transition-skip { bottom: max(12px, env(safe-area-inset-bottom)); }
+  .study-cabinet .cabinet-art-scene { height: min(620px, calc(100svh - var(--study-header-height))); bottom: auto; }
+  .study-cabinet .cooking-door-control { left: var(--anchor-cooking-x, 23%); top: var(--anchor-cooking-y, 410px); }
+  .study-cabinet .cocktail-door-control { left: var(--anchor-cocktails-x, 73%); top: var(--anchor-cocktails-y, 410px); }
+  .study-cabinet .barrel-shelf,
+  .study-cabinet .archive-open .shelf-advent,
+  .study-cabinet .archive-open.door-ready .shelf-advent { left: 18px; width: calc(100% - 36px); min-height: 50px; transform: none !important; }
+  .study-cabinet .barrel-shelf::before, .study-cabinet .barrel-shelf::after { display: none; }
+  .study-cabinet .shelf-story { top: 630px; }
+  .study-cabinet .shelf-advent { top: 690px; }
+  .study-cabinet .shelf-recipes { top: 750px; }
+  .study-cabinet .cabinet-year-selector { left: 50%; top: 812px; width: calc(100% - 36px); }
+  .study-cabinet .cocktail-workspace { position: relative; inset: auto; width: auto; height: auto; margin-top: 880px; transform: none; }
+  .study-cabinet .entry-workspace { position: relative; inset: auto; width: auto; height: auto; margin-top: 680px; transform: none; }
+}
+
+.orrery-cabinet-departing .orrery-world-detail,
+.orrery-cabinet-departing .orrery-detail-leader,
+.orrery-cabinet-departing .orrery-world-labels,
+.orrery-cabinet-departing .orrery-ecliptic-index { opacity: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cabinet-transition-owner *, .cabinet-art-scene * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* One opaque interior and a continuously rotating door replace four dissolving poses. */
+.cabinet-art-root { perspective: 6000px; perspective-origin: 944px 456px; }
+.cabinet-stationary-art { position: absolute; inset: 0; width: 1536px; height: 1024px; }
+.cabinet-closed-rest { position:absolute; inset:0; width:1536px; height:1024px; max-width:none; pointer-events:none; user-select:none; }
+.cabinet-hinged-door { position: absolute; left: 627px; top: 105px; width: 350px; height: 700px; transform-origin: 317px 351px; will-change: transform; transform-style: preserve-3d; }
+.cabinet-hinged-door img { position: absolute; left: -627px; top: -105px; width: 1536px; height: 1024px; max-width: none; clip-path: path("M627 127 A329 329 0 0 1 627 785 Z"); pointer-events: none; }
+.cabinet-glass-years { opacity: 0; visibility: hidden; pointer-events: none; }
+.door-ready .cabinet-glass-years { opacity: 1; visibility: visible; pointer-events: auto; }
+.glass-year { position: absolute; height: var(--glass-height); transform: translate(-50%, -50%); padding: 0; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #ffe2ae; cursor: pointer; }
+.glass-year span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding: 2px 3px; background: #160c05ed; border-radius: 2px; font-size: 10px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.glass-year:hover, .glass-year:focus-visible, .glass-year.selected { border-color: #f4d19b; background: #f4d19b1a; outline: 2px solid #d2a660; outline-offset: 1px; }
+@media (max-width: 899px) {
+  .glass-year span { visibility: hidden; }
+  .glass-year:hover span, .glass-year:focus-visible span, .glass-year.selected span { visibility: visible; }
+}
+
+.transition-approaching img, .transition-approaching .cabinet-transition-backdrop { will-change: opacity; }
+.study-cabinet { --study-controls-height: 0px; }
+.glass-year[hidden] { display:none; }
+.glass-year { transition: left 280ms ease; text-decoration:none; touch-action:pan-y; }
+.cabinet-glass-strip { transition: transform 280ms ease; }
+.glass-shelf-pager { position:absolute; left:var(--anchor-glass-pager-x); top:var(--anchor-glass-pager-y); transform:translate(-50%,-50%); display:flex; gap:8px; align-items:center; color:#e6d0ac; font-size:11px; }
+.glass-shelf-pager button { min-width:32px; min-height:32px; border:1px solid #80603d; background:#160c05ed; cursor:pointer; color:#eed6ab; }
+.glass-shelf-pager button:disabled { opacity:.35; cursor:default; }
+.study-cabinet .barrel-shelf { text-decoration:none; }
+.study-cabinet.quiet-motion .cabinet-glass-strip,.study-cabinet.quiet-motion .glass-year { transition:none; }
+@media(max-width:899px) { .glass-shelf-pager { gap:3px; } .glass-shelf-pager span { font-size:9px; } .glass-shelf-pager button { min-width:28px; min-height:28px; } }
+@media(prefers-reduced-motion:reduce) { .glass-year,.cabinet-glass-strip { transition:none!important; } }
+.projected-navigation .barrel-shelf { position:absolute; z-index:16; pointer-events:auto; color:#e7e5df; }
+.projected-navigation .glass-shelf-pager button { position:static; transform:none; }
+.projected-navigation .cabinet-close-door { left:var(--door-close-left); top:var(--door-close-top); width:var(--door-close-width); height:var(--door-close-height); clip-path:var(--door-close-shape); border:0; border-radius:0; padding:0; background:transparent; transform:none; cursor:pointer; }
+.cabinet-close-door[hidden] { display:none; }
+.cabinet-close-door span { position:absolute; right:12%; top:52%; font:12px Georgia,serif; padding:5px 7px; color:#ead5b0; background:#1b0e07b8; border:1px solid #b97d4b86; border-radius:2px; }
+.projected-navigation .cabinet-close-door:hover,.projected-navigation .cabinet-close-door:focus-visible { background:#f4d19b18; outline:0; box-shadow:inset 0 0 0 3px #f4d19b; }
+.glass-shelf-pager { z-index:17; }
+.cabinet-glass-years .glass-year { z-index:16; }
+
+/* Two physical faces: the back uses the existing inside-door artwork, without a pull. */
+.cabinet-door-face { position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.cabinet-door-outside { transform:translateZ(.2px); }
+.cabinet-door-inside { transform:rotateY(180deg) translateZ(.2px); overflow:hidden; clip-path:path("M350 22 A329 329 0 0 0 350 680 Z"); }
+.cabinet-door-inside svg { width:100%; height:100%; display:block; }
+
+/* Labels belong to the shelves; the right side is the working surface. */
+.study-cabinet .barrel-shelf,
+.study-cabinet .door-ready .barrel-shelf,
+.study-cabinet .archive-open.door-ready .shelf-advent {
+  left:var(--shelf-start-x); top:var(--shelf-y); width:var(--shelf-label-width); min-width:0;
+  min-height:28px; padding:4px 5px; transform:translate(-50%,-50%) !important;
+  text-align:center; border:1px solid #b97d4b86; background:#1b0e07ed; border-radius:2px;
+}
+.study-cabinet .barrel-shelf strong { font-size:var(--shelf-label-size); }
+.study-cabinet .barrel-shelf::before,.study-cabinet .barrel-shelf::after { display:none!important; }
+.study-cabinet .barrel-shelf[aria-expanded="true"] { border-color:#f4d19b; background:#472815f0; box-shadow:0 0 18px #b675242e; }
+.cabinet-shelf-panel { position:absolute; z-index:20; left:57%; right:24px; top:24px; bottom:24px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #8d673e; border-radius:5px; background:#f5f1e8; color:#252b28; box-shadow:0 16px 70px #0007; animation:cabinet-panel-in 300ms ease both; }
+.cabinet-shelf-panel:focus { outline:none; }
+.cabinet-shelf-panel > header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; flex-shrink:0; background:linear-gradient(120deg,#352315,#1c1711); border-bottom:1px solid #9d7949; color:#f0d8b0; }
+.cabinet-shelf-panel > header p { margin:0 0 5px; font-size:10px; letter-spacing:.18em; color:#bfa17c; }
+.cabinet-shelf-panel h2 { font:400 clamp(21px,2vw,29px)/1.15 Georgia,serif; margin:0; }
+.cabinet-shelf-panel > header button { width:44px; height:44px; flex-shrink:0; border:1px solid #9c7752; border-radius:50%; background:transparent; color:#f0d8b0; cursor:pointer; font-size:27px; }
+.cabinet-shelf-panel iframe { display:block; width:100%; min-height:0; flex:1; border:0; background:#f5f1e8; }
+.cabinet-shelf-panel button:focus-visible { outline:2px solid #f3ca8b; outline-offset:3px; }
+@keyframes cabinet-panel-in { from { opacity:0; translate:12px 0; } to { opacity:1; translate:0 0; } }
+.study-cabinet.quiet-motion .cabinet-shelf-panel { animation:none; }
+@media(prefers-reduced-motion:reduce) { .cabinet-shelf-panel { animation:none; } }
+@media(max-width:899px) {
+  .study-cabinet .motion-stage { min-height:620px; height:calc(100svh - var(--study-header-height)); }
+  .study-cabinet .study-destination { min-height:0; height:100%; padding:0; }
+  .study-cabinet:not(.section-overview) .motion-stage { min-height:0; height:auto; }
+  .study-cabinet:not(.section-overview) .study-destination { height:auto; padding-top:440px; }
+  .study-cabinet:not(.section-overview) .cabinet-art-scene { height:440px; }
+  .study-cabinet .cabinet-shelf-panel { position:relative; inset:auto; height:max(650px,85svh); margin:0 12px 24px; scroll-margin-top:12px; }
+  .study-cabinet .glass-year span { visibility:visible; font-size:9px; }
+  .study-cabinet .glass-shelf-pager { font-size:10px; }
+  .study-cabinet .cabinet-shelf-panel > header { padding:12px 16px; }
+}
+.study-cabinet .barrel-shelf.shelf-story { width:calc(var(--shelf-label-width) * .75); }
+.study-cabinet .barrel-shelf.shelf-recipes { width:calc(var(--shelf-label-width) * .9); }
+@media(max-width:899px) {
+  .study-cabinet .glass-shelf-pager { left:50%; top:var(--anchor-mobile-glass-pager-y); }
+  .study-cabinet .door-label { width:100px; min-width:0; padding:8px; }
+  .study-cabinet .door-label strong { font-size:14px; }
+  .study-cabinet .barrel-shelf strong { font-size:10px; }
+}
+@media(max-width:899px) { .study-cabinet .glass-year span { font-size:8px; padding:2px 0; letter-spacing:-.2px; } }
+
+/* A brass-bound journal set into the Cabinet working surface. */
+.cabinet-shelf-panel { border:1px solid #c09a60; border-radius:4px 4px 2px 2px; padding:5px; background:linear-gradient(100deg,#3b291b,#6b4827 48%,#302319); box-shadow:0 20px 70px #0009,inset 0 0 0 1px #d6ae6333; }
+.cabinet-shelf-panel > header { position:relative; padding:24px 20px 22px; background:radial-gradient(ellipse at 25% 0,#47604a44,transparent),repeating-linear-gradient(90deg,#ffffff02 0 1px,transparent 1px 4px),#20382f; border:1px solid #b8975b80; border-bottom:3px double #b8975b; }
+.cabinet-shelf-panel > header::before { content:''; position:absolute; inset:5px; border:1px solid #b8975b38; pointer-events:none; }
+.cabinet-shelf-panel > header p { color:#ccb27e; font-size:9px; letter-spacing:.19em; margin-bottom:10px; }
+.cabinet-shelf-panel h2 { font-size:clamp(24px,2.3vw,33px); color:#f7e7c8; letter-spacing:-.025em; }
+.cabinet-shelf-panel > header button { width:38px;height:38px;min-width:38px;border-radius:2px;border:1px solid #b8975b70;background:#15271e50;font-size:24px;color:#e7d0a2;z-index:1; }
+.cabinet-shelf-panel > header button:hover { background:#47604a; }
+.cabinet-shelf-panel iframe { background:#eee4d0; }
+@media(max-width:899px) { .study-cabinet .cabinet-shelf-panel > header { padding:20px 16px; } }

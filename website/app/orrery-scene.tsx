@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { artifacts, artifactHref, originArtifact, type Artifact } from "./data";
 import type { PlanetDepartureFrame } from "./cabinet-transition";
+import { createOrreryCursorLight } from "./orrery-cursor-light";
 
 type OrrerySceneProps = {
   selectedId: string | null;
@@ -873,8 +874,31 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
     const screenWorlds = worldMeshes.map(() => ({ x: 0, y: 0, radius: 0, rawRadius: 0 }));
     const labelStates = worldMeshes.map(() => ({ slot: 0, challengedSince: 0, lastChange: 0, tweenUntil: 0 }));
 
+    const cursorLight = createOrreryCursorLight(worldCenterHeight);
+    scene.add(cursorLight.light);
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
+    const lightPointer = new THREE.Vector2();
+    let lightPointerActive = false;
+    const trackCursorLight = (event: PointerEvent) => {
+      // Touch has no hovering cursor; don't leave a lamp behind after a tap.
+      if (event.pointerType === "touch") {
+        lightPointerActive = false;
+        return;
+      }
+      const bounds = mount.getBoundingClientRect();
+      lightPointer.set(
+        ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * 2 - 1,
+        -((event.clientY - bounds.top) / Math.max(bounds.height, 1)) * 2 + 1,
+      );
+      lightPointerActive = true;
+    };
+    const clearCursorLight = () => { lightPointerActive = false; };
+    // Listen on the scene so moving across its HTML labels keeps the light on.
+    mount.addEventListener("pointermove", trackCursorLight, { passive: true });
+    mount.addEventListener("pointerleave", clearCursorLight);
+    mount.addEventListener("pointercancel", clearCursorLight);
+    window.addEventListener("blur", clearCursorLight);
     const raycastTargets = [
       ...worldMeshes,
       ...carriers.map((carrier) => carrier.hitTarget),
@@ -1117,6 +1141,12 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
 
       system.updateMatrixWorld(true);
       camera.updateMatrixWorld(true);
+      cursorLight.update(
+        lightPointerActive && !transitionRef.current ? lightPointer : null,
+        camera,
+        delta,
+        quietRef.current || reducedMotion.matches || transitionRef.current,
+      );
       const viewportWidth = mount.clientWidth;
       const viewportHeight = mount.clientHeight;
       const cameraRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0).normalize();
@@ -1388,6 +1418,10 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
     return () => {
       cancelAnimationFrame(animationFrame);
       observer.disconnect();
+      mount.removeEventListener("pointermove", trackCursorLight);
+      mount.removeEventListener("pointerleave", clearCursorLight);
+      mount.removeEventListener("pointercancel", clearCursorLight);
+      window.removeEventListener("blur", clearCursorLight);
       renderer.domElement.removeEventListener("pointerup", selectFromPointer);
       renderer.domElement.removeEventListener("pointermove", markPointerTarget);
       renderer.domElement.removeEventListener("pointerleave", clearPointerTarget);

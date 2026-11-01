@@ -17,6 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: TrekTerp/SkyWatcher
+          ref: 954ac57ae6911849ccd093b8ffd8a40d7a60ebbb
+          path: skywatcher-source
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 11.25.0

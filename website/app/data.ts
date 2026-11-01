@@ -17,10 +17,10 @@ export const artifacts: Artifact[] = [
     short: "Sky",
     title: "The sky, one good night at a time",
     eyebrow: "Astronomy & astrophotography",
-    description: "My favorite images from the past year, organized so I can show them off without making anyone scroll through Instagram. Stop at the pictures, or keep going into targets, equipment, and process.",
-    status: "Portfolio in progress",
+    description: "Photographs from nights at the telescope, and SkyWatcher to plan the next one.",
+    status: "SkyWatcher is live · photos coming soon",
     accent: "#81d4ff",
-    routes: ["See the best images", "Browse targets and events", "Go into the imaging notes"],
+    routes: ["Explore my photos", "Open SkyWatcher"],
     questions: ["beautiful", "learn"],
   },
   {

@@ -2,7 +2,13 @@
 
 The repository root's existing D&D and Games files remain authoritative. `website/` contains the Orrery and cabinet source. The Pages workflow builds `website/out`, then adds the existing `dnd/`, `games/`, domain and icons to the deployment artifact.
 
-## Backend
+## SkyWatcher
+
+Sky links to `/artifact/sky/`, with photography reserved at `/artifact/sky/photos/` and the planner at `/skywatcher/`.
+The Pages workflow checks out `TrekTerp/SkyWatcher` at commit `954ac57ae6911849ccd093b8ffd8a40d7a60ebbb`. Update that pinned ref to publish a newer planner version. Its JavaScript is retained unchanged; assembly adds return links and updates the public URL metadata. For local assembly, run `node website/scripts/assemble-pages.mjs /absolute/path/to/SkyWatcher/index.html` after the frontend build.
+Browser preferences are stored per origin: existing settings on `trekterp.github.io` do not transfer automatically to `www.joshpila.com`. The original GitHub Pages app remains available.
+
+## Cocktail backend
 
 Project: `orrery-cabinet` (`skcjspvcinvknkqvgnfk`).
 

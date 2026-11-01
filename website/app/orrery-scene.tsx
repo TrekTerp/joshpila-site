@@ -125,7 +125,9 @@ const sunFragmentShader = `
     color = mix(color, whiteHot, pow(granulation, 3.2) * 0.65);
     color *= mix(0.38, 1.22, limb);
     color *= 1.0 - spots * 0.48;
-    gl_FragColor = vec4(color, 1.0);
+    // Emit above display white so tone mapping gives the star a luminous core
+    // while preserving the granulation and darker sunspots.
+    gl_FragColor = vec4(color * 2.0, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -511,7 +513,7 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
     const rimLight = new THREE.DirectionalLight(0x79bfe0, 1.15);
     rimLight.position.set(-4, 11, 15);
     scene.add(rimLight);
-    const sunLight = new THREE.PointLight(0xffd18b, 88, 32, 1.55);
+    const sunLight = new THREE.PointLight(0xffd18b, 150, 32, 1.55);
     scene.add(sunLight);
 
     const sunMaterial = new THREE.ShaderMaterial({
@@ -528,10 +530,10 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
         const context = canvas.getContext("2d")!;
         const gradient = context.createRadialGradient(128, 128, 8, 128, 128, 128);
         gradient.addColorStop(0, "rgba(255,246,202,1)");
-        gradient.addColorStop(0.12, "rgba(255,181,64,.95)");
-        gradient.addColorStop(0.28, "rgba(255,117,22,.3)");
-        gradient.addColorStop(0.58, "rgba(255,75,8,.08)");
-        gradient.addColorStop(0.78, "rgba(255,75,8,.025)");
+        gradient.addColorStop(0.12, "rgba(255,220,128,.98)");
+        gradient.addColorStop(0.28, "rgba(255,156,52,.42)");
+        gradient.addColorStop(0.58, "rgba(255,105,24,.12)");
+        gradient.addColorStop(0.78, "rgba(255,90,16,.04)");
         gradient.addColorStop(0.92, "rgba(255,120,20,0)");
         gradient.addColorStop(1, "rgba(255,120,20,0)");
         context.fillStyle = gradient;
@@ -550,7 +552,7 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
     corona.scale.set(4.35, 4.35, 1);
     system.add(corona);
     const outerCoronaMaterial = coronaMaterial.clone();
-    outerCoronaMaterial.opacity = 0.22;
+    outerCoronaMaterial.opacity = 0.34;
     const outerCorona = new THREE.Sprite(outerCoronaMaterial);
     outerCorona.scale.set(6.8, 6.8, 1);
     system.add(outerCorona);
@@ -1099,7 +1101,7 @@ export function OrreryScene({ selectedId, quiet, onSelect, onClear, onNavigate, 
       const coronaPulse = 1 + Math.sin(sceneTime * 0.72) * 0.026;
       corona.scale.set(4.35 * coronaPulse, 4.35 * coronaPulse, 1);
       outerCorona.scale.set(7.5 / coronaPulse, 7.5 / coronaPulse, 1);
-      sunLight.intensity = 88 + Math.sin(sceneTime * 0.68) * 3;
+      sunLight.intensity = 150 + Math.sin(sceneTime * 0.68) * 4;
       const inputAngle = sceneTime * sharedDriveSpeed;
       driveShaft.rotation.y = inputAngle;
 

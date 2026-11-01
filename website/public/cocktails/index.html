@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advent of Cocktails — archive</title>
+<script>if(new URLSearchParams(location.search).get("embed") === "cabinet") document.documentElement.classList.add("cabinet-embedded");</script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <a class="cabinet-return" href="/study/cabinet?year=2026">← Cooking &amp; Cocktails</a>
+  <p class="archive-eyebrow">JOSH PILA · THE COCKTAIL ARCHIVE</p>
+  <h1>Advent of Cocktails</h1>
+  <p class="subtitle">Decembers of experiments, photographs, and drinks worth making again.</p>
+  <nav class="tabs" aria-label="Sections">
+    <button type="button" class="tab-btn" data-view="backstory" aria-current="page">Backstory</button>
+    <button type="button" class="tab-btn" data-view="calendar">Calendar</button>
+    <button type="button" class="tab-btn" data-view="finder">Recipe finder</button>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ============ BACKSTORY ============ -->
+  <section id="view-backstory" class="view" data-view="backstory">
+    <div class="journal-frontispiece"><div id="journal-photos" aria-hidden="true"></div><p class="section-kicker">Collected, mixed &amp; remembered</p><h2>A December tradition.</h2><p class="journal-deck">One drink at a time. A growing record of recipes, experiments, and evenings at the bar.</p></div>
+    <article class="prose">
+      <h2>What this is</h2>
+      <p>
+        Every December since 2020, the r/cocktails subreddit has run
+        <strong>Advent of Cocktails</strong>: one cocktail revealed each day
+        from December 1 through 24, organized by u/robborow. Each day's post
+        gives the drink's history and one or more published specs, usually
+        drawn from named books, bars, or bartender channels. Riffs and
+        variations are explicitly encouraged. Day 5 is a recurring
+        "Repeal Day" theme, and later years lean increasingly on
+        cross-referencing earlier years' cocktails.
+      </p>
+
+      <h2>My participation</h2>
+      <p>
+        I started actually making and documenting these in
+        <strong>2022</strong>. This archive brings together my photographs and notes
+        from those Decembers, alongside the published recipes.
+      </p>
+      <p class="callout">
+        <strong>2020 and 2021 are a planned backfill.</strong> I didn't
+        participate when the event first ran those two years, so those 48
+        days currently have recipes and variations (compiled from the original
+        Reddit threads) but essentially no photos of my own. The plan is to
+        go back and make — and photograph — those earlier ones eventually.
+        The calendar view below marks 2020/2021 accordingly rather than
+        hiding the gap.
+      </p>
+
+      <h2>What's in the archive</h2>
+      <ul>
+        <li><strong><span id="archive-recipe-count">144</span> cocktail entries</strong>, with
+          recipes and variations, plus links to their sources.</li>
+        <li><strong><span id="archive-photo-count">129</span> photos</strong> from my own attempts,
+          matched to the specific day/recipe they document.</li>
+        <li>Where I substituted a different drink for the day's official one
+          (usually for a missing ingredient), both the official recipe and
+          what I actually made are recorded.</li>
+      </ul>
+
+      <h2>Sources &amp; credits</h2>
+      <p>
+        Advent of Cocktails is organized by
+        <a href="https://www.reddit.com/user/robborow/" target="_blank" rel="noopener noreferrer">u/robborow</a>
+        on <a href="https://www.reddit.com/r/cocktails/" target="_blank" rel="noopener noreferrer">r/cocktails</a>.
+        The recipes come from the bartenders, bars, books, and channels named
+        in the entries. Each cocktail links to its source post for further
+        background and discussion. The photographs and notes about what I
+        made are my own.
+      </p>
+    </article>
+  </section>
+
+  <!-- ============ CALENDAR ============ -->
+  <section id="view-calendar" class="view" data-view="calendar" hidden>
+    <header class="collection-heading"><p class="section-kicker">The Advent collection</p><div><h2 id="collection-title">December</h2><span id="collection-count"></span></div></header>
+    <div class="year-tabs" role="group" aria-label="Year"></div>
+    <div id="backfill-note" class="callout callout-small" hidden>
+
+    </div>
+    <div id="calendar-grid" class="calendar-grid" role="list"></div>
+  </section>
+
+  <!-- ============ RECIPE FINDER ============ -->
+  <section id="view-finder" class="view" data-view="finder" hidden>
+    <header class="finder-intro"><p class="section-kicker">From the recipe box</p><h2>What are you making?</h2></header>
+    <div class="finder-layout">
+      <aside class="finder-filters">
+        <label class="search-label" for="finder-search">Search by name</label>
+        <input type="search" id="finder-search" placeholder="e.g. Negroni">
+
+        <details class="ingredient-drawer"><summary>Choose ingredients <span id="ingredient-selection-count"></span></summary><div class="filter-mode">
+          <span id="filter-mode-label">Match</span>
+          <div role="radiogroup" aria-labelledby="filter-mode-label">
+            <label><input type="radio" name="match-mode" value="any" checked> Any selected ingredient</label>
+            <label><input type="radio" name="match-mode" value="all"> All selected ingredients</label>
+          </div>
+        </div>
+
+        <div id="ingredient-groups"></div>
+        </details><button type="button" id="clear-filters">Clear filters</button>
+      </aside>
+
+      <div class="finder-results">
+        <p id="finder-count" class="result-count" role="status" aria-live="polite"></p>
+        <ul id="finder-list" class="recipe-list"></ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ DETAIL DIALOG (shared by calendar + finder) ============ -->
+<dialog id="detail-dialog">
+  <button type="button" id="detail-close" aria-label="Close">×</button>
+  <div id="detail-content"></div>
+</dialog>
+
+<script src="js/supabase.js"></script>
+<script src="data/data.js"></script>
+<script src="js/app.js"></script>
+<script type="module" src="js/editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+/* ============================================================
+   Advent of Cocktails — functional prototype styling.
+   Deliberately plain: system fonts, neutral grays, one accent
+   color for interactive elements. No visual identity has been
+   decided for the eventual site (see CREATIVE_DIRECTION.md) --
+   this file exists to make the tool usable, not to propose a look.
+   ============================================================ */
+
+:root {
+  --text: #1a1a1a;
+  --text-muted: #5a5a5a;
+  --bg: #ffffff;
+  --panel: #f4f4f4;
+  --border: #cfcfcf;
+  --border-strong: #8a8a8a;
+  --accent: #1a56db;
+  --accent-contrast: #ffffff;
+  --warn-bg: #fff6e0;
+  --warn-border: #d8b34a;
+  --radius: 4px;
+  --gap: 1rem;
+  --max-width: 72rem;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: light; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
+a { color: var(--accent); }
+a:visited { color: #5b3fa0; }
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------------- header / nav ---------------- */
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.25rem 0;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.tool-flag {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: #7a5a00;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius);
+  padding: 0.15rem 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.site-header h1 {
+  margin: 0 0 0.15rem;
+  font-size: 1.6rem;
+}
+
+.subtitle {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tab-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  position: relative;
+  top: 1px;
+}
+
+.tab-btn[aria-current="page"] {
+  color: var(--text);
+  background: var(--bg);
+  border-color: var(--border-strong) var(--border-strong) var(--bg);
+  font-weight: 600;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+/* ---------------- layout ---------------- */
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.view[hidden] { display: none; }
+
+.prose { max-width: 42rem; }
+.prose h2 { margin-top: 2rem; font-size: 1.15rem; }
+.prose h2:first-child { margin-top: 0; }
+.prose ul { padding-left: 1.25rem; }
+
+.callout {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.callout-small { font-size: 0.9rem; margin-bottom: 1rem; }
+
+/* ---------------- calendar ---------------- */
+
+.year-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.year-tab {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+}
+
+.year-tab[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.year-tab .backfill-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--warn-border);
+  margin-left: 0.4rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.day-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-align: left;
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.day-card:hover { border-color: var(--border-strong); }
+
+.day-card .thumb {
+  aspect-ratio: 4 / 3;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  overflow: hidden;
+}
+
+.day-card .thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.day-card .meta {
+  padding: 0.4rem 0.55rem 0.6rem;
+}
+
+.day-card .day-num {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.day-card .day-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.day-card .badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  margin-top: 0.3rem;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.day-card .badge.sub { border-color: var(--warn-border); color: #7a5a00; background: var(--warn-bg); }
+
+/* ---------------- finder ---------------- */
+
+.finder-layout {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 42rem) {
+  .finder-layout { grid-template-columns: 1fr; }
+}
+
+.finder-filters {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.search-label { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; }
+
+#finder-search {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font: inherit;
+}
+
+.filter-mode {
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+.filter-mode > span { display: block; margin-bottom: 0.25rem; color: var(--text-muted); }
+.filter-mode label { display: block; font-weight: normal; }
+
+.ingredient-group { margin-bottom: 0.5rem; }
+.ingredient-group summary {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem 0.1rem;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+.ingredient-group[open] summary { color: var(--text); font-weight: 600; }
+.ingredient-group label {
+  display: block;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.1rem 0.25rem 0.4rem;
+}
+.ingredient-group label.umbrella-label { font-weight: 600; }
+.ingredient-divider {
+  border: none;
+  border-top: 1px dashed var(--border);
+  margin: 0.35rem 0;
+}
+
+#clear-filters {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.result-count { color: var(--text-muted); font-size: 0.9rem; }
+
+.recipe-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+
+.recipe-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  background: var(--bg);
+}
+
+.recipe-card:hover { border-color: var(--border-strong); }
+
+.recipe-card .thumb-sm {
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+.recipe-card .thumb-sm img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.recipe-card .rc-name { font-weight: 600; font-size: 0.95rem; }
+.recipe-card .rc-meta { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ---------------- detail dialog ---------------- */
+
+dialog {
+  border: none;
+  border-radius: var(--radius);
+  padding: 0;
+  max-width: 40rem;
+  width: 92vw;
+  max-height: 88vh;
+  overflow: auto;
+}
+
+dialog::backdrop { background: rgba(0,0,0,0.5); }
+
+#detail-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin: 0.75rem 0.75rem 0 0;
+}
+
+#detail-content { padding: 0 1.5rem 1.5rem; clear: both; }
+
+#detail-content .detail-photos {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0 1rem;
+}
+#detail-content .detail-photos img {
+  height: 12rem;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+#detail-content .no-photo {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  margin: 0.5rem 0 1rem;
+}
+
+#detail-content h2 { margin: 1.5rem 0 0.2rem; }
+#detail-content .detail-meta { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+/* Small, deliberately de-emphasized -- a citation, not a call to action.
+   Never shown outside the detail view (see calendar/finder card markup). */
+.source-cite {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+}
+.source-cite a { color: var(--text-muted); }
+
+.spec-block {
+  border-top: 1px solid var(--border);
+  padding: 0.85rem 0;
+}
+.spec-block:first-of-type { border-top: 1px solid var(--border-strong); margin-top: 0.75rem; }
+
+.spec-name {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.spec-fields {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  row-gap: 0.25rem;
+  column-gap: 0.75rem;
+  margin: 0;
+  font-size: 0.88rem;
+}
+.spec-fields dt { color: var(--text-muted); }
+.spec-fields dd { margin: 0; }
+
+@media (max-width: 30rem) {
+  .spec-fields { grid-template-columns: 1fr; row-gap: 0.1rem; }
+  .spec-fields dt { margin-top: 0.3rem; }
+}
+
+.variant-siblings {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+.vs-label { color: var(--text-muted); margin-right: 0.4rem; }
+.vs-link {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  margin: 0.15rem 0.2rem 0.15rem 0;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: var(--text);
+}
+.vs-link:hover { border-color: var(--border-strong); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}

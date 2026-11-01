@@ -82,6 +82,10 @@ function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedI
     };
   }, []);
   const chooseWorld = (item: Artifact) => {
+    if (item.id === "sky") {
+      navigateToWorld(item);
+      return;
+    }
     setSelected(item);
     if (item.id === "cocktails") cabinetTransition.prepare();
   };

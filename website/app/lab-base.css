@@ -15,7 +15,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 .lab-brand > span:last-child { display: grid; gap: 1px; }
 .lab-brand strong { font-size: .78rem; text-transform: uppercase; letter-spacing: .13em; }
 .lab-brand small { font-size: .72rem; opacity: .62; }
-.brand-mark { width: 37px; height: 37px; border: 1px solid currentColor; border-radius: 50%; display: grid; place-items: center; font: 700 .78rem Georgia, serif; }
+.brand-mark { width: 37px; height: 37px; flex: 0 0 auto; display: block; }
 .concept-nav { display: flex; align-items: stretch; gap: 4px; }
 .concept-nav a { min-width: 102px; padding: 9px 10px; border-radius: 3px; display: grid; gap: 2px; text-align: center; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; opacity: .65; }
 .concept-nav a span { font-size: .58rem; opacity: .62; }

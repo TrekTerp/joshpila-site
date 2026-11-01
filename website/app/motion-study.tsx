@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { GLASSES_PER_SHELF, cocktailArchiveHref } from "./cabinet-years";
 import { CocktailYearsProvider, useCocktailYears } from "./cocktail-years-context";
 import { CabinetArtScene } from "./cabinet-art-scene";
+import { BrandMark } from "./brand-mark";
 
 const MotionStudyScene = lazy(() => import("./motion-study-scene").then((module) => ({ default: module.MotionStudyScene })));
 
@@ -58,7 +59,7 @@ function YearSelector({ mode, phase, selectedYear, selectYear, setActiveTarget }
 function StudyHeader({ quiet, setQuiet }: { quiet: boolean; setQuiet: (value: boolean) => void }) {
   // Return through a fresh document, independent of cached scene/transition state.
   return <header className="study-header cabinet-header">
-    <a className="lab-brand" href="/?selected=cocktails" aria-label="Return to Orrery"><span className="brand-mark">JP</span><span><strong>Josh Pila</strong><small>Cooking &amp; Cocktails</small></span></a>
+    <a className="lab-brand" href="/?selected=cocktails" aria-label="Return to Orrery"><BrandMark /><span><strong>Josh Pila</strong><small>Cooking &amp; Cocktails</small></span></a>
     <div className="study-header-actions"><a href="/?selected=cocktails">Return to Orrery</a><label className="motion-switch"><input type="checkbox" checked={quiet} onChange={(event) => setQuiet(event.target.checked)} /><span aria-hidden="true" /> Quiet motion</label></div>
   </header>;
 }

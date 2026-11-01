@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { artifactPages, artifactHref, type Artifact } from "./data";
 import { useCabinetTransition } from "./cabinet-transition";
+import { BrandMark } from "./brand-mark";
 
 const OrreryScene = lazy(() => import("./orrery-scene").then((module) => ({ default: module.OrreryScene })));
 
@@ -14,7 +15,7 @@ function SubjectLinks() {
 
 function SiteHeader({ quiet, setQuiet }: { quiet: boolean; setQuiet: (value: boolean) => void }) {
   return <header className="lab-header orrery-header">
-    <Link className="lab-brand" href="/" aria-label="Josh Pila home"><span className="brand-mark">JP</span><span><strong>Josh Pila</strong></span></Link>
+    <Link className="lab-brand" href="/" aria-label="Josh Pila home"><BrandMark /><span><strong>Josh Pila</strong></span></Link>
     <div className="view-controls">
       <details className="subject-menu"><summary>Explore</summary><SubjectLinks /></details>
       <label className="motion-switch"><input type="checkbox" checked={quiet} onChange={(event) => setQuiet(event.target.checked)} /><span aria-hidden="true" /> Quiet motion</label>
@@ -130,7 +131,7 @@ function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedI
 function ArtifactNavigation({ currentId }: { currentId: string }) {
   return (
     <header className="artifact-header">
-      <Link className="artifact-brand" href="/artifact/origin" aria-label="Josh Pila, Origin">JP</Link>
+      <Link className="artifact-brand" href="/artifact/origin" aria-label="Josh Pila, Origin"><BrandMark /></Link>
       <nav className="artifact-world-nav" aria-label="Worlds">
         {artifactPages.map((artifact) => (
           <Link key={artifact.id} className={currentId === artifact.id ? "active" : ""} href={artifactHref(artifact)} aria-current={currentId === artifact.id ? "page" : undefined}>

@@ -845,16 +845,40 @@ const BLOCKS = [
   {gaps:4, bonus:2, res:3, blocks:4},                    // 29-32
   {gaps:6, bonus:2, res:3, blocks:6, ow:2},              // 33+
 ];
-// measured from opening boards where a level differs from its block's first level (19, 20, 16 are guesses)
-const LEVEL_KNOWN = {3:{gaps:1}, 4:{gaps:2}, 6:{blocks:7}, 7:{blocks:8, res:2}, 8:{blocks:10, res:2}, 14:{blocks:6}, 15:{blocks:8, bonus:3}, 16:{blocks:9, bonus:3},
-                     18:{end:0, blocks:1}, 19:{end:1, blocks:1}, 20:{end:0, blocks:2}};
-const REQ_KNOWN = {1:16, 2:18, 3:18, 4:18, 5:16, 6:17, 7:18, 8:19, 9:18, 10:19, 13:17, 14:18, 15:19, 17:12, 18:13, 21:16, 25:24, 29:17, 33:20};
+// confirmed by Josh from the original (L1-19): exact counts for every level. gr = row gaps (L/R), gc = column gaps (U/D)
+const LEVEL_TABLE = {
+   1:{gr:0, gc:0, blocks:0,  bonus:0, res:0, end:0, req:16},
+   2:{gr:0, gc:0, blocks:0,  bonus:0, res:0, end:0, req:18},
+   3:{gr:1, gc:0, blocks:0,  bonus:0, res:0, end:0, req:18},
+   4:{gr:1, gc:1, blocks:0,  bonus:0, res:0, end:0, req:18},
+   5:{gr:0, gc:0, blocks:6,  bonus:0, res:1, end:0, req:16},
+   6:{gr:0, gc:0, blocks:7,  bonus:0, res:1, end:0, req:17},
+   7:{gr:0, gc:0, blocks:8,  bonus:0, res:2, end:0, req:18},
+   8:{gr:0, gc:0, blocks:10, bonus:0, res:2, end:0, req:19},
+   9:{gr:1, gc:1, blocks:0,  bonus:2, res:0, end:0, req:18},
+  10:{gr:0, gc:2, blocks:0,  bonus:2, res:0, end:0, req:19},
+  11:{gr:0, gc:2, blocks:2,  bonus:3, res:1, end:0, req:20},
+  12:{gr:1, gc:1, blocks:2,  bonus:3, res:3, end:0, req:21},
+  13:{gr:0, gc:1, blocks:5,  bonus:2, res:1, end:0, req:17},
+  14:{gr:1, gc:0, blocks:6,  bonus:2, res:1, end:0, req:18},
+  15:{gr:0, gc:1, blocks:8,  bonus:3, res:1, end:0, req:19},
+  16:{gr:1, gc:1, blocks:10, bonus:3, res:2, end:0, req:20},
+  17:{gr:0, gc:0, blocks:0,  bonus:1, res:1, end:1, req:12},
+  18:{gr:0, gc:0, blocks:1,  bonus:1, res:1, end:0, req:13},
+  19:{gr:2, gc:0, blocks:0,  bonus:1, res:1, end:1, req:14},
+};
+// not yet confirmed: these differ from their block's first level (L20 is a guess)
+const LEVEL_KNOWN = {20:{end:0, blocks:2}};
+const REQ_KNOWN = {21:16, 25:24, 29:17, 33:20};
 const PASSWORDS = {5:"plam", 9:"zami", 13:"poom", 17:"dink", 21:"spoo", 25:"bork", 29:"tarr", 33:"fooz"};
 function levelSpec(L){
   const b = Math.floor((L - 1) / 4), p = (L - 1) % 4;
   const sp = Object.assign({}, BLOCKS[Math.min(b, BLOCKS.length - 1)]);
   Object.assign(sp, LEVEL_KNOWN[L] || {});
-  sp.required = REQ_KNOWN[L] || Math.min(40, (REQ_KNOWN[b*4 + 1] || 20 + 2*(b - 8)) + p);
+  const T1 = LEVEL_TABLE[L];
+  if (T1) Object.assign(sp, T1, {gaps:T1.gr + T1.gc});
+  const first = LEVEL_TABLE[b*4 + 1] ? LEVEL_TABLE[b*4 + 1].req : REQ_KNOWN[b*4 + 1];
+  sp.required = T1 ? T1.req : REQ_KNOWN[L] || Math.min(40, (first || 20 + 2*(b - 8)) + p);
   // measured seconds per pipe and head starts; other levels follow the block's first level
   const PIPE_KNOWN = {1:2730, 2:2520, 3:2250, 4:2250, 5:3170, 9:2970, 10:2860, 13:3200, 14:2960, 15:2550, 17:1980, 18:2000};
   const HEAD_KNOWN = {1:15800, 2:15200, 3:14100, 4:13100, 5:15700, 9:20400, 10:19000, 13:15900, 14:14800, 15:14900, 17:15100, 18:14200};
@@ -911,7 +935,9 @@ function setupLevel(showDialog = true){
     }
     return null;
   };
-  addGaps(SP.gaps || 0);
+  // known levels fix which way each gap runs; turned upright on a phone, rows and columns swap
+  if (SP.gr != null) addGaps(portrait ? SP.gr : SP.gc, portrait ? SP.gc : SP.gr);
+  else addGaps(SP.gaps || 0);
   for (let i = 0; i < (SP.res || 0); i++){
     const f = freeCell(false); if (f){ f.c.p = Math.random() < .5 ? "RH" : "RV"; f.c.fixed = true; reserved.add(key(f.x, f.y)); }
   }
@@ -2042,7 +2068,7 @@ function drawEvoButton(){
 function aboutDialog(){
   const wasPaused = G.paused; setPaused(true);
   dialog("About Pipe Dream Evolved",
-    `<img class="dlg-icon" src="${UI._icon.src}" alt=""><p>A fan tribute to Pipe Dream (also released as Pipe Mania), first published in 1989. Not affiliated with the original\u2019s creators or publishers.</p><p>Version 1.3 · ${SKIN.label} skin<br>Best score: ${G.best}</p>`,
+    `<img class="dlg-icon" src="${UI._icon.src}" alt=""><p>A fan tribute to Pipe Dream (also released as Pipe Mania), first published in 1989. Not affiliated with the original\u2019s creators or publishers.</p><p>Version 1.4 · ${SKIN.label} skin<br>Best score: ${G.best}</p>`,
     [{label:"OK", action:() => { if (!wasPaused) setPaused(false); }}]);
 }
 function titleScreen(msg){

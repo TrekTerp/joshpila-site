@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,3 +45,22 @@ function checkChildren(dir) {
 }
 checkChildren(resolve(dist,'dnd')); checkChildren(resolve(dist,'games'));
 console.log('Section icons pass: 9 designs, 17 entry routes, PNG sizes, and icons throughout D&D and Games.');
+
+// Exercise SkyWatcher's actual logo initializer against the published icon tags.
+// A missing 64px icon throws here and otherwise prevents the entire app starting.
+const sky=readFileSync(resolve(dist,'skywatcher/index.html'),'utf8');
+const initializeLogo=sky.split('\n').find(line=>line.includes("document.getElementById('logoImg').src="));
+assert(initializeLogo, 'SkyWatcher logo initializer changed; review its icon dependency');
+const logo={src:''};
+vm.runInNewContext(initializeLogo,{document:{
+  getElementById(id){assert.equal(id,'logoImg');return logo;},
+  querySelector(selector){
+    assert.equal(selector, 'link[rel=icon][sizes="64x64"]');
+    const tag=links(sky).find(tag=>/rel="icon"/.test(tag)&&/sizes="64x64"/.test(tag));
+    return tag?{href:tag.match(/href="([^"]+)"/)[1]}:null;
+  }
+}});
+assert.equal(logo.src,'/icons/skywatcher-64.png');
+const logoPNG=readFileSync(resolve(dist,logo.src.slice(1)));
+assert.equal(logoPNG.readUInt32BE(16),64);assert.equal(logoPNG.readUInt32BE(20),64);
+console.log('SkyWatcher startup logo initializer and 64px image pass.');

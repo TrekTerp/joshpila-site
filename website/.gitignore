@@ -4,3 +4,5 @@ out/
 *.tsbuildinfo
 .env*
 public/cocktails/js/supabase.js
+
+.sites-runtime/

@@ -12,7 +12,8 @@
     "check:cocktails": "node scripts/check-cocktails.mjs",
     "check:cocktail-import": "node scripts/check-cocktail-import.mjs",
     "sync:cocktails": "node scripts/sync-cocktails.mjs",
-    "check:backend": "node scripts/check-supabase-backend.mjs"
+    "check:backend": "node scripts/check-supabase-backend.mjs",
+    "check:astronomy": "node scripts/check-astronomy.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

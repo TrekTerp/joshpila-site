@@ -4,7 +4,7 @@ The repository root's existing D&D and Games files remain authoritative. `websit
 
 ## SkyWatcher
 
-Sky links to `/artifact/sky/`, with photography reserved at `/artifact/sky/photos/` and the planner at `/skywatcher/`.
+Sky links to `/artifact/sky/`, with the photography gallery at `/astronomy/` and the planner at `/skywatcher/`. The former `/artifact/sky/photos/` address redirects to the gallery.
 The Pages workflow checks out `TrekTerp/SkyWatcher` at commit `954ac57ae6911849ccd093b8ffd8a40d7a60ebbb`. Update that pinned ref to publish a newer planner version. Its JavaScript is retained unchanged; assembly adds return links and updates the public URL metadata. For local assembly, run `node website/scripts/assemble-pages.mjs /absolute/path/to/SkyWatcher/index.html` after the frontend build.
 Browser preferences are stored per origin: existing settings on `trekterp.github.io` do not transfer automatically to `www.joshpila.com`. The original GitHub Pages app remains available.
 
@@ -30,7 +30,7 @@ Project: `orrery-cabinet` (`skcjspvcinvknkqvgnfk`).
 
 ## Local checks
 
-Node 22.13+; pnpm 11.25.0. Run `pnpm install --frozen-lockfile`, `pnpm run check:backend`, `pnpm run build`, `pnpm run check:cocktails`, `pnpm run check:cocktail-import`, and `pnpm run check:orrery` from `website/`.
+Node 22.13+; pnpm 11.25.0. Run `pnpm install --frozen-lockfile`, `pnpm run check:astronomy`, `pnpm run check:backend`, `pnpm run build`, `pnpm run check:cocktails`, `pnpm run check:cocktail-import`, and `pnpm run check:orrery` from `website/`.
 
 The shared parser conservatively creates a draft from supported Reddit links or pasted post text. Owner review is required before saving; it does not automatically publish future days.
 

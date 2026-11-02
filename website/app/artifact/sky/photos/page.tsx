@@ -1,4 +1,3 @@
-import { AstronomyPhotos } from "../../../sky-landing";
-
+import { RedirectClient } from "../../../static-pages";
 export const metadata = { title: "Astrophotography · Josh Pila" };
-export default function Page() { return <AstronomyPhotos />; }
+export default function Page() { return <RedirectClient href="/astronomy/" />; }

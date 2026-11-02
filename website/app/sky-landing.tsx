@@ -1,4 +1,3 @@
-import Link from "next/link";
 import "./sky-landing.css";
 
 const previews = [
@@ -16,27 +15,27 @@ export function AstronomyLanding() {
         <p className="astronomy-lead">The sky, through <br />my telescope.</p>
         <p className="astronomy-description">Photographs of the Moon, planets, and deep sky—and a tool for planning the next night out.</p>
         <div className="astronomy-hero-actions">
-          <Link className="astronomy-primary" href="/astronomy/">View the highlights <span aria-hidden="true">↗</span></Link>
+          <a className="astronomy-primary" href="/astronomy/">View the highlights <span aria-hidden="true">↗</span></a>
           <a className="astronomy-text-link" href="/skywatcher/">Open SkyWatcher <span aria-hidden="true">→</span></a>
         </div>
         <p className="astronomy-collection-note">90 images <span aria-hidden="true">/</span> 42 observing nights</p>
       </div>
       <figure className="astronomy-feature">
-        <Link href="/astronomy/?photo=astro-e93b89a511d263fe&view=highlights#photo-viewer" aria-label="View Crescent Moon, 14% illuminated, May 19, 2026">
+        <a href="/astronomy/?photo=astro-e93b89a511d263fe&view=highlights#photo-viewer" aria-label="View Crescent Moon, 14% illuminated, May 19, 2026">
           <img src="/astronomy/display/astro-e93b89a511d263fe.webp" width="1731" height="1731" alt="A slender crescent Moon with sharply lit craters against a blue evening sky." fetchPriority="high" />
           <span className="astronomy-feature-open" aria-hidden="true">↗</span>
-        </Link>
+        </a>
         <figcaption><span>Crescent Moon <span className="astronomy-caption-detail">· 14% illuminated</span></span><time dateTime="2026-05-19">May 19, 2026</time></figcaption>
       </figure>
     </section>
 
     <div className="astronomy-explore">
       <section className="astronomy-preview" aria-labelledby="astronomy-preview-title">
-        <div className="astronomy-section-heading"><h2 id="astronomy-preview-title">From the gallery</h2><Link className="astronomy-text-link" href="/astronomy/?view=all">All 90 images <span aria-hidden="true">→</span></Link></div>
-        <div className="astronomy-preview-grid">{previews.map(photo => <Link className="astronomy-preview-photo" href={`/astronomy/?photo=${photo.id}&view=highlights#photo-viewer`} key={photo.id}>
+        <div className="astronomy-section-heading"><h2 id="astronomy-preview-title">From the gallery</h2><a className="astronomy-text-link" href="/astronomy/?view=all">All 90 images <span aria-hidden="true">→</span></a></div>
+        <div className="astronomy-preview-grid">{previews.map(photo => <a className="astronomy-preview-photo" href={`/astronomy/?photo=${photo.id}&view=highlights#photo-viewer`} key={photo.id}>
           <div className="astronomy-preview-image"><img src={`/astronomy/thumbnails/${photo.id}.webp`} width="640" height="640" alt={photo.title} loading="lazy" /></div>
           <h3>{photo.title}</h3><p>{photo.date}</p>
-        </Link>)}</div>
+        </a>)}</div>
       </section>
       <section className="astronomy-planner" aria-labelledby="astronomy-planner-title">
         <svg className="astronomy-planner-diagram" viewBox="0 0 220 110" fill="none" aria-hidden="true">
@@ -53,6 +52,6 @@ export function AstronomyLanding() {
         <a className="astronomy-text-link" href="/skywatcher/">Open the planner <span aria-hidden="true">↗</span></a>
       </section>
     </div>
-    <footer className="astronomy-footer"><Link className="astronomy-text-link" href="/?selected=sky">← Return to Orrery</Link><span>Photographs © Josh Pila</span></footer>
+    <footer className="astronomy-footer"><a className="astronomy-text-link" href="/?selected=sky">← Return to Orrery</a><span>Photographs © Josh Pila</span></footer>
   </article>;
 }

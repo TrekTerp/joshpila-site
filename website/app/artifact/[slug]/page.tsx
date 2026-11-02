@@ -1,3 +1,4 @@
+import { sectionMetadata } from "../../section-metadata";
 import { notFound } from "next/navigation";
 import { RedirectClient } from "../../static-pages";
 import { artifactPages } from "../../data";
@@ -12,3 +13,10 @@ export default async function CalmArtifactPage({ params }: { params: Promise<{ s
 }
 
 export function generateStaticParams(){return artifactPages.map(a=>({slug:a.id}));}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const artifact = artifactPages.find(item => item.id === slug);
+  const icon = slug === "sky" ? "astronomy" : slug === "origin" ? "home" : slug;
+  return artifact ? sectionMetadata(icon, artifact.title) : {};
+}

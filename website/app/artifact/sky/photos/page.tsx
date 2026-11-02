@@ -1,3 +1,4 @@
 import { RedirectClient } from "../../../static-pages";
-export const metadata = { title: "Astrophotography · Josh Pila" };
+import { sectionMetadata } from "../../../section-metadata";
+export const metadata = sectionMetadata("astronomy", "Astrophotography");
 export default function Page() { return <RedirectClient href="/astronomy/" />; }

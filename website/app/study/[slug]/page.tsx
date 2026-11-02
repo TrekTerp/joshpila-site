@@ -1,3 +1,5 @@
+import { sectionMetadata } from "../../section-metadata";
+export const metadata = sectionMetadata("cocktails", "Cooking & cocktails");
 import { Suspense } from 'react';
 import { CabinetClient, RedirectClient } from '../../static-pages';
 export function generateStaticParams(){return [{slug:'cabinet'},{slug:'anchorage'}];}

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "title": "Josh Pila · Astrophotography",
   "status": "Gallery",
-  "count": 88,
+  "count": 90,
   "photos": [
     {
       "id": "astro-1a962cd78c441838",
@@ -3504,6 +3504,121 @@
       "captureTime": "12:49:43",
       "capturedUTC": null,
       "timeBasis": "Camera capture time; Pacific timezone assumed"
+    },
+    {
+      "id": "astro-moon-phases",
+      "number": 89,
+      "title": "Moon phases — animated composite",
+      "sourceFile": "moon-phases.gif",
+      "sourceSha256": "0dbbf8d9699ab2dc4c02ea1fbcd67c65ed8f046e62c50fc80ad88d8c7c288f18",
+      "originalWidth": 640,
+      "originalHeight": 720,
+      "originalMode": "RGB",
+      "width": 640,
+      "height": 720,
+      "thumbnailWidth": 320,
+      "thumbnailHeight": 360,
+      "date": null,
+      "dateSource": "Composite assembled from photographs on separate observing nights",
+      "dateStatus": "composite",
+      "observingContext": null,
+      "session": null,
+      "locationLabel": null,
+      "camera": null,
+      "categories": [
+        "Moon",
+        "Composites"
+      ],
+      "subjects": [
+        "Moon"
+      ],
+      "deepSky": [],
+      "season": null,
+      "variants": [
+        "Animation"
+      ],
+      "thumbnail": "thumbnails/moon-phases.webp",
+      "image": "display/moon-phases.gif",
+      "credit": "Josh Pila",
+      "caption": "Twenty whole-Moon views from separate observing nights, aligned and ordered from thin crescent to full Moon. Thin-crescent rotation is approximate. Sky background and exposure are normalized; no intermediate phases are invented.",
+      "featured": false,
+      "isComposite": true,
+      "isAnimated": true,
+      "frameCount": 20,
+      "sourcePhotoIds": [
+        "astro-b3a49ac8cdc283c9",
+        "astro-389c7a459e82e16b",
+        "astro-3a63e1648d818f99",
+        "astro-0314a14e3a35beec",
+        "astro-3bb899f13d88eb9b",
+        "astro-bb37edf736799543",
+        "astro-d7f258fb919ff324",
+        "astro-26d80b017d5dbe52",
+        "astro-e93b89a511d263fe",
+        "astro-b7c1c10b3ac5c531",
+        "astro-b31cfa15de90fc0c",
+        "astro-c94d2012915d2232",
+        "astro-07bad4b634b2d515",
+        "astro-afa82c08e41c97c9",
+        "astro-d0430f08ef23ff35",
+        "astro-466564c1a05a3712",
+        "astro-cb72ea8bcf2e48b9",
+        "astro-0122b563eb9cc2ec",
+        "astro-ab5d45d57845c5cd",
+        "astro-2f15227153c108f3"
+      ],
+      "captureTime": null,
+      "capturedUTC": null,
+      "timeBasis": "Animated composite from separate observing nights; no single observing date"
+    },
+    {
+      "id": "astro-moon-eclipses",
+      "number": 90,
+      "title": "Moon eclipses — animated composite",
+      "sourceFile": "moon-eclipses.gif",
+      "sourceSha256": "5c0c675cbd8e664bbb352e35f30ddf80bce26d60101e6524e4f159d25db3a24d",
+      "originalWidth": 640,
+      "originalHeight": 720,
+      "originalMode": "RGB",
+      "width": 640,
+      "height": 720,
+      "thumbnailWidth": 320,
+      "thumbnailHeight": 360,
+      "date": null,
+      "dateSource": "Composite assembled from photographs on separate observing nights",
+      "dateStatus": "composite",
+      "observingContext": null,
+      "session": null,
+      "locationLabel": null,
+      "camera": null,
+      "categories": [
+        "Moon",
+        "Composites",
+        "Events"
+      ],
+      "subjects": [
+        "Moon"
+      ],
+      "deepSky": [],
+      "season": null,
+      "variants": [
+        "Animation"
+      ],
+      "thumbnail": "thumbnails/moon-eclipses.webp",
+      "image": "display/moon-eclipses.gif",
+      "credit": "Josh Pila",
+      "caption": "A comparison of the lunar eclipses photographed on March 13, 2025, and March 3, 2026. The two photographs are aligned in size and rotation. This is a comparison of separate events, not one continuous eclipse.",
+      "featured": false,
+      "isComposite": true,
+      "isAnimated": true,
+      "frameCount": 2,
+      "sourcePhotoIds": [
+        "astro-05c1184a381dee86",
+        "astro-811f68ddb1be30b7"
+      ],
+      "captureTime": null,
+      "capturedUTC": null,
+      "timeBasis": "Animated composite from separate observing nights; no single observing date"
     }
   ],
   "relatedSets": [
@@ -3613,6 +3728,13 @@
         "astro-a60fbc62b2513f59",
         "astro-050a8f4f7b0402cf",
         "astro-2058316d5df9d632"
+      ]
+    },
+    {
+      "id": "moon-animated-composites",
+      "photoIds": [
+        "astro-moon-phases",
+        "astro-moon-eclipses"
       ]
     }
   ],

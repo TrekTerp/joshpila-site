@@ -7,7 +7,7 @@ export function AstronomyLanding() {
     <div className="astronomy-destinations">
       <Link className="astronomy-card astronomy-photos" href="/astronomy/">
         <div className="astronomy-card-art photo-orbits" aria-hidden="true"><span /><i /></div>
-        <div className="astronomy-card-copy"><p className="astronomy-kicker">Through the telescope</p><h2>My photos <span aria-hidden="true">↗</span></h2><p>Photographs of the Moon, planets, and the things that make a late night worthwhile.</p><span className="astronomy-status">Browse 88 photographs →</span></div>
+        <div className="astronomy-card-copy"><p className="astronomy-kicker">Through the telescope</p><h2>My photos <span aria-hidden="true">↗</span></h2><p>Photographs of the Moon, planets, and the things that make a late night worthwhile.</p><span className="astronomy-status">Browse 90 images →</span></div>
       </Link>
       <a className="astronomy-card astronomy-planner" href="/skywatcher/">
         <div className="astronomy-card-art planner-orbits" aria-hidden="true"><span /><i /></div>

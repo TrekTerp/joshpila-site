@@ -19,7 +19,7 @@ function SiteHeader({ quiet, setQuiet }: { quiet: boolean; setQuiet: (value: boo
     <Link className="lab-brand" href="/" aria-label="Josh Pila home"><BrandMark /><span><strong>Josh Pila</strong></span></Link>
     <div className="view-controls">
       <details className="subject-menu"><summary>Explore</summary><SubjectLinks /></details>
-      <label className="motion-switch"><input type="checkbox" checked={quiet} onChange={(event) => setQuiet(event.target.checked)} /><span aria-hidden="true" /> Quiet motion</label>
+      <label className="motion-switch"><input type="checkbox" checked={quiet} onChange={(event) => setQuiet(event.target.checked)} /><span aria-hidden="true" /> Reduce motion</label>
     </div>
   </header>;
 }
@@ -114,9 +114,9 @@ function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedI
   };
   return (
     <section className={`concept-stage orrery-stage ${selected ? "orrery-engaged" : ""} ${departing && !capturingCabinet ? "orrery-departing" : ""} ${capturingCabinet ? "orrery-cabinet-departing" : ""}`} aria-labelledby="concept-title">
-      <div className="concept-intro orrery-intro"><h1 id="concept-title">Orrery Ascendant</h1><span>A map of the things I keep returning to.</span></div>
+      <div className="concept-intro orrery-intro"><h1 id="concept-title">Orrery Ascendant</h1><span>Astronomy, games, recipes, and other projects.</span></div>
       <div className="orrery-viewport">
-        <OrreryBoundary><Suspense fallback={<div className="orrery-loading" role="status">Calibrating instrument…</div>}>
+        <OrreryBoundary><Suspense fallback={<div className="orrery-loading" role="status">Loading Orrery…</div>}>
           <OrreryScene
             selectedId={selected?.id ?? null}
             quiet={quiet}
@@ -164,7 +164,23 @@ export function ArtifactPage({ id }: { id: string }) {
   return (
     <main className={`artifact-page artifact-${id}`}>
       <ArtifactNavigation currentId={id} />
-      {id === "sky" ? <AstronomyLanding /> : id === "writing" ? <article className="writing-entry"><p className="article-kicker">TRANSPORTATION SAFETY · PLACEHOLDER ARTICLE</p><h1>{item.title}</h1><p className="article-deck">A deliberately sober destination tests whether the front page can carry professional work without turning transportation engineering into lore from the Asphalt Realm.</p><div className="article-meta"><span>Joshua Pilachowski, PhD, PE</span><span>Sample content · Not for citation</span></div><hr /><p className="dropcap">This page is intentionally quiet. The threshold has done its work and stepped away. A future paper or presentation would open here with readable typography, normal citations, durable links, and no orbiting municipal crosswalks.</p><h2>What this prototype is testing</h2><p>Can the transition from wonder to utility feel deliberate rather than like two unrelated websites? Can a professional visitor reach this page quickly, understand whose work it is, and share it without replaying the entrance?</p><blockquote>Serious content does not require a joyless container. It does require the interface to know when to stop performing.</blockquote><ReturnToOrrery item={item} /></article> : <article className="artifact-entry-shell" style={{ "--entry-accent": item.accent } as React.CSSProperties}><section className="artifact-entry-lead"><div><p>{item.eyebrow}</p><h1>{item.title}</h1></div><div><p>{item.description}</p><span>{item.status}</span></div></section><section className="artifact-entry-body"><div className="artifact-media-placeholder" aria-label="Content placeholder"><span>{item.short.charAt(0)}</span><small>Content in preparation</small></div><div className="artifact-entry-plan"><p>Collection structure</p><ol>{item.routes.map((route) => <li key={route}>{route}</li>)}</ol><p>This destination is sized for a growing archive, not just its placeholder. Entries, notes, media, and cross-references can accumulate here without carrying the Orrery metaphor into the reading experience.</p><ReturnToOrrery item={item} /></div></section><section className="artifact-collection-grid" aria-label="Planned collection areas">{item.routes.map((route, index) => <article key={route}><small>0{index + 1}</small><h2>{route}</h2><p>Reserved for real material, supporting notes, and durable links as the collection develops.</p></article>)}</section></article>}
+      {id === "sky" ? <AstronomyLanding /> : id === "writing" ? (
+        <article className="writing-entry">
+          <p className="article-kicker">{item.eyebrow}</p>
+          <h1>{item.title}</h1>
+          <p className="article-deck">{item.description}</p>
+          <p>Articles and presentations will be added here.</p>
+          <ReturnToOrrery item={item} />
+        </article>
+      ) : (
+        <article className="artifact-entry-shell" style={{ "--entry-accent": item.accent } as React.CSSProperties}>
+          <section className="artifact-entry-lead">
+            <div><p>{item.eyebrow}</p><h1>{item.title}</h1></div>
+            <div><p>{item.description}</p>{id !== "origin" && <span>{item.status}</span>}</div>
+          </section>
+          <ReturnToOrrery item={item} />
+        </article>
+      )}
     </main>
   );
 }

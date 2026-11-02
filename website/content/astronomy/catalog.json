@@ -44,7 +44,7 @@
       "isComposite": false,
       "captureTime": "12:51:32",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-e3d22d174d329e4e",
@@ -86,7 +86,7 @@
       "isComposite": false,
       "captureTime": "20:52:42",
       "capturedUTC": "2026-04-09T03:52:42+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-63b7275b3a2f9804",
@@ -126,7 +126,7 @@
       "isComposite": false,
       "captureTime": "21:45:26",
       "capturedUTC": "2026-04-09T04:45:26+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-b4372b4ac4a47e0c",
@@ -163,7 +163,7 @@
       "isComposite": false,
       "captureTime": "21:08:23",
       "capturedUTC": "2026-04-09T04:08:23+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-e8a8816552769f70",
@@ -202,7 +202,7 @@
       "isComposite": false,
       "captureTime": "21:30:39",
       "capturedUTC": "2026-04-09T04:30:39+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-b58fb95f7d14c680",
@@ -241,7 +241,7 @@
       "isComposite": false,
       "captureTime": "20:50:52",
       "capturedUTC": "2026-04-09T03:50:52+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-aff9290d17822c4e",
@@ -281,7 +281,7 @@
       "isComposite": false,
       "captureTime": "20:54:54",
       "capturedUTC": "2026-04-09T03:54:54+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-22c330e27fef088f",
@@ -321,7 +321,7 @@
       "isComposite": false,
       "captureTime": "21:25:09",
       "capturedUTC": "2026-04-09T04:25:09+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-331929ed79693cf9",
@@ -361,7 +361,7 @@
       "isComposite": false,
       "captureTime": "20:45:46",
       "capturedUTC": "2026-04-09T03:45:46+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-0b73a7a325b0ce10",
@@ -401,7 +401,7 @@
       "isComposite": false,
       "captureTime": "21:37:03",
       "capturedUTC": "2026-04-09T04:37:03+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-b7421b29c299eab1",
@@ -441,7 +441,7 @@
       "isComposite": false,
       "captureTime": "20:47:39",
       "capturedUTC": "2026-04-09T03:47:39+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-c7558e98923f9c51",
@@ -481,7 +481,7 @@
       "isComposite": false,
       "captureTime": "21:25:55",
       "capturedUTC": "2026-04-09T04:25:55+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-4bfdcac20e7eb048",
@@ -521,7 +521,7 @@
       "isComposite": false,
       "captureTime": "20:40:29",
       "capturedUTC": "2026-04-09T03:40:29+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-8bb1003c1de7306c",
@@ -558,7 +558,7 @@
       "isComposite": false,
       "captureTime": "21:43:17",
       "capturedUTC": "2026-04-09T04:43:17+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-9c81921cff32eebc",
@@ -595,7 +595,7 @@
       "isComposite": false,
       "captureTime": "20:56:32",
       "capturedUTC": "2026-04-09T03:56:32+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-19ea2ce798eb646d",
@@ -632,7 +632,7 @@
       "isComposite": false,
       "captureTime": "20:57:25",
       "capturedUTC": "2026-04-09T03:57:25+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-a60fbc62b2513f59",
@@ -669,7 +669,7 @@
       "isComposite": false,
       "captureTime": "20:42:04",
       "capturedUTC": "2026-04-09T03:42:04+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-050a8f4f7b0402cf",
@@ -706,7 +706,7 @@
       "isComposite": false,
       "captureTime": "20:43:42",
       "capturedUTC": "2026-04-09T03:43:42+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-2058316d5df9d632",
@@ -743,7 +743,7 @@
       "isComposite": false,
       "captureTime": "20:42:53",
       "capturedUTC": "2026-04-09T03:42:53+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-26d80b017d5dbe52",
@@ -782,7 +782,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-8bcac2fdd502d5f5",
@@ -821,7 +821,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-3449b6c46e8c6adf",
@@ -860,7 +860,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-2f15227153c108f3",
@@ -902,7 +902,7 @@
       "isComposite": false,
       "captureTime": "18:48:56",
       "capturedUTC": "2025-01-14T02:48:56+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-f1b65ef6a3bc5ff4",
@@ -946,7 +946,7 @@
       "isComposite": false,
       "captureTime": "18:50:04",
       "capturedUTC": "2025-01-14T02:50:04+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-dc723e0645485ccb",
@@ -987,7 +987,7 @@
       "isComposite": false,
       "captureTime": "21:12:35",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-d0430f08ef23ff35",
@@ -1026,7 +1026,7 @@
       "isComposite": false,
       "captureTime": "21:48:41",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-b40326aba4f23a31",
@@ -1066,7 +1066,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-f9bbd712b6e30133",
@@ -1105,7 +1105,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-3d4f0dc280ad68d3",
@@ -1145,7 +1145,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-3af7a65a8e67faf6",
@@ -1184,7 +1184,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-389c7a459e82e16b",
@@ -1223,7 +1223,7 @@
       "isComposite": false,
       "captureTime": "18:27:56",
       "capturedUTC": "2025-03-01T02:27:56+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-b7c1c10b3ac5c531",
@@ -1262,7 +1262,7 @@
       "isComposite": false,
       "captureTime": "18:14:37",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-21505cd855b6875f",
@@ -1301,7 +1301,7 @@
       "isComposite": false,
       "captureTime": "18:58:42",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-afa82c08e41c97c9",
@@ -1340,7 +1340,7 @@
       "isComposite": false,
       "captureTime": "19:08:53",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-93bb0260de439596",
@@ -1379,7 +1379,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-c7cc58cbf910cab4",
@@ -1418,7 +1418,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-f1ca820ebc6cd5dc",
@@ -1457,7 +1457,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-79ed874371b78ca9",
@@ -1496,7 +1496,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-1d4638c60fb095f4",
@@ -1535,7 +1535,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-4b4a46892fcc644a",
@@ -1574,7 +1574,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-41e0d59448ac4b71",
@@ -1613,7 +1613,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-85d32a5b056bde66",
@@ -1652,7 +1652,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-ab5d45d57845c5cd",
@@ -1691,7 +1691,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-ee7ee800146d8afc",
@@ -1730,7 +1730,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-05c1184a381dee86",
@@ -1770,7 +1770,7 @@
       "isComposite": false,
       "captureTime": "23:40:50",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-3bb899f13d88eb9b",
@@ -1809,7 +1809,7 @@
       "isComposite": false,
       "captureTime": "19:53:31",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-c603e90fc1b03e34",
@@ -1848,7 +1848,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-ccc572c011032b42",
@@ -1889,12 +1889,12 @@
       "thumbnail": "thumbnails/astro-ccc572c011032b42.webp",
       "image": "display/astro-ccc572c011032b42.webp",
       "credit": "Josh Pila",
-      "caption": "A comparison assembled from separate photographs.",
+      "caption": "Planets photographed at different times, shown together for comparison.",
       "featured": false,
       "isComposite": true,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "Composite made from separate photographs; no single observing date"
+      "timeBasis": ""
     },
     {
       "id": "astro-c94d2012915d2232",
@@ -1933,7 +1933,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-d7f258fb919ff324",
@@ -1972,7 +1972,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-311467d619dd55db",
@@ -2011,7 +2011,7 @@
       "isComposite": false,
       "captureTime": "20:17:32",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-b31cfa15de90fc0c",
@@ -2050,7 +2050,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-62855ba5b2bb5efe",
@@ -2089,7 +2089,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-07bad4b634b2d515",
@@ -2128,7 +2128,7 @@
       "isComposite": false,
       "captureTime": "20:03:30",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-466564c1a05a3712",
@@ -2169,7 +2169,7 @@
       "isComposite": false,
       "captureTime": "20:21:58",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-0122b563eb9cc2ec",
@@ -2208,7 +2208,7 @@
       "isComposite": false,
       "captureTime": "22:21:48",
       "capturedUTC": "2025-04-09T05:21:48+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-3a63e1648d818f99",
@@ -2247,7 +2247,7 @@
       "isComposite": false,
       "captureTime": "20:10:27",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-0314a14e3a35beec",
@@ -2286,7 +2286,7 @@
       "isComposite": false,
       "captureTime": "20:10:27",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-bb37edf736799543",
@@ -2325,7 +2325,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-cb72ea8bcf2e48b9",
@@ -2364,7 +2364,7 @@
       "isComposite": false,
       "captureTime": "21:55:52",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-e9e5ecf8b641b83e",
@@ -2404,7 +2404,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-cdc168511a62a89c",
@@ -2441,7 +2441,7 @@
       "isComposite": false,
       "captureTime": "19:54:29",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-7082580a1a70b768",
@@ -2478,7 +2478,7 @@
       "isComposite": false,
       "captureTime": "19:57:24",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-ce39a9254933ec62",
@@ -2519,7 +2519,7 @@
       "isComposite": false,
       "captureTime": "23:12:01",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-c83229abd39f0af6",
@@ -2560,7 +2560,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-fe33ab754f34646e",
@@ -2603,7 +2603,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-0e733070a5a35085",
@@ -2643,7 +2643,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-ecab79bf0a88a7be",
@@ -2686,7 +2686,7 @@
       "isComposite": false,
       "captureTime": "19:21:08",
       "capturedUTC": "2026-02-22T03:21:08+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-ee4842de08c6f902",
@@ -2727,7 +2727,7 @@
       "isComposite": false,
       "captureTime": "19:21:08",
       "capturedUTC": "2026-02-22T03:21:08+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-ee75c666c2f671c2",
@@ -2766,7 +2766,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-5b8cd24c66ab0ec4",
@@ -2807,7 +2807,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-811f68ddb1be30b7",
@@ -2847,7 +2847,7 @@
       "isComposite": false,
       "captureTime": "03:21:09",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-a3cb4ee89c986dbb",
@@ -2887,7 +2887,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-b3a49ac8cdc283c9",
@@ -2926,7 +2926,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-deeb3c4ab8bf0720",
@@ -2967,7 +2967,7 @@
       "isComposite": false,
       "captureTime": "20:51:09",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-5b1f9be5d784a54e",
@@ -3008,7 +3008,7 @@
       "isComposite": false,
       "captureTime": "20:53:38",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-e93b89a511d263fe",
@@ -3047,7 +3047,7 @@
       "isComposite": false,
       "captureTime": "20:17:50",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-1c4118f7444c2c13",
@@ -3088,7 +3088,7 @@
       "isComposite": false,
       "captureTime": "20:27:21",
       "capturedUTC": "2026-05-20T03:27:21+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-73ec1361f5061058",
@@ -3129,7 +3129,7 @@
       "isComposite": false,
       "captureTime": "21:39:43",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-22f2f1811f725f75",
@@ -3168,7 +3168,7 @@
       "isComposite": false,
       "captureTime": "21:45:14",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-c6e756c34c262382",
@@ -3205,7 +3205,7 @@
       "isComposite": false,
       "captureTime": "21:45:14",
       "capturedUTC": "2026-05-31T04:45:14+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-8d50a8edd3e71c22",
@@ -3247,7 +3247,7 @@
       "isComposite": false,
       "captureTime": "21:55:19",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-55956a4aa0ec4b5f",
@@ -3291,7 +3291,7 @@
       "isComposite": false,
       "captureTime": "22:07:22",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-9dc30064ecb73a95",
@@ -3335,7 +3335,7 @@
       "isComposite": false,
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "9:00 pm Pacific reference; capture time unknown"
+      "timeBasis": "Time unknown; sky shown for 9 pm Pacific."
     },
     {
       "id": "astro-0c5005e562c23fe2",
@@ -3375,7 +3375,7 @@
       "isComposite": false,
       "captureTime": "21:11:55",
       "capturedUTC": "2026-06-16T04:11:55+00:00",
-      "timeBasis": "Camera capture time and recorded UTC offset"
+      "timeBasis": "Camera time (recorded timezone)."
     },
     {
       "id": "astro-9729cf195c996303",
@@ -3417,7 +3417,7 @@
       "isComposite": false,
       "captureTime": "21:18:38",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-8b8ef4c38f1997c4",
@@ -3459,7 +3459,7 @@
       "isComposite": false,
       "captureTime": "21:32:01",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-55914dfd03c63a56",
@@ -3503,12 +3503,12 @@
       "isComposite": false,
       "captureTime": "12:49:43",
       "capturedUTC": null,
-      "timeBasis": "Camera capture time; Pacific timezone assumed"
+      "timeBasis": "Camera time (Pacific assumed)."
     },
     {
       "id": "astro-moon-phases",
       "number": 89,
-      "title": "Moon phases — animated composite",
+      "title": "Moon phases",
       "sourceFile": "moon-phases.gif",
       "sourceSha256": "e821211ded611f59e1bc6d2be1d7e9853c68420f09dd398a8c37409df614cfa3",
       "originalWidth": 640,
@@ -3540,7 +3540,7 @@
       "thumbnail": "thumbnails/moon-phases.webp",
       "image": "display/moon-phases.gif",
       "credit": "Josh Pila",
-      "caption": "Twenty whole-Moon views from separate observing nights, aligned and ordered from thin crescent to full Moon. Thin-crescent rotation is approximate. Sky background and exposure are normalized; no intermediate phases are invented.",
+      "caption": "Twenty Moon photographs, from crescent to full, taken on different nights. Aligned for comparison; rotation of the thinnest crescents is approximate.",
       "featured": false,
       "isComposite": true,
       "isAnimated": true,
@@ -3569,12 +3569,12 @@
       ],
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "Animated composite from separate observing nights; no single observing date"
+      "timeBasis": ""
     },
     {
       "id": "astro-moon-eclipses",
       "number": 90,
-      "title": "Moon eclipses — animated composite",
+      "title": "Moon eclipses",
       "sourceFile": "moon-eclipses.gif",
       "sourceSha256": "0b44d5464dad87f3cf719be08c45bcda99951e37af91fce9a58d8522bd89d4af",
       "originalWidth": 640,
@@ -3607,7 +3607,7 @@
       "thumbnail": "thumbnails/moon-eclipses.webp",
       "image": "display/moon-eclipses.gif",
       "credit": "Josh Pila",
-      "caption": "A comparison of the lunar eclipses photographed on March 13, 2025, and March 3, 2026. The two photographs are aligned in size and rotation. This is a comparison of separate events, not one continuous eclipse. Illumination describes the lunar phase, not the portion covered by Earth’s shadow.",
+      "caption": "The lunar eclipses of March 13, 2025, and March 3, 2026. Percent illuminated describes the Moon’s phase, not Earth’s shadow.",
       "featured": false,
       "isComposite": true,
       "isAnimated": true,
@@ -3618,7 +3618,7 @@
       ],
       "captureTime": null,
       "capturedUTC": null,
-      "timeBasis": "Animated composite from separate observing nights; no single observing date"
+      "timeBasis": ""
     }
   ],
   "relatedSets": [

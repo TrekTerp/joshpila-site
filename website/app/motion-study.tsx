@@ -60,7 +60,7 @@ function StudyHeader({ quiet, setQuiet }: { quiet: boolean; setQuiet: (value: bo
   // Return through a fresh document, independent of cached scene/transition state.
   return <header className="study-header cabinet-header">
     <a className="lab-brand" href="/?selected=cocktails" aria-label="Return to Orrery"><BrandMark /><span><strong>Josh Pila</strong><small>Cooking &amp; Cocktails</small></span></a>
-    <div className="study-header-actions"><a href="/?selected=cocktails">Return to Orrery</a><label className="motion-switch"><input type="checkbox" checked={quiet} onChange={(event) => setQuiet(event.target.checked)} /><span aria-hidden="true" /> Quiet motion</label></div>
+    <div className="study-header-actions"><a href="/?selected=cocktails">Return to Orrery</a><label className="motion-switch"><input type="checkbox" checked={quiet} onChange={(event) => setQuiet(event.target.checked)} /><span aria-hidden="true" /> Reduce motion</label></div>
   </header>;
 }
 
@@ -205,7 +205,7 @@ function CabinetShelfPanel({ section, year, onClose, onYearChange }: { section: 
 function SubjectIndex({ concept, phase, section, setPhase, selectSection, onBack, overlayRef, cabinetReady, branchReady, yearOffset, setYearOffset, selectedYear, selectYear, setActiveTarget }: { yearOffset: number; setYearOffset: (offset: number) => void; selectedYear: number; selectYear: (year: number) => void; concept: MotionStudyKey; phase: number; section: CocktailSection; setPhase: (phase: number) => void; selectSection: (section: CocktailSection) => void; onBack: () => void; overlayRef: RefObject<HTMLDivElement | null>; cabinetReady: boolean; branchReady: boolean; setActiveTarget: (target: InteractionTarget) => void }) {
   const workspaceReady = concept === "anchorage" ? branchReady : cabinetReady;
   return <div className={`study-destination ${concept}-destination phase-${phase}`} ref={overlayRef}>
-    <header className="destination-heading"><p>COOKING &amp; COCKTAILS</p><h1>Things worth making again</h1><span>Recipes, techniques, photographs, cookbooks, and drinks I want to remember.</span></header>
+    <header className="destination-heading"><p>RECIPES &amp; PHOTOGRAPHS</p><h1>Cooking &amp; Cocktails</h1><span>My Advent of Cocktails recipes and photographs.</span></header>
     {concept === "anchorage" ? <AnchorageNavigator phase={phase} section={section} selectSection={selectSection} setPhase={setPhase} branchReady={branchReady} setActiveTarget={setActiveTarget} /> : <CabinetNavigator section={section} selectSection={selectSection} selectYear={selectYear} selectedYear={selectedYear} yearOffset={yearOffset} setYearOffset={setYearOffset} phase={phase} setPhase={setPhase} doorReady={cabinetReady} setActiveTarget={setActiveTarget} />}
     {concept === "cabinet" && phase >= 3 && workspaceReady && section !== "overview" && <CabinetShelfPanel key={section} section={section} year={selectedYear} onYearChange={selectYear} onClose={() => selectSection("overview")} />}
     {concept !== "cabinet" && phase >= 3 && workspaceReady && <CocktailWorkspace selectedYear={selectedYear} selectYear={selectYear} concept={concept} phase={phase} section={section} setPhase={setPhase} onBack={onBack} setActiveTarget={setActiveTarget} />}

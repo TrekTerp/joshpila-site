@@ -26,7 +26,7 @@ window.cocktailReady = (async function () {
     const saved=await response.json();
     Object.assign(window,{RECIPES:saved.recipes,PHOTOS:saved.photos,DAY_SLOTS:saved.daySlots,UMBRELLA_INGREDIENTS:saved.umbrellaIngredients,ARCHIVE_YEARS:saved.archiveYears});
   } catch {
-    const notice=document.createElement('p');notice.className='callout';notice.textContent='Saved updates are temporarily unavailable. Showing the bundled archive; reload to try again.';document.querySelector('main').prepend(notice);
+    const notice=document.createElement('p');notice.className='callout';notice.textContent='Recent updates couldn’t be loaded. You can browse an earlier copy of the archive, or reload to try again.';document.querySelector('main').prepend(notice);
   }
   const embedded = new URLSearchParams(location.search).get("embed") === "cabinet";
   const RECIPES = window.RECIPES || [];
@@ -166,19 +166,19 @@ window.cocktailReady = (async function () {
     const yearInfo = yearRecords.find(y => y.year === currentYear);
     note.hidden = yearInfo.status === "Archive";
     note.textContent = yearInfo.status === "Upcoming"
-      ? `Advent ${currentYear} is waiting for its first entries. New days will appear here as they are added.`
-      : "An earlier December to revisit. Recipes are available; my photographs are still being filled in.";
+      ? `More entries will be added for Advent ${currentYear}.`
+      : "Recipes are available; some photographs haven’t been added yet.";
     document.querySelectorAll(".year-tab").forEach(t => t.setAttribute("aria-pressed",String(Number(t.dataset.year) === currentYear)));
     grid.innerHTML = "";
 
     const slots = DAY_SLOTS.filter((s) => s.year === currentYear).sort((a, b) => a.day - b.day);
     document.getElementById("collection-title").textContent = "December " + currentYear;
-    document.getElementById("collection-count").textContent = slots.length ? slots.length + " days · " + slots.filter(s => s.photo_ids.length).length + " photographed" : "A new chapter";
+    document.getElementById("collection-count").textContent = slots.length ? slots.length + " days · " + slots.filter(s => s.photo_ids.length).length + " photographed" : "No entries yet";
 
     if (!slots.length) {
       const empty = document.createElement("p");
       empty.className = "archive-empty";
-      empty.textContent = "The glass is ready. The drinks are still to come.";
+      empty.textContent = "No cocktails have been added for this year.";
       grid.appendChild(empty);
     }
     slots.forEach((slot) => {
@@ -205,7 +205,7 @@ window.cocktailReady = (async function () {
         img.loading = "lazy";
         thumb.appendChild(img);
       } else {
-        thumb.classList.add("unphotographed");thumb.innerHTML = '<span class="empty-glass" aria-hidden="true"><svg viewBox="0 0 64 72" width="42" height="52" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 10h46c0 17-9 24-23 24S9 27 9 10ZM32 34v26M19 61h26M12 15h40"/></svg></span><span>Awaiting a photograph</span>';
+        thumb.classList.add("unphotographed");thumb.innerHTML = '<span class="empty-glass" aria-hidden="true"><svg viewBox="0 0 64 72" width="42" height="52" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 10h46c0 17-9 24-23 24S9 27 9 10ZM32 34v26M19 61h26M12 15h40"/></svg></span><span>No photo yet</span>';
       }
 
       const meta = document.createElement("div");

@@ -7,6 +7,9 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const catalog=JSON.parse(readFileSync(resolve(root,'content/astronomy/catalog.json'),'utf8'));
 assert.equal(catalog.photos.length,90);assert.equal(catalog.count,90);assert.equal(new Set(catalog.photos.map(p=>p.id)).size,90);
 assert.equal(catalog.photos.filter(p=>p.date).length,87);
+assert(catalog.highlights.length>=5&&catalog.highlights.length<=10);assert.equal(new Set(catalog.highlights).size,catalog.highlights.length);
+assert.deepEqual(new Set(catalog.photos.filter(p=>p.featured).map(p=>p.id)),new Set(catalog.highlights));
+for(const id of catalog.highlights)assert(catalog.photos.some(p=>p.id===id&&p.date&&!p.isComposite));
 assert.equal(catalog.photos.filter(p=>p.isComposite&&!p.date).length,3);
 for(const [id,frames] of [['astro-moon-phases',20],['astro-moon-eclipses',2]]){
  const p=catalog.photos.find(p=>p.id===id);assert(p?.isAnimated&&p.isComposite);assert.equal(p.date,null);assert.equal(p.frameCount,frames);assert.equal(p.sourcePhotoIds.length,frames);assert(p.categories.includes('Moon')&&p.categories.includes('Composites'));assert(p.thumbnail.endsWith('.webp'));assert(p.image.endsWith('.gif'));

@@ -18,7 +18,7 @@ sky=sky.replace(/<link\b(?:"[^"]*"|'[^']*'|[^'">])*>/gi,tag=>/\brel=["'][^"']*\b
 sky=sky.replace('</head>','<link rel="icon" type="image/png" sizes="32x32" href="/icons/skywatcher-32.png"><link rel="icon" type="image/svg+xml" sizes="any" href="/icons/skywatcher.svg"><link rel="apple-touch-icon" sizes="180x180" href="/icons/skywatcher-180.png"></head>');
 sky=sky.replace('</head>','<link rel="canonical" href="https://www.joshpila.com/skywatcher/"></head>');
 if(!/<body\b[^>]*>/.test(sky))throw Error('SkyWatcher is missing its body element');
-sky=sky.replace(/<body\b[^>]*>/,match=>match+'<nav aria-label="Site navigation" style="display:flex;gap:24px;padding:10px 18px;background:#0e1521;border-bottom:1px solid #26394d;font-size:12px"><a href="/artifact/sky/" style="color:#a8d6ff">← Astronomy</a><a href="/?selected=sky" style="color:#a8d6ff">Return to Orrery</a></nav>');
+sky=sky.replace(/<body\b[^>]*>/,match=>match+'<nav aria-label="Site navigation" style="display:flex;gap:24px;padding:10px 18px;background:#0e1521;border-bottom:1px solid #26394d;font-size:12px"><a href="/astronomy/" style="color:#a8d6ff">← Astronomy</a><a href="/?selected=sky" style="color:#a8d6ff">Return to Orrery</a></nav>');
 mkdirSync(path.join(dest,'skywatcher'),{recursive:true});
 writeFileSync(path.join(dest,'skywatcher/index.html'),sky);
 console.log('Pages artifact assembled with SkyWatcher and existing D&D and Games intact.');

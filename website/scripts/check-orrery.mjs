@@ -90,6 +90,7 @@ const data = { exports: {} };
 vm.runInNewContext(transpile(dataSource), data);
 const { artifacts, artifactHref } = data.exports;
 assert.equal(artifacts.length, 7);
+assert.equal(artifactHref(artifacts.find((item) => item.id === "sky")), "/astronomy/");
 assert.equal(artifactHref(artifacts.find((item) => item.id === "games")), "https://www.joshpila.com/games/");
 assert.equal(artifactHref(artifacts.find((item) => item.id === "campaigns")), "https://www.joshpila.com/dnd/");
 assert.equal(artifactHref(artifacts.find((item) => item.id === "workshop")), "/artifact/workshop");

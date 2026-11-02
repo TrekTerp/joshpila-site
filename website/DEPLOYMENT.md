@@ -4,7 +4,7 @@ The repository root's existing D&D and Games files remain authoritative. `websit
 
 ## SkyWatcher
 
-Sky links to `/artifact/sky/`, with the photography gallery at `/astronomy/` and the planner at `/skywatcher/`. The former `/artifact/sky/photos/` address redirects to the gallery.
+Sky links to `/astronomy/`, with the photography gallery at `/astronomy/gallery/` and the planner at `/skywatcher/`. `/artifact/sky/` and `/artifact/sky/photos/` remain as compatibility redirects. Legacy photo/view queries and gallery fragments on `/astronomy/` are forwarded to the gallery with their query and fragment intact.
 The Pages workflow checks out `TrekTerp/SkyWatcher` at commit `954ac57ae6911849ccd093b8ffd8a40d7a60ebbb`. Update that pinned ref to publish a newer planner version. Its JavaScript is retained unchanged; assembly adds return links and updates the public URL metadata. For local assembly, run `node website/scripts/assemble-pages.mjs /absolute/path/to/SkyWatcher/index.html` after the frontend build.
 Browser preferences are stored per origin: existing settings on `trekterp.github.io` do not transfer automatically to `www.joshpila.com`. The original GitHub Pages app remains available.
 

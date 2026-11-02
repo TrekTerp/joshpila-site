@@ -15,7 +15,7 @@ for (const section of sections) {
 }
 const routes = {
   'index.html':'home', 'artifact/origin/index.html':'home',
-  'artifact/sky/index.html':'astronomy', 'artifact/sky/photos/index.html':'astronomy', 'astronomy/index.html':'astronomy',
+  'artifact/sky/index.html':'astronomy', 'artifact/sky/photos/index.html':'astronomy', 'astronomy/index.html':'astronomy', 'astronomy/gallery/index.html':'astronomy',
   'skywatcher/index.html':'skywatcher', 'artifact/campaigns/index.html':'campaigns', 'dnd/index.html':'campaigns',
   'artifact/patterns/index.html':'patterns', 'artifact/writing/index.html':'writing',
   'artifact/cocktails/index.html':'cocktails', 'study/cabinet/index.html':'cocktails', 'cocktails/index.html':'cocktails',
@@ -43,4 +43,4 @@ function checkChildren(dir) {
   }
 }
 checkChildren(resolve(dist,'dnd')); checkChildren(resolve(dist,'games'));
-console.log('Section icons pass: 9 designs, 16 entry routes, PNG sizes, and icons throughout D&D and Games.');
+console.log('Section icons pass: 9 designs, 17 entry routes, PNG sizes, and icons throughout D&D and Games.');

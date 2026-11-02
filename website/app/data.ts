@@ -94,7 +94,7 @@ export const artifacts: Artifact[] = [
 ];
 
 export function artifactHref(artifact: Artifact) {
-  return artifact.href ?? (artifact.id === "cocktails" ? "/study/cabinet" : `/artifact/${artifact.id}`);
+  return artifact.href ?? (artifact.id === "sky" ? "/astronomy/" : artifact.id === "cocktails" ? "/study/cabinet" : `/artifact/${artifact.id}`);
 }
 
 export const originArtifact: Artifact = {

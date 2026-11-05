@@ -1,0 +1,1820 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>JezzBall • Evolved</title>
+    <meta
+      name="description"
+      content="The classic wall-building puzzle, recreated for your browser."
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #008080;
+        color: #111;
+        font:
+          14px Arial,
+          sans-serif;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 22px;
+      }
+      button,
+      select {
+        font: inherit;
+        color: inherit;
+        background: #c0c0c0;
+        border: 2px solid;
+        border-color: #fff #404040 #404040 #fff;
+        border-radius: 0;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      button:active {
+        border-color: #404040 #fff #fff #404040;
+      }
+      button:focus-visible,
+      select:focus-visible {
+        outline: 2px dotted #000;
+        outline-offset: 2px;
+      }
+      .window {
+        width: min(100%, 750px);
+        background: #c0c0c0;
+        padding: 4px;
+        border: 2px solid;
+        border-color: #fff #404040 #404040 #fff;
+        box-shadow: 5px 6px 0 #004d4d;
+      }
+      .title {
+        background: #000080;
+        color: white;
+        padding: 6px 8px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .icon {
+        width: 16px;
+        height: 16px;
+        background: linear-gradient(135deg, #fff 50%, #e00000 50%);
+        border: 1px solid #000;
+        border-radius: 50%;
+      }
+      .title small {
+        margin-left: auto;
+        font-weight: normal;
+        font-size: 11px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        padding: 7px 3px;
+      }
+      .toolbar button {
+        padding: 5px 9px;
+      }
+      .toolbar select {
+        margin-left: auto;
+        padding: 4px;
+      }
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 8px;
+        font-variant-numeric: tabular-nums;
+        border: 2px solid;
+        border-color: #808080 #fff #fff #808080;
+        margin: 0 3px 8px;
+      }
+      .stats strong {
+        display: block;
+        font:
+          bold 21px "Courier New",
+          monospace;
+        margin-top: 3px;
+      }
+      .stats span:last-child {
+        text-align: right;
+      }
+      .arena {
+        position: relative;
+        margin: 3px;
+        border: 3px solid;
+        border-color: #404040 #fff #fff #404040;
+        background: #aaa;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        aspect-ratio: 7/5;
+        touch-action: none;
+        cursor: none;
+        image-rendering: pixelated;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #0003;
+        padding: 18px;
+      }
+      .overlay[hidden] {
+        display: none;
+      }
+      .dialog {
+        background: #c0c0c0;
+        border: 3px solid;
+        border-color: #fff #404040 #404040 #fff;
+        box-shadow: 3px 3px #0006;
+        width: 340px;
+        max-width: 100%;
+        text-align: center;
+        padding: 0 18px 20px;
+      }
+      .dialog h1 {
+        font-size: 16px;
+        background: navy;
+        color: #fff;
+        margin: 0 -18px 18px;
+        padding: 7px;
+      }
+      .dialog p {
+        line-height: 1.5;
+      }
+      .dialog button {
+        min-width: 110px;
+      }
+      .status {
+        display: flex;
+        gap: 5px;
+        margin: 8px 3px 3px;
+      }
+      .status > span {
+        border: 1px solid;
+        border-color: #808080 #fff #fff #808080;
+        padding: 6px;
+        flex: 1;
+        font-size: 12px;
+      }
+      .status > span:last-child {
+        flex: 0 0 auto;
+      }
+      .hint {
+        text-align: center;
+        color: #e3ffff;
+        font-size: 12px;
+        margin: 16px 0 0;
+        line-height: 1.8;
+      }
+      .wrap {
+        width: min(100%, 750px);
+      }
+      .meter {
+        height: 6px;
+        background: #888;
+        margin: 0 3px;
+      }
+      .meter div {
+        background: #000080;
+        height: 100%;
+        width: 0;
+      }
+      dialog {
+        background: silver;
+        border: 3px outset #eee;
+        max-width: 420px;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      dialog::backdrop {
+        background: #0005;
+      }
+      dialog h2 {
+        font-size: 18px;
+        margin: 0 0 12px;
+      }
+      dialog button {
+        display: block;
+        margin: 18px auto 0;
+      }
+      a {
+        color: navy;
+      }
+      @media (max-width: 480px) {
+        body {
+          padding: 8px;
+        }
+        .stats {
+          font-size: 11px;
+          padding: 7px 5px;
+        }
+        .stats strong {
+          font-size: 17px;
+        }
+        .toolbar button {
+          padding: 5px;
+        }
+        .title small {
+          display: none;
+        }
+        .hint {
+          font-size: 11px;
+        }
+        .status > span {
+          font-size: 11px;
+        }
+      }
+
+      .edition-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        color: #d7f4f4;
+        gap: 12px;
+      }
+      .edition-label {
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        font-weight: 700;
+      }
+      .edition-switch {
+        display: flex;
+        gap: 4px;
+      }
+      .edition-switch button {
+        font-size: 12px;
+        padding: 7px 16px;
+      }
+      .edition-switch button[aria-pressed="true"] {
+        font-weight: bold;
+      }
+      .chamber-label {
+        display: none;
+      }
+      body.evolved {
+        background:
+          radial-gradient(ellipse at 15% 0%, #142135 0, transparent 55%),
+          radial-gradient(ellipse at 100% 85%, #181431 0, transparent 50%),
+          #070c15;
+        color: #c6d5e6;
+        font-family: Arial, sans-serif;
+        padding: 28px 18px;
+      }
+      .evolved .wrap {
+        width: min(100%, 820px);
+      }
+      .evolved .edition-bar {
+        margin-bottom: 24px;
+        color: #6b7f9b;
+      }
+      .evolved .edition-switch {
+        background: #0b1422;
+        padding: 4px;
+        border: 1px solid #26374c;
+        border-radius: 30px;
+      }
+      .evolved .edition-switch button {
+        border: 0;
+        border-radius: 22px;
+        background: transparent;
+        color: #8193ad;
+        padding: 7px 19px;
+        font-size: 12px;
+      }
+      .evolved .edition-switch button[aria-pressed="true"] {
+        background: #24364d;
+        color: #e5f6ff;
+        box-shadow: 0 1px 5px #0006;
+      }
+      .evolved .window {
+        width: 100%;
+        padding: 25px;
+        border: 1px solid #26384d;
+        border-radius: 20px;
+        background: linear-gradient(145deg, #132030, #0b1421 65%);
+        box-shadow:
+          0 30px 90px #0008,
+          inset 0 1px #ffffff08;
+      }
+      .evolved .title {
+        padding: 0;
+        background: transparent;
+        gap: 13px;
+        margin-bottom: 26px;
+        align-items: center;
+      }
+      .evolved .wordmark {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        color: #f0f7ff;
+      }
+      .evolved .title small {
+        margin-left: 0;
+        color: #6bdfeb;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.26em;
+        border-left: 1px solid #33465a;
+        padding: 6px 0 6px 15px;
+      }
+      .evolved .icon {
+        width: 25px;
+        height: 25px;
+        border: 1px solid #8ffaff;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 30% 25%,
+          white,
+          #84f1f4 18%,
+          #3f9bae 50%,
+          #14394c 80%
+        );
+        box-shadow:
+          0 0 22px #5de0ed55,
+          inset -3px -3px 8px #0005;
+      }
+      .evolved button,
+      .evolved select {
+        border: 1px solid #304157;
+        border-radius: 7px;
+        background: #172536;
+        color: #b8cadd;
+        padding: 8px 12px;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .evolved button:hover {
+        background: #23384c;
+        border-color: #56738d;
+        color: #fff;
+      }
+      .evolved button:active {
+        background: #0b1726;
+      }
+      .evolved button:focus-visible,
+      .evolved select:focus-visible {
+        outline: 2px solid #70e9f3;
+        outline-offset: 3px;
+      }
+      .evolved .toolbar {
+        padding: 0;
+        margin-bottom: 23px;
+        gap: 7px;
+      }
+      .evolved .toolbar button {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+      .evolved #direction {
+        color: #98f0f3;
+        border-color: #355c6a;
+        background: #16333d;
+      }
+      .evolved .toolbar select {
+        font-size: 12px;
+        padding: 6px 9px;
+      }
+      .evolved .stats {
+        border: 0;
+        border-top: 1px solid #26384d;
+        margin: 0 0 24px;
+        padding: 18px 0 0;
+        gap: 0;
+      }
+      .evolved .stats > span {
+        flex: 1;
+        border-right: 1px solid #26384d;
+        padding-left: 24px;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #7d91ab;
+      }
+      .evolved .stats > span:first-child {
+        padding-left: 0;
+      }
+      .evolved .stats > span:last-child {
+        border-right: 0;
+      }
+      .evolved .stats strong {
+        font-family: Arial, sans-serif;
+        font-weight: 500;
+        font-size: 29px;
+        letter-spacing: -0.04em;
+        color: #e6f3ff;
+        margin-top: 8px;
+      }
+      .evolved .stats #lives {
+        color: #ffbc9c;
+      }
+      .evolved .stats #time {
+        color: #91e1e8;
+      }
+      .evolved .chamber-label {
+        display: flex;
+        justify-content: space-between;
+        font: 9px monospace;
+        letter-spacing: 0.14em;
+        color: #667f98;
+        margin-bottom: 9px;
+      }
+      .evolved .arena {
+        margin: 0;
+        border: 1px solid #365168;
+        border-radius: 4px;
+        background: #0b1c2b;
+        box-shadow:
+          0 0 28px #52c5e908,
+          inset 0 0 25px #0009;
+        overflow: hidden;
+      }
+      .evolved canvas {
+        image-rendering: auto;
+      }
+      .evolved .overlay {
+        background: #030b1670;
+        backdrop-filter: blur(4px);
+      }
+      .evolved .dialog {
+        border: 1px solid #416075;
+        border-radius: 13px;
+        padding: 28px;
+        background: linear-gradient(145deg, #1b3043f5, #0e1d30fa);
+        box-shadow: 0 16px 50px #0007;
+        width: 340px;
+      }
+      .evolved .dialog h1 {
+        background: transparent;
+        margin: 0 0 14px;
+        padding: 0;
+        font-size: 27px;
+        letter-spacing: -0.04em;
+        color: #edfaff;
+      }
+      .evolved .dialog p {
+        color: #9bb2ca;
+        font-size: 14px;
+        line-height: 1.7;
+        margin: 0 0 24px;
+      }
+      .evolved .dialog button {
+        background: #a0edf1;
+        color: #0a2634;
+        font-weight: 700;
+        border-color: #a0edf1;
+        padding: 12px 28px;
+        border-radius: 6px;
+        box-shadow: 0 0 22px #71e9f126;
+      }
+      .evolved .dialog button:hover {
+        background: #cefcff;
+      }
+      .evolved .meter {
+        position: relative;
+        height: 4px;
+        background: #243247;
+        margin: 20px 0 0;
+        border-radius: 4px;
+      }
+      .evolved .meter:after {
+        content: "";
+        position: absolute;
+        left: 75%;
+        top: -3px;
+        height: 10px;
+        width: 1px;
+        background: #a8bacb;
+      }
+      .evolved .meter div {
+        background: linear-gradient(90deg, #30799a, #90eef1);
+        box-shadow: 0 0 10px #68e7f344;
+        border-radius: 4px;
+        transition: width 0.4s ease;
+      }
+      .evolved .status {
+        margin: 10px 0 0;
+        gap: 10px;
+      }
+      .evolved .status > span {
+        border: 0;
+        padding: 0;
+        color: #7e96ae;
+        font-size: 11px;
+      }
+      .evolved .status > span:last-child {
+        color: #b8d9e7;
+      }
+      .evolved .hint {
+        color: #677e99;
+        font-size: 11px;
+        line-height: 1.9;
+        margin-top: 20px;
+      }
+      .evolved dialog {
+        background: #142438;
+        color: #b7cadf;
+        border: 1px solid #466077;
+        border-radius: 14px;
+        box-shadow: 0 30px 100px #0008;
+      }
+      .evolved dialog h2 {
+        color: #e9f7ff;
+      }
+      @media (max-width: 540px) {
+        .evolved .window {
+          padding: 15px;
+          border-radius: 13px;
+        }
+        .evolved .wordmark {
+          font-size: 28px;
+        }
+        .evolved .title {
+          margin-bottom: 19px;
+        }
+        .evolved .title small {
+          display: block;
+          font-size: 9px;
+        }
+        .evolved .stats > span {
+          padding-left: 12px;
+        }
+        .evolved .stats strong {
+          font-size: 24px;
+        }
+        .evolved .toolbar {
+          gap: 5px;
+          margin-bottom: 17px;
+        }
+        .evolved .toolbar button {
+          padding: 7px 8px;
+        }
+        .evolved .edition-bar {
+          margin-bottom: 14px;
+        }
+        .evolved .dialog {
+          padding: 20px;
+          max-width: 290px;
+        }
+        .evolved .dialog h1 {
+          font-size: 23px;
+        }
+        .evolved .dialog p {
+          font-size: 12px;
+          margin-bottom: 16px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .evolved * {
+          transition: none !important;
+        }
+        .evolved .overlay {
+          backdrop-filter: none;
+        }
+      }
+
+      body.evolved {
+        padding: 18px;
+      }
+      .evolved .window {
+        padding: 20px;
+      }
+      .evolved .edition-bar {
+        margin-bottom: 14px;
+      }
+      .evolved .title {
+        margin-bottom: 18px;
+      }
+      .evolved .toolbar {
+        margin-bottom: 16px;
+      }
+      .evolved .stats {
+        padding-top: 14px;
+        margin-bottom: 16px;
+      }
+      .evolved .meter {
+        margin-top: 14px;
+      }
+      .evolved .hint {
+        margin-top: 12px;
+      }
+      @media (min-width: 700px) {
+        .evolved .wrap {
+          width: min(780px, calc((100svh - 440px) * 1.4 + 42px));
+        }
+      }
+      @media (max-width: 540px) {
+        body.evolved {
+          padding: 12px;
+        }
+        .evolved .window {
+          padding: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body class="evolved">
+    <main class="wrap">
+      <div class="edition-bar">
+        <span class="edition-label">JEZZBALL</span>
+        <div class="edition-switch" role="group" aria-label="Visual style">
+          <button id="classicStyle" aria-pressed="false">Classic</button
+          ><button id="evolvedStyle" aria-pressed="true">Evolved</button>
+        </div>
+      </div>
+      <section class="window" aria-label="JezzBall game">
+        <header class="title">
+          <span class="icon"></span><span class="wordmark">JezzBall</span
+          ><small id="editionName">Evolved</small>
+        </header>
+        <nav class="toolbar" aria-label="Game controls">
+          <button id="new">New game</button><button id="pause">Pause</button
+          ><button id="direction">↕ Vertical</button
+          ><button id="sound" aria-pressed="false">Sound off</button
+          ><button id="help">Help</button
+          ><select id="speed" aria-label="Game speed">
+            <option value="fast">Fast</option>
+            <option value="slow">Slow</option>
+          </select>
+        </nav>
+        <div class="stats">
+          <span>Lives<strong id="lives">2</strong></span
+          ><span>Level<strong id="level">1</strong></span
+          ><span>Score<strong id="score">0</strong></span
+          ><span>Time<strong id="time">1500</strong></span>
+        </div>
+        <div class="chamber-label" aria-hidden="true">
+          <span>CONTAINMENT CHAMBER</span><span>75% TO CLEAR</span>
+        </div>
+        <div class="arena">
+          <canvas
+            id="game"
+            width="560"
+            height="400"
+            tabindex="0"
+            aria-label="JezzBall playfield. Click to build. Right-click or Space to change direction. Arrow keys move the builder, Enter builds."
+          ></canvas>
+          <div class="overlay" id="overlay">
+            <div class="dialog">
+              <h1 id="dialogTitle">JezzBall</h1>
+              <p id="dialogText">
+                Build walls. Trap the balls.<br />Clear 75% of the chamber.
+              </p>
+              <button id="action">Start game</button>
+            </div>
+          </div>
+        </div>
+        <div class="meter" aria-hidden="true"><div id="meter"></div></div>
+        <footer class="status">
+          <span id="status">Ready to play</span
+          ><span id="area">Area cleared 0%</span>
+        </footer>
+      </section>
+      <p class="hint">
+        Click to build · Right-click / Space to rotate · P to pause<br />On
+        touchscreens, choose the direction above, then tap the chamber.
+      </p>
+    </main>
+    <dialog id="helpDialog">
+      <h2>How to play</h2>
+      <p>
+        Build a wall in both directions from the pointer. When a wall reaches an
+        existing boundary, it becomes solid. Empty chambers fill automatically.
+      </p>
+      <p>
+        A ball hitting a growing wall costs one life. Any half already completed
+        stays in place. Clear at least 75% to advance.
+      </p>
+      <p>
+        Each level adds one ball, up to 50. Lives reset to the ball count. Every
+        level uses the full rectangular chamber. Wall effects apply to the outer
+        boundary, completed half-walls, and all newly built walls.
+      </p>
+      <p>
+        Right-click or Space rotates the builder. Arrow keys move it, Enter
+        builds. F2 starts a new game. F3 or P pauses. Slow speed runs at half
+        speed and awards half points.
+      </p>
+      <p>
+        Evolved adds particle glow, fading impact lights, a connection pulse
+        when each half-wall anchors, and a short sweep across newly captured
+        territory. Completed walls and captured space share one finish.
+      </p>
+      <p>The Classic and Evolved buttons change the appearance during a run.</p>
+      <p id="best"></p>
+      <p>
+        <small
+          >A browser recreation of Dima Pavlovsky’s 1992 game. Scoring bonuses
+          and timing are approximations of the original.</small
+        >
+      </p>
+      <button id="closeHelp">Back to game</button>
+    </dialog>
+    <script>
+      "use strict";
+      const COLS = 28,
+        ROWS = 20,
+        CELL = 20,
+        W = 560,
+        H = 400,
+        R = 6,
+        TOTAL = COLS * ROWS;
+      const $ = (id) => document.getElementById(id),
+        canvas = $("game"),
+        ctx = canvas.getContext("2d");
+      let grid,
+        balls,
+        build = null,
+        level = 1,
+        lives = 2,
+        score = 0,
+        time = 1500,
+        cleared = 0,
+        mode = "ready",
+        vertical = true,
+        sound = false,
+        audio = null,
+        flash = 0;
+      let pointer = { x: 280, y: 200, inside: false },
+        best = 0,
+        last = 0,
+        accumulator = 0;
+      let ballCount = 2;
+      function scoreKey() {
+        return "jezzball-classic-best";
+      }
+      function loadBest() {
+        best = 0;
+        try {
+          best = Number(localStorage.getItem(scoreKey())) || 0;
+        } catch {}
+      }
+      loadBest();
+      function beep(freq, duration = 0.06) {
+        if (!sound) return;
+        try {
+          audio ??= new (window.AudioContext || window.webkitAudioContext)();
+          audio.resume();
+          const o = audio.createOscillator(),
+            g = audio.createGain();
+          o.type = "square";
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0.035, audio.currentTime);
+          g.gain.exponentialRampToValueAtTime(
+            0.001,
+            audio.currentTime + duration,
+          );
+          o.connect(g);
+          g.connect(audio.destination);
+          o.start();
+          o.stop(audio.currentTime + duration);
+        } catch {}
+      }
+      function saveBest() {
+        best = Math.max(best, Math.floor(score));
+        try {
+          localStorage.setItem(scoreKey(), best);
+        } catch {}
+      }
+      function overlay(title, text, label) {
+        $("dialogTitle").textContent = title;
+        $("dialogText").textContent = text;
+        $("action").textContent = label;
+        $("overlay").hidden = false;
+      }
+      function setupLevel() {
+        grid = new Uint8Array(TOTAL);
+        containmentDirty = true;
+        impacts = [];
+        anchorPulses = [];
+        captureStarts.fill(-Infinity);
+        pendingWin = null;
+        balls = [];
+        build = null;
+        cleared = 0;
+        flash = 0;
+        ballCount = Math.min(50, level + 1);
+        lives = ballCount;
+        time =
+          1500 +
+          Math.floor(level / 2) * 300 +
+          Math.floor((level - 1) / 2) * 200;
+        for (let i = 0; i < ballCount; i++) {
+          balls.push({
+            x: 30 + Math.random() * (W - 60),
+            y: 30 + Math.random() * (H - 60),
+            vx: Math.random() < 0.5 ? -88 : 88,
+            vy: Math.random() < 0.5 ? -88 : 88,
+          });
+        }
+        mode = "playing";
+        $("overlay").hidden = true;
+        $("pause").textContent = "Pause";
+        hud();
+      }
+      function newGame() {
+        level = 1;
+        score = 0;
+        setupLevel();
+        canvas.focus();
+      }
+      function rotate() {
+        vertical = !vertical;
+        $("direction").textContent = vertical ? "↕ Vertical" : "↔ Horizontal";
+      }
+      function pause() {
+        if (mode === "playing") {
+          mode = "paused";
+          overlay("Paused", "The chamber is waiting.", "Resume");
+          $("pause").textContent = "Resume";
+        } else if (mode === "paused") {
+          mode = "playing";
+          $("overlay").hidden = true;
+          $("pause").textContent = "Pause";
+        }
+        hud();
+      }
+      function gameOver(message) {
+        mode = "over";
+        saveBest();
+        overlay(
+          "Game over",
+          message +
+            " Score " +
+            Math.floor(score).toLocaleString() +
+            ". Best " +
+            best.toLocaleString() +
+            ".",
+          "Play again",
+        );
+        beep(100, 0.2);
+        hud();
+      }
+      function hud() {
+        for (const [id, value] of Object.entries({
+          lives,
+          level,
+          score: Math.floor(score).toLocaleString(),
+          time: Math.ceil(time),
+        }))
+          $(id).textContent = value;
+        $("area").textContent =
+          "Area cleared " + Math.floor((cleared / TOTAL) * 100) + "%";
+        $("meter").style.width = (cleared / TOTAL) * 100 + "%";
+        $("status").textContent = build
+          ? "Building…"
+          : mode === "playing"
+            ? "Clear 75% to advance"
+            : mode === "ready"
+              ? "Ready to play"
+              : mode === "won"
+                ? "Chamber cleared"
+                : mode === "paused"
+                  ? "Paused"
+                  : "Game over";
+      }
+      function circleRect(b, x, y, w, h) {
+        const nx = Math.max(x, Math.min(x + w, b.x)),
+          ny = Math.max(y, Math.min(y + h, b.y));
+        return (b.x - nx) ** 2 + (b.y - ny) ** 2 < R * R;
+      }
+      function solid(x, y, contact) {
+        if (x - R < 0 || x + R > W || y - R < 0 || y + R > H) {
+          if (contact) {
+            contact.x = x - R < 0 ? 0 : x + R > W ? W : x;
+            contact.y = y - R < 0 ? 0 : y + R > H ? H : y;
+          }
+          return true;
+        }
+        const b = { x, y };
+        for (
+          let row = Math.max(0, Math.floor((y - R) / CELL));
+          row <= Math.min(ROWS - 1, Math.floor((y + R) / CELL));
+          row++
+        )
+          for (
+            let col = Math.max(0, Math.floor((x - R) / CELL));
+            col <= Math.min(COLS - 1, Math.floor((x + R) / CELL));
+            col++
+          )
+            if (
+              grid[row * COLS + col] &&
+              circleRect(b, col * CELL, row * CELL, CELL, CELL)
+            ) {
+              if (contact) {
+                contact.x = Math.max(col * CELL, Math.min((col + 1) * CELL, x));
+                contact.y = Math.max(row * CELL, Math.min((row + 1) * CELL, y));
+              }
+              return true;
+            }
+        return false;
+      }
+      function startWall(x, y) {
+        if (mode !== "playing" || build) return;
+        const col = Math.floor(x / CELL),
+          row = Math.floor(y / CELL);
+        if (
+          col < 0 ||
+          col >= COLS ||
+          row < 0 ||
+          row >= ROWS ||
+          grid[row * COLS + col]
+        )
+          return;
+        const center = vertical ? row * CELL : col * CELL;
+        const fixed = vertical ? col * CELL : row * CELL;
+        const limit = vertical ? ROWS : COLS;
+        const position = vertical ? row : col;
+        let low = position,
+          high = position;
+        const occupied = (p) =>
+          grid[vertical ? p * COLS + col : row * COLS + p];
+        while (low > 0 && !occupied(low - 1)) low--;
+        while (high < limit - 1 && !occupied(high + 1)) high++;
+        build = {
+          vertical,
+          fixed,
+          center,
+          halves: [
+            { end: center, target: low * CELL, sign: -1, done: false },
+            { end: center, target: (high + 1) * CELL, sign: 1, done: false },
+          ],
+        };
+        beep(400);
+      }
+      function rectFor(wall, half) {
+        const start = Math.min(wall.center, half.end),
+          length = Math.abs(half.end - wall.center);
+        return wall.vertical
+          ? [wall.fixed, start, CELL, length]
+          : [start, wall.fixed, length, CELL];
+      }
+      function commitHalf(wall, half) {
+        const [x, y, w, h] = rectFor(wall, half);
+        for (
+          let row = Math.floor(y / CELL);
+          row < Math.ceil((y + h) / CELL);
+          row++
+        )
+          for (
+            let col = Math.floor(x / CELL);
+            col < Math.ceil((x + w) / CELL);
+            col++
+          )
+            grid[row * COLS + col] = 1;
+        half.done = true;
+        if (evolved && !reducedMotion?.matches && half.target !== wall.center) {
+          anchorPulses.push({
+            vertical: wall.vertical,
+            fixed: wall.fixed,
+            center: wall.center,
+            target: half.target,
+            start: effectTime,
+          });
+        }
+        containmentDirty = true;
+      }
+      function capture(wall) {
+        const seen = new Uint8Array(TOTAL),
+          queue = [];
+        for (const b of balls) {
+          const index = Math.floor(b.y / CELL) * COLS + Math.floor(b.x / CELL);
+          if (!grid[index] && !seen[index]) {
+            seen[index] = 1;
+            queue.push(index);
+          }
+        }
+        for (let head = 0; head < queue.length; head++) {
+          const p = queue[head],
+            col = p % COLS,
+            row = Math.floor(p / COLS);
+          const neighbors = [];
+          if (col > 0) neighbors.push(p - 1);
+          if (col < COLS - 1) neighbors.push(p + 1);
+          if (row > 0) neighbors.push(p - COLS);
+          if (row < ROWS - 1) neighbors.push(p + COLS);
+          for (const next of neighbors)
+            if (!grid[next] && !seen[next]) {
+              seen[next] = 1;
+              queue.push(next);
+            }
+        }
+        let count = 0;
+        const newlyCaptured = [];
+        for (let i = 0; i < TOTAL; i++) {
+          if (!seen[i] && !grid[i]) {
+            grid[i] = 2;
+            newlyCaptured.push(i);
+          }
+          if (grid[i] === 1 || grid[i] === 2) count++;
+        }
+        startCaptureSweep(newlyCaptured, wall);
+        const factor = $("speed").value === "slow" ? 0.5 : 1;
+        score += (count - cleared) * (ballCount + 5) * factor;
+        cleared = count;
+        containmentDirty = true;
+        if (cleared / TOTAL >= 0.75 && mode === "playing") {
+          const percent = (cleared / TOTAL) * 100;
+          const bonus = Math.floor(
+            (Math.max(0, percent - 80) * 100 +
+              Math.max(0, percent - 90) * 200) *
+              level *
+              factor,
+          );
+          score += bonus;
+          mode = "won";
+          saveBest();
+          showWin(
+            "Level " + level + " complete",
+            Math.floor(percent) +
+              "% cleared. Bonus " +
+              bonus.toLocaleString() +
+              " points.",
+            "Next level",
+          );
+          beep(880, 0.15);
+        }
+        hud();
+      }
+      function update(dt) {
+        if (mode !== "playing") return;
+        const scale = $("speed").value === "slow" ? 0.5 : 1;
+        dt *= scale;
+        time = Math.max(0, time - dt * 10);
+        if (time === 0) {
+          gameOver("Time ran out.");
+          return;
+        }
+        flash = Math.max(0, flash - dt);
+        for (const impact of impacts) impact.age += dt;
+        impacts = impacts.filter((impact) => impact.age < IMPACT_LIFETIME);
+        const contact = {};
+        for (const b of balls) {
+          const x = b.x + b.vx * dt;
+          if (solid(x, b.y, contact)) {
+            addImpact(contact, "x", b);
+            b.vx = -b.vx;
+          } else b.x = x;
+          const y = b.y + b.vy * dt;
+          if (solid(b.x, y, contact)) {
+            addImpact(contact, "y", b);
+            b.vy = -b.vy;
+          } else b.y = y;
+        }
+        if (build) {
+          const wall = build;
+          let hit = false;
+          for (const half of wall.halves) {
+            if (half.done) continue;
+            half.end += half.sign * 145 * dt;
+            if (half.sign < 0) half.end = Math.max(half.end, half.target);
+            else half.end = Math.min(half.end, half.target);
+            const rect = rectFor(wall, half);
+            const strikingBall = balls.find((b) => circleRect(b, ...rect));
+            if (strikingBall) {
+              const [x, y, width, height] = rect;
+              addImpact(
+                {
+                  x: Math.max(x, Math.min(x + width, strikingBall.x)),
+                  y: Math.max(y, Math.min(y + height, strikingBall.y)),
+                },
+                wall.vertical ? "x" : "y",
+                strikingBall,
+              );
+              hit = true;
+              break;
+            }
+          }
+          if (hit) {
+            build = null;
+            lives--;
+            flash = 0.18;
+            beep(130, 0.12);
+            if (lives === 0) gameOver("No lives left.");
+            capture(wall);
+          } else {
+            for (const half of wall.halves)
+              if (!half.done && half.end === half.target)
+                commitHalf(wall, half);
+            if (wall.halves.every((half) => half.done)) {
+              build = null;
+              capture(wall);
+              beep(620);
+            }
+          }
+        }
+        hud();
+      }
+      function drawClassic() {
+        ctx.fillStyle = "#a9a9a9";
+        ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = "#a3a3a3";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        for (let x = 0; x <= W; x += CELL) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, H);
+        }
+        for (let y = 0; y <= H; y += CELL) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(W, y);
+        }
+        ctx.stroke();
+        for (let i = 0; i < TOTAL; i++)
+          if (grid[i]) {
+            ctx.fillStyle = "#080808";
+            ctx.fillRect(
+              (i % COLS) * CELL,
+              Math.floor(i / COLS) * CELL,
+              CELL,
+              CELL,
+            );
+          }
+        if (build)
+          build.halves.forEach((half, i) => {
+            if (!half.done) {
+              ctx.fillStyle = i === 0 ? "#0000ff" : "#ff0000";
+              ctx.fillRect(...rectFor(build, half));
+            }
+          });
+        for (const b of balls) {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, R, 0, Math.PI * 2);
+          ctx.fillStyle = "#fff";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, R, Math.PI * 0.25, Math.PI * 1.25);
+          ctx.fillStyle = "#e00000";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, R, 0, Math.PI * 2);
+          ctx.strokeStyle = "#333";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        if (pointer.inside && mode === "playing" && !build) {
+          const x = Math.floor(pointer.x / CELL) * CELL + CELL / 2,
+            y = Math.floor(pointer.y / CELL) * CELL + CELL / 2;
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          if (vertical) {
+            ctx.moveTo(x, y - 12);
+            ctx.lineTo(x, y + 12);
+            ctx.moveTo(x - 4, y - 8);
+            ctx.lineTo(x, y - 12);
+            ctx.lineTo(x + 4, y - 8);
+            ctx.moveTo(x - 4, y + 8);
+            ctx.lineTo(x, y + 12);
+            ctx.lineTo(x + 4, y + 8);
+          } else {
+            ctx.moveTo(x - 12, y);
+            ctx.lineTo(x + 12, y);
+            ctx.moveTo(x - 8, y - 4);
+            ctx.lineTo(x - 12, y);
+            ctx.lineTo(x - 8, y + 4);
+            ctx.moveTo(x + 8, y - 4);
+            ctx.lineTo(x + 12, y);
+            ctx.lineTo(x + 8, y + 4);
+          }
+          ctx.stroke();
+        }
+        if (flash > 0) {
+          ctx.fillStyle = "#f003";
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+      const IMPACT_LIFETIME = 1.4;
+      let impacts = [];
+      let containmentDirty = true;
+      const containmentAreas = new Uint16Array(TOTAL);
+
+      function addImpact(contact, axis, ball) {
+        if (!evolved) return;
+        impacts.push({
+          x: contact.x,
+          y: contact.y,
+          axis,
+          warm: balls.indexOf(ball) % 2 === 1,
+          age: 0,
+        });
+        // Bound the visual work in crowded, late-game chambers.
+        if (impacts.length > 96) impacts.shift();
+      }
+
+      function measureContainment() {
+        containmentAreas.fill(0);
+        const visited = new Uint8Array(TOTAL);
+        for (let start = 0; start < TOTAL; start++) {
+          if (grid[start] || visited[start]) continue;
+          const region = [start];
+          visited[start] = 1;
+          for (let head = 0; head < region.length; head++) {
+            const cell = region[head],
+              col = cell % COLS;
+            const neighbors = [];
+            if (col > 0) neighbors.push(cell - 1);
+            if (col < COLS - 1) neighbors.push(cell + 1);
+            if (cell >= COLS) neighbors.push(cell - COLS);
+            if (cell < TOTAL - COLS) neighbors.push(cell + COLS);
+            for (const next of neighbors) {
+              if (!grid[next] && !visited[next]) {
+                visited[next] = 1;
+                region.push(next);
+              }
+            }
+          }
+          for (const cell of region) containmentAreas[cell] = region.length;
+        }
+        containmentDirty = false;
+      }
+
+      function particlePressure(ball) {
+        if (containmentDirty) measureContainment();
+        const cell =
+          Math.floor(ball.y / CELL) * COLS + Math.floor(ball.x / CELL);
+        const area = Math.max(1, containmentAreas[cell]);
+        return Math.min(1, Math.max(0, Math.log2(TOTAL / area) / 5));
+      }
+
+      function drawImpacts() {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (const impact of impacts) {
+          const progress = impact.age / IMPACT_LIFETIME;
+          const opacity = Math.pow(1 - progress, 2);
+          const radius = reducedMotion?.matches ? 24 : 18 + progress * 24;
+          const rgb = impact.warm ? "255,173,133" : "116,232,255";
+          // A diffuse bloom plus a narrow mark on the wall itself.
+          const bloom = ctx.createRadialGradient(
+            impact.x,
+            impact.y,
+            0,
+            impact.x,
+            impact.y,
+            radius,
+          );
+          bloom.addColorStop(0, `rgba(${rgb},${opacity * 0.55})`);
+          bloom.addColorStop(0.3, `rgba(${rgb},${opacity * 0.23})`);
+          bloom.addColorStop(1, `rgba(${rgb},0)`);
+          ctx.fillStyle = bloom;
+          ctx.fillRect(
+            impact.x - radius,
+            impact.y - radius,
+            radius * 2,
+            radius * 2,
+          );
+          ctx.save();
+          ctx.translate(impact.x, impact.y);
+          if (impact.axis === "y") ctx.rotate(Math.PI / 2);
+          ctx.scale(1, 5);
+          const mark = ctx.createRadialGradient(0, 0, 0, 0, 0, 3.5);
+          mark.addColorStop(0, `rgba(235,253,255,${opacity * 0.9})`);
+          mark.addColorStop(0.35, `rgba(${rgb},${opacity * 0.65})`);
+          mark.addColorStop(1, `rgba(${rgb},0)`);
+          ctx.fillStyle = mark;
+          ctx.fillRect(-3.5, -3.5, 7, 7);
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+
+      let evolved = true;
+      try {
+        evolved = localStorage.getItem("jezzball-visual-style") !== "classic";
+      } catch {}
+      const reducedMotion = window.matchMedia?.(
+        "(prefers-reduced-motion: reduce)",
+      );
+      let renderGrid = null;
+      let effectTime = 0;
+      let previousEffectTime = 0;
+      const captureStarts = new Float64Array(TOTAL).fill(-Infinity);
+      let anchorPulses = [];
+      let pendingWin = null;
+      let trails = new Map();
+      let renderTime = 0;
+      let previousRenderTime = 0;
+
+      function applyStyle() {
+        document.body.classList.toggle("evolved", evolved);
+        $("classicStyle").setAttribute("aria-pressed", !evolved);
+        $("evolvedStyle").setAttribute("aria-pressed", evolved);
+        $("editionName").textContent = evolved
+          ? "Evolved"
+          : "Classic recreation";
+        document.title = evolved ? "JezzBall • Evolved" : "JezzBall Classic";
+        const resolution = evolved
+          ? Math.min(window.devicePixelRatio || 1, 3) * 1.5
+          : 1;
+        canvas.width = Math.round(W * resolution);
+        canvas.height = Math.round(H * resolution);
+        ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+        trails.clear();
+        impacts = [];
+        anchorPulses = [];
+        captureStarts.fill(-Infinity);
+      }
+      function chooseStyle(value) {
+        evolved = value;
+        try {
+          localStorage.setItem(
+            "jezzball-visual-style",
+            value ? "evolved" : "classic",
+          );
+        } catch {}
+        applyStyle();
+      }
+      $("classicStyle").onclick = () => chooseStyle(false);
+      $("evolvedStyle").onclick = () => chooseStyle(true);
+
+      function drawChamberDepth() {
+        // The open chamber is recessed beneath one continuous solid surface.
+        // Shade only open-to-solid boundaries, never joins between solid cells.
+        ctx.save();
+        const depth = 4;
+        function edge(x, y, dx, dy, neighbor, light) {
+          const age = effectTime - captureStarts[neighbor];
+          ctx.globalAlpha =
+            neighbor < 0 || reducedMotion?.matches
+              ? 1
+              : Math.max(0, Math.min(1, age / 0.14));
+          const gradient = ctx.createLinearGradient(
+            x,
+            y,
+            x + dx * depth,
+            y + dy * depth,
+          );
+          gradient.addColorStop(
+            0,
+            light ? "rgba(128,207,224,0.22)" : "rgba(0,4,12,0.55)",
+          );
+          gradient.addColorStop(
+            1,
+            light ? "rgba(128,207,224,0)" : "rgba(0,4,12,0)",
+          );
+          ctx.fillStyle = gradient;
+          ctx.fillRect(
+            x + Math.min(0, dx * depth),
+            y + Math.min(0, dy * depth),
+            dx ? depth : CELL,
+            dy ? depth : CELL,
+          );
+          ctx.strokeStyle = light
+            ? "rgba(137,215,230,0.35)"
+            : "rgba(4,12,22,0.8)";
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(x + dx * 0.4, y + dy * 0.4);
+          ctx.lineTo(
+            x + dx * 0.4 + (dy ? CELL : 0),
+            y + dy * 0.4 + (dx ? CELL : 0),
+          );
+          ctx.stroke();
+        }
+        for (let i = 0; i < TOTAL; i++) {
+          if (grid[i]) continue;
+          const col = i % COLS,
+            row = Math.floor(i / COLS);
+          const x = col * CELL,
+            y = row * CELL;
+          if (row === 0 || grid[i - COLS])
+            edge(x, y, 0, 1, row === 0 ? -1 : i - COLS, false);
+          if (col === 0 || grid[i - 1])
+            edge(x, y, 1, 0, col === 0 ? -1 : i - 1, false);
+          if (row === ROWS - 1 || grid[i + COLS])
+            edge(x, y + CELL, 0, -1, row === ROWS - 1 ? -1 : i + COLS, true);
+          if (col === COLS - 1 || grid[i + 1])
+            edge(x + CELL, y, -1, 0, col === COLS - 1 ? -1 : i + 1, true);
+        }
+        ctx.restore();
+      }
+
+      function drawEvolved(now) {
+        // Animation time stops with the game; changing skins never resets a run.
+        if (mode === "playing")
+          renderTime += Math.min(now - previousRenderTime, 50);
+        previousRenderTime = now;
+        if (renderGrid !== grid) {
+          renderGrid = grid;
+          trails.clear();
+        }
+        const background = ctx.createLinearGradient(0, 0, W, H);
+        background.addColorStop(0, "#102a3c");
+        background.addColorStop(0.6, "#0d2032");
+        background.addColorStop(1, "#151e34");
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, W, H);
+        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = "#91d7f00b";
+        ctx.beginPath();
+        for (let x = 0; x <= W; x += CELL) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, H);
+        }
+        for (let y = 0; y <= H; y += CELL) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(W, y);
+        }
+        ctx.stroke();
+        for (let i = 0; i < TOTAL; i++) {
+          if (!grid[i]) continue;
+          const x = (i % COLS) * CELL,
+            y = Math.floor(i / COLS) * CELL;
+          const age = effectTime - captureStarts[i];
+          const progress = reducedMotion?.matches
+            ? 1
+            : Math.max(0, Math.min(1, age / 0.14));
+          ctx.fillStyle = "#060f1c";
+          ctx.globalAlpha = progress;
+          ctx.fillRect(x, y, CELL, CELL);
+          ctx.globalAlpha = 1;
+          if (age > 0 && age < 0.14 && !reducedMotion?.matches) {
+            ctx.fillStyle = `rgba(111,233,239,${0.1 * Math.sin(progress * Math.PI)})`;
+            ctx.fillRect(x, y, CELL, CELL);
+          }
+        }
+        drawChamberDepth();
+        drawAnchorPulses();
+        if (build) {
+          build.halves.forEach((half, index) => {
+            if (half.done) return;
+            const [x, y, width, height] = rectFor(build, half);
+            const color = index === 0 ? "#74f1f7" : "#ffba9b";
+            ctx.fillStyle = index === 0 ? "#28586b" : "#714844";
+            ctx.fillRect(x, y, width, height);
+            ctx.save();
+            ctx.shadowBlur = 13;
+            ctx.shadowColor = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.4;
+            ctx.strokeRect(
+              x + 0.8,
+              y + 0.8,
+              Math.max(0, width - 1.6),
+              Math.max(0, height - 1.6),
+            );
+            ctx.fillStyle = "#f2ffff";
+            if (build.vertical) ctx.fillRect(x, half.end - 1, CELL, 2);
+            else ctx.fillRect(half.end - 1, y, 2, CELL);
+            ctx.restore();
+          });
+        }
+        drawImpacts();
+        balls.forEach((ball, index) => {
+          const pressure = particlePressure(ball);
+          const frequency = 0.35 + pressure * 0.95;
+          const phase =
+            (renderTime / 1000) * Math.PI * 2 * frequency + index * 1.7;
+          const pulse = reducedMotion?.matches
+            ? 0.5
+            : 0.5 + 0.5 * Math.sin(phase);
+          const intensity =
+            0.13 + pressure * 0.25 + pulse * (0.06 + pressure * 0.18);
+          const haloRadius = R * (2.6 + pressure * 2 + pulse * pressure);
+          const color = index % 2 ? "#ffbc9c" : "#8deef8";
+          let history = trails.get(ball);
+          if (!history) {
+            history = [];
+            trails.set(ball, history);
+          }
+          if (mode === "playing" && !reducedMotion?.matches) {
+            history.push({ x: ball.x, y: ball.y, time: renderTime });
+            while (history.length && renderTime - history[0].time > 100)
+              history.shift();
+          }
+          // A short tail indicates motion without obscuring the hitbox.
+          if (!reducedMotion?.matches && history.length > 1) {
+            ctx.save();
+            ctx.lineCap = "round";
+            for (let j = 1; j < history.length; j++) {
+              ctx.globalAlpha = (0.16 * j) / history.length;
+              ctx.strokeStyle = color;
+              ctx.lineWidth = (R * 1.3 * j) / history.length;
+              ctx.beginPath();
+              ctx.moveTo(history[j - 1].x, history[j - 1].y);
+              ctx.lineTo(history[j].x, history[j].y);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+          ctx.save();
+          const rgb = index % 2 ? "255,173,133" : "116,232,255";
+          const halo = ctx.createRadialGradient(
+            ball.x,
+            ball.y,
+            R * 0.5,
+            ball.x,
+            ball.y,
+            haloRadius,
+          );
+          halo.addColorStop(0, `rgba(${rgb},${intensity})`);
+          halo.addColorStop(0.4, `rgba(${rgb},${intensity * 0.4})`);
+          halo.addColorStop(1, `rgba(${rgb},0)`);
+          ctx.fillStyle = halo;
+          ctx.fillRect(
+            ball.x - haloRadius,
+            ball.y - haloRadius,
+            haloRadius * 2,
+            haloRadius * 2,
+          );
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 12 + pressure * 16 + pulse * pressure * 8;
+          const sphere = ctx.createRadialGradient(
+            ball.x - 2,
+            ball.y - 2,
+            0.2,
+            ball.x,
+            ball.y,
+            R,
+          );
+          sphere.addColorStop(0, "#fff");
+          sphere.addColorStop(0.28, color);
+          sphere.addColorStop(0.7, index % 2 ? "#ba6e61" : "#3994b7");
+          sphere.addColorStop(1, "#1b3c54");
+          ctx.fillStyle = sphere;
+          ctx.beginPath();
+          ctx.arc(ball.x, ball.y, R, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+          ctx.fillStyle = "#ffffffbb";
+          ctx.beginPath();
+          ctx.arc(ball.x - 1.8, ball.y - 2, 1.35, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+        if (pointer.inside && mode === "playing" && !build) {
+          const col = Math.floor(pointer.x / CELL),
+            row = Math.floor(pointer.y / CELL);
+          const x = col * CELL,
+            y = row * CELL;
+          if (
+            col >= 0 &&
+            col < COLS &&
+            row >= 0 &&
+            row < ROWS &&
+            !grid[row * COLS + col]
+          ) {
+            ctx.fillStyle = "#99efff0b";
+            ctx.fillRect(x, y, CELL, CELL);
+            ctx.strokeStyle = "#adf6ff";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+            const cx = x + CELL / 2,
+              cy = y + CELL / 2;
+            ctx.beginPath();
+            if (vertical) {
+              ctx.moveTo(cx - 3, cy - 5);
+              ctx.lineTo(cx, cy - 8);
+              ctx.lineTo(cx + 3, cy - 5);
+              ctx.moveTo(cx - 3, cy + 5);
+              ctx.lineTo(cx, cy + 8);
+              ctx.lineTo(cx + 3, cy + 5);
+            } else {
+              ctx.moveTo(cx - 5, cy - 3);
+              ctx.lineTo(cx - 8, cy);
+              ctx.lineTo(cx - 5, cy + 3);
+              ctx.moveTo(cx + 5, cy - 3);
+              ctx.lineTo(cx + 8, cy);
+              ctx.lineTo(cx + 5, cy + 3);
+            }
+            ctx.stroke();
+          }
+        }
+        ctx.strokeStyle = flash > 0 ? "#ff9c85" : "#6aacbd";
+        ctx.lineWidth = flash > 0 ? 3 : 0.8;
+        ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+      }
+      function showWin(title, text, label) {
+        if (evolved && !reducedMotion?.matches)
+          pendingWin = { at: effectTime + 0.38, title, text, label };
+        else overlay(title, text, label);
+      }
+      function startCaptureSweep(cells, wall) {
+        if (!evolved || reducedMotion?.matches || !wall || !cells.length)
+          return;
+        const rectangles = wall.halves
+          .filter((half) => half.done)
+          .map((half) => rectFor(wall, half));
+        if (!rectangles.length) return;
+        const distances = cells.map((cell) => {
+          const x = ((cell % COLS) + 0.5) * CELL,
+            y = (Math.floor(cell / COLS) + 0.5) * CELL;
+          return Math.min(
+            ...rectangles.map(([left, top, width, height]) =>
+              Math.hypot(
+                Math.max(left - x, 0, x - left - width),
+                Math.max(top - y, 0, y - top - height),
+              ),
+            ),
+          );
+        });
+        const farthest = Math.max(1, ...distances);
+        cells.forEach((cell, index) => {
+          captureStarts[cell] =
+            effectTime + (0.2 * distances[index]) / farthest;
+        });
+      }
+      function drawAnchorPulses() {
+        if (reducedMotion?.matches) return;
+        ctx.save();
+        for (const pulse of anchorPulses) {
+          const progress = Math.min(1, (effectTime - pulse.start) / 0.3);
+          const position =
+            pulse.target + (pulse.center - pulse.target) * progress;
+          const halfLength = Math.abs(pulse.target - pulse.center);
+          ctx.save();
+          const lower = Math.min(pulse.target, pulse.center);
+          ctx.beginPath();
+          if (pulse.vertical) ctx.rect(pulse.fixed, lower, CELL, halfLength);
+          else ctx.rect(lower, pulse.fixed, halfLength, CELL);
+          ctx.clip();
+          const fade = 1 - progress;
+          const x = pulse.vertical ? pulse.fixed : position - 12;
+          const y = pulse.vertical ? position - 12 : pulse.fixed;
+          const width = pulse.vertical ? CELL : 24;
+          const height = pulse.vertical ? 24 : CELL;
+          const light = ctx.createLinearGradient(
+            x,
+            y,
+            pulse.vertical ? x : x + width,
+            pulse.vertical ? y + height : y,
+          );
+          light.addColorStop(0, "rgba(160,248,255,0)");
+          light.addColorStop(0.5, `rgba(195,253,255,${fade * 0.85})`);
+          light.addColorStop(1, "rgba(160,248,255,0)");
+          ctx.fillStyle = light;
+          ctx.fillRect(x, y, width, height);
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+      function draw(now) {
+        const elapsed = Math.max(
+          0,
+          Math.min((now - previousEffectTime) / 1000, 0.05),
+        );
+        previousEffectTime = now;
+        if (mode !== "paused" && !document.hidden) effectTime += elapsed;
+        anchorPulses = anchorPulses.filter(
+          (pulse) => effectTime - pulse.start < 0.3,
+        );
+        if (evolved) drawEvolved(now);
+        else drawClassic();
+        if (pendingWin && effectTime >= pendingWin.at) {
+          overlay(pendingWin.title, pendingWin.text, pendingWin.label);
+          pendingWin = null;
+        }
+      }
+
+      function frame(now) {
+        accumulator += Math.min((now - last) / 1000, 0.05);
+        last = now;
+        while (accumulator >= 1 / 240) {
+          update(1 / 240);
+          accumulator -= 1 / 240;
+        }
+        draw(now);
+        requestAnimationFrame(frame);
+      }
+      function locationFrom(e) {
+        const box = canvas.getBoundingClientRect();
+        pointer = {
+          x: ((e.clientX - box.left) * W) / box.width,
+          y: ((e.clientY - box.top) * H) / box.height,
+          inside: true,
+        };
+      }
+      canvas.addEventListener("pointermove", locationFrom);
+      canvas.addEventListener("pointerleave", () => (pointer.inside = false));
+      canvas.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        canvas.focus();
+        locationFrom(e);
+        if (e.button === 0) startWall(pointer.x, pointer.y);
+      });
+      canvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        rotate();
+      });
+      $("direction").onclick = rotate;
+      $("pause").onclick = pause;
+      $("new").onclick = () => {
+        if (
+          mode === "ready" ||
+          mode === "over" ||
+          confirm("Start a new game? Your current score will be lost.")
+        )
+          newGame();
+      };
+      $("action").onclick = () => {
+        if (mode === "paused") pause();
+        else if (mode === "won") {
+          level++;
+          setupLevel();
+        } else newGame();
+      };
+      $("sound").onclick = () => {
+        sound = !sound;
+        $("sound").textContent = sound ? "Sound on" : "Sound off";
+        $("sound").setAttribute("aria-pressed", sound);
+        beep(550);
+      };
+      let resumeHelp = false;
+      $("help").onclick = () => {
+        resumeHelp = mode === "playing";
+        if (resumeHelp) pause();
+        $("best").textContent =
+          "Best score on this browser: " + best.toLocaleString();
+        $("helpDialog").showModal();
+      };
+      $("closeHelp").onclick = () => $("helpDialog").close();
+      $("helpDialog").addEventListener("close", () => {
+        if (resumeHelp && mode === "paused") pause();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && mode === "playing") pause();
+      });
+      window.addEventListener("blur", () => {
+        if (mode === "playing") pause();
+      });
+      document.addEventListener("keydown", (e) => {
+        if ($("helpDialog").open) return;
+        if (e.key === "F2") {
+          e.preventDefault();
+          $("new").click();
+          return;
+        }
+        if (e.key === "F3" || e.key.toLowerCase() === "p") {
+          e.preventDefault();
+          pause();
+          return;
+        }
+        if (e.target.tagName === "SELECT" || e.target.tagName === "BUTTON")
+          return;
+        if (e.code === "Space") {
+          e.preventDefault();
+          rotate();
+        }
+        if (e.key.startsWith("Arrow")) {
+          e.preventDefault();
+          pointer.inside = true;
+          pointer.x = Math.max(
+            1,
+            Math.min(
+              W - 1,
+              pointer.x +
+                (e.key === "ArrowRight"
+                  ? CELL
+                  : e.key === "ArrowLeft"
+                    ? -CELL
+                    : 0),
+            ),
+          );
+          pointer.y = Math.max(
+            1,
+            Math.min(
+              H - 1,
+              pointer.y +
+                (e.key === "ArrowDown"
+                  ? CELL
+                  : e.key === "ArrowUp"
+                    ? -CELL
+                    : 0),
+            ),
+          );
+        }
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (mode === "playing") startWall(pointer.x, pointer.y);
+          else $("action").click();
+        }
+      });
+      applyStyle();
+      setupLevel();
+      mode = "ready";
+      overlay(
+        "JezzBall",
+        "Build walls. Trap the balls. Clear 75% of the chamber.",
+        "Start game",
+      );
+      hud();
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>

@@ -5,6 +5,7 @@
 @import "./lab-concepts.css";
 @import "./motion-studies.css";
 @import "./cabinet-transition.css";
+@import "./content-rooms.css";
 
 @utility scrollbar-thin {
   scrollbar-width: thin;

@@ -1,0 +1,73 @@
+{
+  "title": "Origin",
+  "subtitle": "Why this exists, and who's behind it.",
+  "sections": [
+    {
+      "title": "Why this exists",
+      "id": "why-this-exists",
+      "paragraphs": [
+        "I make a lot of things that don't have anywhere to live.",
+        "An astronomy dashboard that predicts when Jupiter's moons will cross its face, calibrated against *Sky & Telescope*'s predictions until the errors were down to minutes. Four Decembers of cocktails, one a day, made alongside r/cocktails' Advent calendar, plus two earlier Decembers I'm going back to make. A settlement generator for a tabletop supplement, living in a single HTML file. A detour into why nearly every four-digit number, rearranged and subtracted enough times, ends up at 6174.",
+        "I'm a collector of skills and hobbies, and many of them go into hibernation until they're needed or inspiration strikes. Programming is the oldest. I learned it in the 1990s on QuickBASIC by downloading other people's games and taking them apart. One of them, a planet-conquest game I remember as SPACEWAR, with letters for planets and colors for owners, slept for nearly thirty years before I started remaking it.",
+        "This site is where those things go when they wake up, so they can sit next to each other instead of being scattered across hard drives and feeds. On the front page each gets its own world, and this page is the sun they orbit. Things get added when they're finished, or when they're unfinished in an interesting way. There's no schedule."
+      ]
+    },
+    {
+      "title": "Who's behind it",
+      "id": "who-s-behind-it",
+      "paragraphs": [
+        "I'm Josh Pilachowski, a transportation safety engineer and senior project manager at DKS Associates in the Sacramento area. The job, plainly: find where people are getting hurt on our roads, work out what would change that, and help cities and agencies get the funding to build it. Much of it runs on crash data, thousands of records that say little one at a time and a great deal together.",
+        "I hold a PhD in transportation engineering from UC Berkeley, where I've also taught for the Institute of Transportation Studies. I'm a licensed Professional Engineer and a certified Road Safety Professional (RSP2I)."
+      ]
+    },
+    {
+      "title": "The rest of the time",
+      "id": "the-rest-of-the-time",
+      "paragraphs": [
+        "I'm married with two kids and lead a Cub Scout den. I run D&D campaigns, point a 10-inch Dobsonian at whatever's up, and cook constantly, mostly from a shelf of cookbooks I've used about three recipes from apiece."
+      ]
+    },
+    {
+      "title": "How it's made",
+      "id": "how-it-s-made",
+      "paragraphs": [
+        "I build most of what's here with AI, usually ChatGPT and Claude. That lets me build my ideas directly, without first clearing the high barriers to entry that come with learning to build software in an already busy life. It makes the subject-matter expert the developer, instead of handing ideas to a go-between and losing so much in the translation.",
+        "Not everything on this site is labeled. That's deliberate, and you don't need to find any of it to use the place."
+      ]
+    }
+  ],
+  "indexTitle": "Where to go from here",
+  "destinations": [
+    {
+      "label": "Sky",
+      "id": "sky",
+      "description": "what I've seen through the telescope, and the tools I use to plan it"
+    },
+    {
+      "label": "Cocktails",
+      "id": "cocktails",
+      "description": "the Advent archive, one drink a day, every December"
+    },
+    {
+      "label": "Campaigns",
+      "id": "campaigns",
+      "description": "worlds I've run at the table, and the tools I built to run them"
+    },
+    {
+      "label": "Patterns",
+      "id": "patterns",
+      "description": "magic squares, Conway's Game of Life, 6174, and other systems that behave suspiciously well"
+    },
+    {
+      "label": "Workshop",
+      "id": "workshop",
+      "description": "games, tools, and experiments, finished and otherwise"
+    },
+    {
+      "label": "Writing",
+      "id": "writing",
+      "description": "longer pieces, mostly about roads and the people on them"
+    }
+  ],
+  "disclaimer": "Views here are my own and don't represent DKS Associates or its clients."
+}

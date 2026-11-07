@@ -10,6 +10,7 @@ export default async function CalmArtifactPage({ params }: { params: Promise<{ s
   const artifact = artifactPages.find((artifact) => artifact.id === slug);
   if (!artifact) notFound();
   if (slug === "sky") return <AstronomyRouteBridge fallback="/astronomy/" />;
+  if (slug === "patterns") return <RedirectClient href="/patterns/" />;
   if (artifact.href) return <RedirectClient href={artifact.href}/>;
   return <ArtifactPage id={slug} />;
 }
@@ -20,5 +21,5 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const artifact = artifactPages.find(item => item.id === slug);
   const icon = slug === "sky" ? "astronomy" : slug === "origin" ? "home" : slug;
-  return artifact ? { ...sectionMetadata(icon, artifact.title), ...(slug === "sky" ? { alternates: { canonical: "https://www.joshpila.com/astronomy/" } } : {}) } : {};
+  return artifact ? { ...sectionMetadata(icon, artifact.title), description: artifact.description, ...(slug === "sky" || slug === "patterns" ? { alternates: { canonical: `https://www.joshpila.com/${slug === "sky" ? "astronomy" : "patterns"}/` } } : {}) } : {};
 }

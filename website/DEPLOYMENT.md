@@ -38,6 +38,25 @@ The shared parser conservatively creates a draft from supported Reddit links or 
 
 The original GitHub root index remains in Git history. Switch Pages back to its former branch source to roll back the frontend. Supabase changes are additive and no changes are made to other Supabase projects. Preserve database backups and the photo bucket separately from Git.
 
+## Origin and Patterns, 0.19.0 (2026-11-07)
+
+Origin remains at `/artifact/origin/`. The sun opens it directly. Its approved draft 0.2.1 copy is stored in `app/origin-copy.json`, with a static sun illustration and a 36rem reading column. Contact remains visibly TBD. Games stays in the shared navigation alongside the six worlds named in the handoff.
+
+The Patterns world retains internal ID `patterns` and its original scene configuration. Its public route is `/patterns/`; the previously shipped `/artifact/patterns/` redirects there, preserving query and fragment. No other magic-squares route existed in this repository. The collection lists Magic squares, Conway's Life Lab, and 6174. Life Lab is explicitly unavailable until Josh supplies the self-contained HTML; no private Claude link or nonfunctional launch link is published.
+
+Origin's footer maps the supplied placeholder links to existing destinations:
+
+| Supplied link | Published destination |
+| --- | --- |
+| `/sky/` | `/astronomy/` |
+| `/cocktails/` | `/study/cabinet/` |
+| `/campaigns/` | `/dnd/` |
+| `/patterns/` | `/patterns/` |
+| `/workshop/` | `/artifact/workshop/` |
+| `/writing/` | `/artifact/writing/` |
+
+Return links include the selected world ID; internal departures also preserve it in browser history. Reduced-motion users skip the return transition. The Origin text was compared against the supplied handoff after rendering. Desktop and 375px layouts, keyboard focus, and return navigation were checked in the browser. This QA browser lacks WebGL; the unchanged Orrery geometry and light behavior pass the existing numeric checks.
+
 ## Validation on 2026-11-01
 
 - Production static export and TypeScript pass.

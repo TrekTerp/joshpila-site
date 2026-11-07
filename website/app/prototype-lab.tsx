@@ -7,6 +7,8 @@ import { artifactPages, artifactHref, type Artifact } from "./data";
 import { useCabinetTransition } from "./cabinet-transition";
 import { BrandMark } from "./brand-mark";
 import { AstronomyLanding } from "./sky-landing";
+import { OriginArticle, PatternsArticle } from "./content-rooms";
+import { RouteArrow } from "./route-arrow";
 
 const OrreryScene = lazy(() => import("./orrery-scene").then((module) => ({ default: module.OrreryScene })));
 
@@ -82,7 +84,7 @@ function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedI
     };
   }, []);
   const chooseWorld = (item: Artifact) => {
-    if (item.id === "sky") {
+    if (item.id === "sky" || item.id === "origin") {
       navigateToWorld(item);
       return;
     }
@@ -101,11 +103,11 @@ function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedI
     }
     const href = artifactHref(item);
     const navigate = () => {
+      // Preserve the departing selection for browser Back as well as return links.
+      const returnUrl = new URL(window.location.href);
+      returnUrl.searchParams.set("selected", item.id);
+      window.history.replaceState(window.history.state, "", returnUrl);
       if (item.href) {
-        // Preserve selection even when Back reloads instead of restoring the page cache.
-        const returnUrl = new URL(window.location.href);
-        returnUrl.searchParams.set("selected", item.id);
-        window.history.replaceState(window.history.state, "", returnUrl);
         window.location.assign(href);
       } else router.push(href);
     };
@@ -154,18 +156,23 @@ function ReturnToOrrery({ item }: { item: Artifact }) {
   return <Link className="artifact-return" href={href} onClick={(event) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      router.push(href);
+      return;
+    }
     document.body.dataset.orreryTransition = "departing";
     setTimeout(() => router.push(href), 470);
-  }}>Return to Orrery <span aria-hidden="true">↗</span></Link>;
+  }}>Return to Orrery <RouteArrow /></Link>;
 }
 
 export function ArtifactPage({ id }: { id: string }) {
   const item = artifactPages.find((artifact) => artifact.id === id)!;
   return (
     <main className={`artifact-page artifact-${id}`}>
+      <a className="room-skip-link" href="#room-content">Skip to content</a>
       <ArtifactNavigation currentId={id} />
-      {id === "sky" ? <AstronomyLanding /> : id === "writing" ? (
-        <article className="writing-entry">
+      {id === "origin" ? <OriginArticle returnLink={<ReturnToOrrery item={item} />} /> : id === "patterns" ? <PatternsArticle returnLink={<ReturnToOrrery item={item} />} /> : id === "sky" ? <div id="room-content" tabIndex={-1}><AstronomyLanding /></div> : id === "writing" ? (
+        <article className="writing-entry" id="room-content" tabIndex={-1}>
           <p className="article-kicker">{item.eyebrow}</p>
           <h1>{item.title}</h1>
           <p className="article-deck">{item.description}</p>
@@ -173,7 +180,7 @@ export function ArtifactPage({ id }: { id: string }) {
           <ReturnToOrrery item={item} />
         </article>
       ) : (
-        <article className="artifact-entry-shell" style={{ "--entry-accent": item.accent } as React.CSSProperties}>
+        <article className="artifact-entry-shell" id="room-content" tabIndex={-1} style={{ "--entry-accent": item.accent } as React.CSSProperties}>
           <section className="artifact-entry-lead">
             <div><p>{item.eyebrow}</p><h1>{item.title}</h1></div>
             <div><p>{item.description}</p>{id !== "origin" && <span>{item.status}</span>}</div>

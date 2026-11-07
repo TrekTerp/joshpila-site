@@ -37,13 +37,13 @@ export const artifacts: Artifact[] = [
   },
   {
     id: "patterns",
-    short: "Magic Squares",
-    title: "Magic squares",
-    eyebrow: "Interactive mathematics",
-    description: "Notes and experiments on magic squares: how to construct them and the patterns they contain.",
-    status: "In progress",
+    short: "Patterns",
+    title: "Patterns",
+    eyebrow: "Mathematics & emergent systems",
+    description: "Magic squares, Conway’s Game of Life, 6174, and other systems that behave suspiciously well.",
+    status: "Explore the collection in progress",
     accent: "#f0c866",
-    routes: ["See a square", "Build and test one", "Follow the mathematics"],
+    routes: ["Explore Patterns"],
     questions: ["pattern", "learn"],
   },
   {
@@ -94,18 +94,18 @@ export const artifacts: Artifact[] = [
 ];
 
 export function artifactHref(artifact: Artifact) {
-  return artifact.href ?? (artifact.id === "sky" ? "/astronomy/" : artifact.id === "cocktails" ? "/study/cabinet" : `/artifact/${artifact.id}`);
+  return artifact.href ?? (artifact.id === "sky" ? "/astronomy/" : artifact.id === "patterns" ? "/patterns/" : artifact.id === "cocktails" ? "/study/cabinet" : `/artifact/${artifact.id}`);
 }
 
 export const originArtifact: Artifact = {
   id: "origin",
   short: "Origin",
-  title: "About Josh",
-  eyebrow: "About me",
-  description: "I’m an engineer and project manager. This site collects my astronomy photos, D&D campaigns, mathematical projects, recipes, and other hobbies.",
+  title: "Origin",
+  eyebrow: "About this site",
+  description: "Why this site exists, and who's behind it.",
   status: "About this site",
   accent: "#d9a45c",
-  routes: ["Meet Josh"],
+  routes: ["Read Origin"],
   questions: ["maker"],
 };
 

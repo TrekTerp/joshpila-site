@@ -87,3 +87,6 @@
   .pattern-mark span { font-size: .8rem; }
   .pattern-number { font-size: 1.5rem; }
 }
+
+.life-lab-launch { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; padding: 9px 16px; background: #815023; color: #fff8ea; border-radius: 3px; font-size: .85rem; }
+.life-lab-launch:hover { background: #623b18; }

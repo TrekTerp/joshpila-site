@@ -22,4 +22,12 @@ if(!/<body\b[^>]*>/.test(sky))throw Error('SkyWatcher is missing its body elemen
 sky=sky.replace(/<body\b[^>]*>/,match=>match+'<nav aria-label="Site navigation" style="display:flex;gap:24px;padding:10px 18px;background:#0e1521;border-bottom:1px solid #26394d;font-size:12px"><a href="/astronomy/" style="color:#a8d6ff">← Astronomy</a><a href="/?selected=sky" style="color:#a8d6ff">Return to Orrery</a></nav>');
 mkdirSync(path.join(dest,'skywatcher'),{recursive:true});
 writeFileSync(path.join(dest,'skywatcher/index.html'),sky);
+// Retain the supplied Life Lab source; add only hosting metadata and return links.
+let life=readFileSync(path.join(root,'website/vendor/conways-life-lab.html'),'utf8');
+life=life.replace('</head>','<link rel="canonical" href="https://www.joshpila.com/patterns/life/"><link rel="icon" href="/icons/patterns.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/patterns-180.png"></head>');
+const lifeHeader='<header class="top">';
+if(!life.includes(lifeHeader))throw Error('Life Lab header missing; cannot insert site navigation');
+life=life.replace(lifeHeader,lifeHeader+'<nav aria-label="Site navigation" style="display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;font-size:13px"><a href="/patterns/" style="color:var(--accent);padding:10px 0">Patterns</a><a href="/?selected=patterns" style="color:var(--accent);padding:10px 0">Return to Orrery</a></nav>');
+mkdirSync(path.join(dest,'patterns/life'),{recursive:true});
+writeFileSync(path.join(dest,'patterns/life/index.html'),life);
 console.log('Pages artifact assembled with SkyWatcher and existing D&D and Games intact.');

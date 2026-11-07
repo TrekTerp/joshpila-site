@@ -42,7 +42,7 @@ The original GitHub root index remains in Git history. Switch Pages back to its 
 
 Origin remains at `/artifact/origin/`. The sun opens it directly. Its approved draft 0.2.1 copy is stored in `app/origin-copy.json`, with a static sun illustration and a 36rem reading column. Contact remains visibly TBD. Games stays in the shared navigation alongside the six worlds named in the handoff.
 
-The Patterns world retains internal ID `patterns` and its original scene configuration. Its public route is `/patterns/`; the previously shipped `/artifact/patterns/` redirects there, preserving query and fragment. No other magic-squares route existed in this repository. The collection lists Magic squares, Conway's Life Lab, and 6174. Life Lab is explicitly unavailable until Josh supplies the self-contained HTML; no private Claude link or nonfunctional launch link is published.
+The Patterns world retains internal ID `patterns` and its original scene configuration. Its public route is `/patterns/`; the previously shipped `/artifact/patterns/` redirects there, preserving query and fragment. No other magic-squares route existed in this repository. The collection lists Magic squares, Conway's Life Lab, and 6174. Life Lab is self-hosted at `/patterns/life/`. Its supplied source is retained byte-for-byte in `vendor/conways-life-lab.html`; assembly adds site navigation in the existing header and Patterns icons without changing the simulation scripts or styles.
 
 Origin's footer maps the supplied placeholder links to existing destinations:
 

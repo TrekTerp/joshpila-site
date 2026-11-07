@@ -1,0 +1,1821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html,body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>Conway's Life Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Shippori+Mincho+B1:wght@700&display=swap">
+<style>
+[hidden] { display: none !important; }
+/* Layout: control rail on the left, a kaya-wood board on a cool stage to the right; transport and live readouts run across the top. */
+:root {
+  --bg: #EDEFF3; --panel: #FAFBFC; --panel-2: #F0F2F6; --line: #D3D8E1; --fg: #191D27; --muted: #586173;
+  --accent: #2C4BB0; --accent-ink: #FFFFFF; --accent-soft: #DDE4F7;
+  --stage: #E1E4EA; --shadow: rgba(25, 29, 39, .28);
+  --board: #DCBA7B; --board-edge: #A9853F; --gridline: #BE9A57; --ink: #17140F;
+  --still: #2B4BA6; --osc: #A2235E; --move: #1F8A3E; --trail: #3552B8; --heat: #7C2D12; --dying: #2B4BA6;
+  --age-a: #E0481F; --age-b: #AE2660; --age-c: #3B3A8E; --age-d: #17140F;
+  --ok: #1F7A4D; --warn: #A15C00;
+  --f-display: 'Shippori Mincho B1', 'Iowan Old Style', Georgia, serif;
+  --f-ui: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1217; --panel: #151920; --panel-2: #1B2029; --line: #283040; --fg: #E5E8EE; --muted: #8E98AA;
+    --accent: #8FA6FF; --accent-ink: #0F1217; --accent-soft: #232C47;
+    --stage: #0B0E12; --shadow: rgba(0, 0, 0, .6);
+    --board: #1A1F27; --board-edge: #3A4352; --gridline: #2A323E; --ink: #EDE6D6;
+    --still: #76A0FF; --osc: #FF7FB8; --move: #5BD67A; --trail: #5F7FE0; --heat: #FF9E6B; --dying: #7EA2FF;
+    --age-a: #FFD45E; --age-b: #FF7F5C; --age-c: #C38BFF; --age-d: #EDE6D6;
+    --ok: #5FD39A; --warn: #F2B254;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1217; --panel: #151920; --panel-2: #1B2029; --line: #283040; --fg: #E5E8EE; --muted: #8E98AA;
+  --accent: #8FA6FF; --accent-ink: #0F1217; --accent-soft: #232C47;
+  --stage: #0B0E12; --shadow: rgba(0, 0, 0, .6);
+  --board: #1A1F27; --board-edge: #3A4352; --gridline: #2A323E; --ink: #EDE6D6;
+  --still: #76A0FF; --osc: #FF7FB8; --move: #5BD67A; --trail: #5F7FE0; --heat: #FF9E6B; --dying: #7EA2FF;
+  --age-a: #FFD45E; --age-b: #FF7F5C; --age-c: #C38BFF; --age-d: #EDE6D6;
+  --ok: #5FD39A; --warn: #F2B254;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.45 var(--f-ui); }
+* { box-sizing: border-box; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+.app { height: 100%; display: grid; grid-template-columns: minmax(300px, 340px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+
+/* Top band */
+.top { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; background: var(--panel); border-bottom: 1px solid var(--line);
+  padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand h1 { margin: 0; font: 700 22px/1.1 var(--f-display); letter-spacing: .01em; white-space: nowrap; }
+.rule-tag { font-size: 12px; color: var(--muted); padding: 2px 6px; border: 1px solid var(--line); border-radius: 4px; white-space: nowrap; }
+.transport { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tbtn { width: 36px; height: 34px; display: inline-grid; place-items: center; border: 1px solid var(--line); background: var(--panel-2); border-radius: 6px; cursor: pointer; padding: 0; }
+.tbtn:hover { border-color: var(--accent); }
+.tbtn svg { width: 16px; height: 16px; fill: currentColor; }
+.tbtn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.tbtn.play { width: 48px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tbtn.play svg { width: 18px; height: 18px; }
+.ff { width: auto; padding: 0 9px; gap: 4px; display: inline-flex; align-items: center; font: 500 12px var(--f-mono); }
+.speed { display: flex; align-items: center; gap: 8px; margin-left: 6px; font-size: 12px; color: var(--muted); }
+.speed input { width: 110px; accent-color: var(--accent); }
+.speed output { min-width: 62px; color: var(--fg); }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-left: auto; }
+.stat { display: grid; gap: 0; }
+.stat .k { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 500 15px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 11px; color: var(--muted); font-weight: 400; }
+.chip { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px 4px 8px; border-radius: 999px; border: 1px solid var(--line); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.chip[data-s="running"]::before { background: var(--accent); }
+.chip[data-s="rewind"]::before { background: var(--osc); }
+.chip[data-s="settled"] { border-color: var(--ok); color: var(--ok); }
+.chip[data-s="settled"]::before { background: var(--ok); }
+.chip[data-s="extinct"] { border-color: var(--warn); color: var(--warn); }
+.chip[data-s="extinct"]::before { background: var(--warn); }
+
+/* Control rail */
+.rail { overflow: auto; background: var(--panel); border-right: 1px solid var(--line);
+  padding-block: 4px 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px; }
+details.sec { border-bottom: 1px solid var(--line); }
+details.sec > summary { list-style: none; cursor: pointer; padding: 13px 0 11px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary::after { content: "+"; font: 400 15px var(--f-mono); }
+details.sec[open] > summary::after { content: "–"; }
+details.sec[open] > summary { color: var(--fg); }
+.body { display: grid; gap: 12px; padding-bottom: 16px; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field > label, .lbl { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.field > label output, .lbl output { color: var(--fg); font-family: var(--f-mono); font-size: 12px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > * { min-width: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+select, input[type="number"], input[type="text"], textarea { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; }
+input[type="number"] { font-family: var(--f-mono); }
+textarea { font: 12px/1.4 var(--f-mono); resize: vertical; min-height: 76px; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 5px; padding: 6px 11px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.grow { flex: 1; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel-2); }
+.seg button { flex: 1; border: 0; border-right: 1px solid var(--line); background: transparent; padding: 6px 6px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.hint { font-size: 12.5px; color: var(--muted); margin: 0; text-wrap: pretty; }
+.hint kbd, .keys kbd { font: 11px var(--f-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--panel-2); color: var(--fg); }
+.preview-box { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel-2); }
+#stampPreview { display: block; width: 100%; height: 112px; }
+.pinfo { padding: 9px 10px; display: grid; gap: 3px; border-top: 1px solid var(--line); }
+.pinfo b { font-size: 13.5px; }
+.pmeta { font-size: 11.5px; color: var(--muted); }
+.pnote { font-size: 12.5px; margin: 0; text-wrap: pretty; }
+.mismatch { font-size: 12px; color: var(--warn); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.legend { display: grid; gap: 4px; font-size: 12.5px; }
+.legend div { display: flex; align-items: center; gap: 8px; }
+.sw { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+.legend .n { margin-left: auto; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.err { color: var(--warn); font-size: 12px; margin: 0; }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.swatches button { width: 30px; height: 26px; border-radius: 5px; border: 1px solid var(--line); cursor: pointer; padding: 0; }
+.swatches button[aria-pressed="true"] { outline: 2px solid var(--fg); outline-offset: 2px; }
+.swatches .mixed { width: auto; padding: 0 10px; background: var(--panel-2); font-size: 12.5px; }
+.teambar { grid-column: 1 / -1; display: grid; gap: 6px; }
+.tb-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--panel-2); }
+.tb-bar span { display: block; height: 100%; transition: width .2s; }
+.tb-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; }
+.tchip { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tchip b { font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { .tb-bar span { transition: none; } }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; font-size: 12.5px; margin: 0; }
+.keys dt { white-space: nowrap; }
+.keys dd { margin: 0; color: var(--muted); }
+.about { font-size: 12.5px; color: var(--muted); margin: 0; text-wrap: pretty; }
+
+/* Stage */
+.stage { display: grid; grid-template-rows: minmax(0, 1fr) auto; background: var(--stage); min-width: 0; min-height: 0; }
+.viewport { overflow: auto; display: flex; padding: 18px; min-height: 0; padding-right: max(18px, env(safe-area-inset-right, 0px)); }
+.board-wrap { margin: auto; position: relative; flex: none; touch-action: none; cursor: crosshair; box-shadow: 0 12px 34px -14px var(--shadow); }
+.board-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.board-wrap #overlay { pointer-events: none; }
+.board-wrap::after { content: ""; position: absolute; inset: -3px; border: 3px solid var(--board-edge); pointer-events: none; }
+.board-wrap.wx::after { border-left-style: dashed; border-right-style: dashed; border-left-color: var(--accent); border-right-color: var(--accent); }
+.board-wrap.wy::after { border-top-style: dashed; border-bottom-style: dashed; border-top-color: var(--accent); border-bottom-color: var(--accent); }
+.foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 6px 20px; align-items: center; border-top: 1px solid var(--line); background: var(--panel);
+  padding-block: 8px; padding-left: 16px; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.readout { font: 12px var(--f-mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.readout b { color: var(--fg); font-weight: 500; }
+.spark { display: grid; gap: 2px; min-width: 0; }
+.spark .lbl { font-size: 11px; }
+#spark { width: 100%; height: 40px; display: block; }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 6px; font-size: 13px; box-shadow: 0 8px 24px -8px var(--shadow); z-index: 20; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; }
+.toast button { background: transparent; border: 1px solid currentColor; color: inherit; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 12px; }
+
+@media (max-width: 880px) {
+  html, body { height: auto; }
+  .app { display: flex; flex-direction: column; height: auto; }
+  .top { order: 0; }
+  .stage { order: 1; }
+  .rail { order: 2; overflow: visible; border-right: 0; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .viewport { height: 62vh; min-height: 300px; padding: 12px; }
+  .stats { margin-left: 0; width: 100%; }
+  .foot { grid-template-columns: 1fr; }
+  .speed input { width: 90px; }
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><h1>Conway's Life</h1><span class="rule-tag mono" id="ruleTag">B3/S23</span></div>
+    <div class="transport" role="toolbar" aria-label="Playback">
+      <button class="tbtn" id="bReset" title="Reset to the start state (R)" aria-label="Reset"><svg viewBox="0 0 16 16"><path d="M3 2h2v12H3zM14 2v12L6 8z"/></svg></button>
+      <button class="tbtn" id="bRew" title="Rewind through history (Z)" aria-label="Rewind" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M8 3v10L1 8zM15 3v10L8 8z"/></svg></button>
+      <button class="tbtn" id="bBack" title="Step back one generation (←)" aria-label="Step back"><svg viewBox="0 0 16 16"><path d="M12 3v10L5 8zM3 3h2v10H3z"/></svg></button>
+      <button class="tbtn play" id="bPlay" title="Play or pause (Space)" aria-label="Play"><svg viewBox="0 0 16 16" id="playIcon"><path d="M4 2l10 6-10 6z"/></svg></button>
+      <button class="tbtn" id="bStep" title="Step forward one generation (→)" aria-label="Step forward"><svg viewBox="0 0 16 16"><path d="M4 3v10l7-5zM11 3h2v10h-2z"/></svg></button>
+      <button class="tbtn ff" id="bFF" title="Fast-forward: cycles ×1 to ×64 (F)" aria-label="Fast-forward"><svg viewBox="0 0 16 16"><path d="M1 3v10l7-5zM8 3v10l7-5z"/></svg><span id="ffLabel">×1</span></button>
+      <label class="speed" for="speed">Speed <input type="range" id="speed" min="1" max="60" value="20"><output id="speedOut" class="mono">20 gen/s</output></label>
+    </div>
+    <div class="stats" aria-live="off">
+      <div class="stat"><span class="k">Generation</span><span class="v" id="sGen">0</span></div>
+      <div class="stat"><span class="k">Population</span><span class="v" id="sPop">0</span></div>
+      <div class="stat"><span class="k" id="bdLabel">Born / died</span><span class="v" id="sBD">0 / 0</span></div>
+      <div class="stat"><span class="k">Rate</span><span class="v" id="sRate">0 <small>gen/s</small></span></div>
+      <div class="stat"><span class="k">History</span><span class="v" id="sHist">0</span></div>
+      <span class="chip" id="chip" data-s="paused">Paused</span>
+    </div>
+  </header>
+
+  <aside class="rail" aria-label="Controls">
+    <details class="sec" open>
+      <summary>Tools</summary>
+      <div class="body">
+        <div class="seg" id="toolSeg" role="group" aria-label="Tool">
+          <button data-v="draw" title="Draw (1)">Draw</button><button data-v="spray" title="Spray fill (2)">Spray</button><button data-v="region" title="Region (3)">Region</button><button data-v="stamp" title="Stamp (4)">Stamp</button>
+        </div>
+
+        <div id="opt-draw" class="body" style="padding:0">
+          <p class="hint">Click a cell to toggle it. Drag to paint; a drag that starts on a live cell erases. Right-drag always erases.</p>
+        </div>
+
+        <div id="opt-spray" class="body" style="padding:0" hidden>
+          <div class="grid2">
+            <div class="field"><label for="sprayShape">Shape</label>
+              <select id="sprayShape"><option value="circle">Circle</option><option value="square">Square</option><option value="diamond">Diamond</option><option value="ring">Ring</option><option value="cross">Cross</option><option value="hline">Bar</option></select></div>
+            <div class="field"><label for="sprayMode">Effect</label>
+              <select id="sprayMode"><option value="add">Add cells</option><option value="erase">Erase cells</option><option value="random">Randomize</option><option value="invert">Invert</option></select></div>
+          </div>
+          <div class="field"><label for="spraySize">Size <output id="spraySizeOut">9 cells</output></label><input type="range" id="spraySize" min="0" max="40" value="4"></div>
+          <div class="field"><label for="sprayDensity">Density <output id="sprayDensityOut">30%</output></label><input type="range" id="sprayDensity" min="1" max="100" value="30"></div>
+          <label class="check"><input type="checkbox" id="spraySoft"> Soft edge (density falls off toward the rim)</label>
+          <p class="hint">Each cell under the brush is decided once per stroke, so the density you set is the density you get.</p>
+        </div>
+
+        <div id="opt-region" class="body" style="padding:0" hidden>
+          <div class="field"><label for="regionAction">On release</label>
+            <select id="regionAction"><option value="fill">Fill at density</option><option value="clear">Clear</option><option value="invert">Invert</option><option value="copy">Copy as a stamp</option></select></div>
+          <div class="field" id="regionDensityField"><label for="regionDensity">Density <output id="regionDensityOut">40%</output></label><input type="range" id="regionDensity" min="1" max="100" value="40"></div>
+          <p class="hint">Drag a rectangle on the board.</p>
+        </div>
+
+        <div id="opt-stamp" class="body" style="padding:0" hidden>
+          <div class="field"><label for="patternSel">Pattern</label><select id="patternSel"></select></div>
+          <div class="preview-box">
+            <canvas id="stampPreview"></canvas>
+            <div class="pinfo"><b id="pName"></b><span class="pmeta mono" id="pMeta"></span><p class="pnote" id="pNote"></p>
+              <div class="mismatch" id="pMismatch" hidden><span id="pMismatchText"></span><button class="btn" id="pSwitch">Switch rule</button></div>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn" id="rotL" title="Rotate left (Q)">⟲ Rotate</button>
+            <button class="btn" id="rotR" title="Rotate right (E)">Rotate ⟳</button>
+            <button class="btn" id="flipB" title="Flip (W)">Flip</button>
+            <button class="btn" id="delStamp" hidden>Remove</button>
+          </div>
+          <label class="check"><input type="checkbox" id="stampReplace"> Clear the area under the stamp</label>
+        </div>
+
+        <div class="field" id="teamPick" hidden><span class="lbl">Paint as <output id="teamPickName"></output></span><div class="swatches" id="teamSeg" role="group" aria-label="Team to paint"></div></div>
+        <div class="field"><label for="mirror">Symmetry (applies to every tool and random fill)</label>
+          <select id="mirror"><option value="none">None</option><option value="x">Mirror left ↔ right</option><option value="y">Mirror top ↕ bottom</option><option value="xy">Mirror four ways</option><option value="r180">Rotate 180°</option></select></div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Competition</summary>
+      <div class="body">
+        <div class="field"><label for="teamMode">Populations</label>
+          <select id="teamMode"><option value="off">One population</option><option value="imm">Immigration · 2 teams</option><option value="quad">QuadLife · 4 teams</option><option value="cyc">Rock-paper-scissors · cyclic</option></select></div>
+        <p class="hint" id="teamDesc"></p>
+        <div id="cycBox" class="body" style="padding:0" hidden>
+          <div class="field"><label for="cycPreset">Preset</label>
+            <select id="cycPreset">
+              <option value="3,3,m">Rock-paper-scissors spirals · 3 species</option>
+              <option value="4,2,m">Square spirals · 4 species</option>
+              <option value="4,3,m">Slow territories · 4 species</option>
+              <option value="5,2,m">Shattered fronts · 5 species</option>
+              <option value="12,1,v">Rainbow spirals · 12 species (slow to form)</option>
+              <option value="custom">Custom</option>
+            </select></div>
+          <div class="field"><label for="cycK">Species <output id="cycKOut">3</output></label><input type="range" id="cycK" min="3" max="12" value="3"></div>
+          <div class="field"><label for="cycT">Threshold <output id="cycTOut">3 neighbors</output></label><input type="range" id="cycT" min="1" max="8" value="3"></div>
+          <p class="hint">A cell converts when at least this many neighbors belong to the species that beats it. The neighborhood setting under Rules applies here too.</p>
+        </div>
+        <div class="row" id="teamBtns" hidden><button class="btn grow" id="bBattle">Battle start</button><button class="btn grow" id="bRotTeams" title="Shift every cell to the next color">Rotate colors</button></div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Fill and edit</summary>
+      <div class="body">
+        <div class="field"><label for="fillDensity">Random density <output id="fillDensityOut">35%</output></label><input type="range" id="fillDensity" min="1" max="100" value="35"></div>
+        <div class="row">
+          <button class="btn grow" id="bRandom">Random fill</button>
+          <button class="btn grow" id="bSoup" title="A 16×16 square at 50% density in the center, the standard soup used by the Catagolue census">16×16 soup</button>
+        </div>
+        <div class="row">
+          <button class="btn grow" id="bInvert" title="Invert every cell (I)">Invert</button>
+          <button class="btn grow" id="bClear">Clear</button>
+          <button class="btn grow" id="bUndo" title="Undo the last edit (Ctrl+Z)">Undo</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Still lifes, oscillators, spaceships</summary>
+      <div class="body">
+        <div class="grid2">
+          <div class="field"><label for="stillMode">Still lifes</label><select id="stillMode"><option value="highlight">Highlight</option><option value="normal">Normal</option><option value="dim">Dim</option><option value="hide">Hide</option></select></div>
+          <div class="field"><label for="oscMode">Oscillators</label><select id="oscMode"><option value="highlight">Highlight</option><option value="normal">Normal</option><option value="dim">Dim</option><option value="hide">Hide</option></select></div>
+          <div class="field"><label for="moveMode">Spaceships</label><select id="moveMode"><option value="highlight">Highlight</option><option value="normal">Normal</option><option value="dim">Dim</option><option value="hide">Hide</option></select></div>
+        </div>
+        <label class="check"><input type="checkbox" id="ghost"> Show oscillator cells in their off phase</label>
+        <div class="legend" id="legend">
+          <div><span class="sw" id="swActive"></span>Active<span class="n" id="cActive">0</span></div>
+          <div><span class="sw" id="swStill"></span>Still<span class="n" id="cStill">0</span></div>
+          <div><span class="sw" id="swOsc"></span><span>Oscillating <span class="pmeta mono" id="oscPeriods"></span></span><span class="n" id="cOsc">0</span></div>
+          <div><span class="sw" id="swMove"></span><span>Moving <span class="pmeta mono" id="moveSpeeds"></span></span><span class="n" id="cMove">0</span></div>
+        </div>
+        <p class="hint">Each cell is judged by its own recent history: alive for 8 straight generations counts as still; a repeating on/off rhythm of period 2 to 15 counts as oscillating; a cell whose whole neighborhood repeats an earlier state shifted up to two cells over (period 2 to 12) counts as moving, which picks out gliders and other spaceships. Newly edited cells need a few dozen generations before they are classified. Hidden cells still take part in the simulation.</p>
+        <div class="row"><button class="btn grow" id="bRemoveSettled">Remove settled cells</button></div>
+        <label class="check"><input type="checkbox" id="autoPause"> Pause when the board settles or one team wins</label>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Board</summary>
+      <div class="body">
+        <div class="grid2">
+          <div class="field"><label for="cols">Columns</label><input type="number" id="cols" min="10" max="1000" step="1"></div>
+          <div class="field"><label for="rows">Rows</label><input type="number" id="rows" min="10" max="1000" step="1"></div>
+        </div>
+        <div class="row"><button class="btn grow" id="bApplySize">Apply size</button><button class="btn grow" id="bFit">Fit to window</button></div>
+        <div class="field"><label for="cellSize">Cell size <output id="cellSizeOut">6 px</output></label><input type="range" id="cellSize" min="1" max="28" value="6"></div>
+        <label class="check"><input type="checkbox" id="wrapX"> Wrap left ↔ right</label>
+        <label class="check"><input type="checkbox" id="wrapY"> Wrap top ↕ bottom</label>
+        <p class="hint" id="topoHint"></p>
+        <label class="check"><input type="checkbox" id="gridOn"> Grid lines (from 4 px cells)</label>
+        <div class="field"><span class="lbl">Cell shape</span>
+          <div class="seg" id="shapeSeg" role="group" aria-label="Cell shape"><button data-v="square">Square</button><button data-v="stone">Go stone</button></div></div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Rules</summary>
+      <div class="body">
+        <p class="hint" id="cycRuleNote" hidden>Rock-paper-scissors mode does not use a Life rule. Its settings are under Competition.</p>
+        <div id="lifeRuleBox" class="body" style="padding:0">
+        <div class="field"><label for="ruleSel">Rule set</label><select id="ruleSel"></select></div>
+        <p class="hint" id="ruleDesc"></p>
+        <div class="field"><label for="ruleInput">Custom rule</label>
+          <div class="row" style="flex-wrap:nowrap"><input type="text" id="ruleInput" class="mono" spellcheck="false" autocomplete="off" placeholder="B3/S23"><button class="btn" id="bRule">Apply</button></div></div>
+        <p class="err" id="ruleErr" hidden></p>
+        </div>
+        <div class="field"><span class="lbl">Neighborhood</span>
+          <div class="seg" id="nbSeg" role="group" aria-label="Neighborhood"><button data-v="moore">Moore · 8</button><button data-v="vn">von Neumann · 4</button></div></div>
+        <p class="hint" id="bsHint"><b>B</b> lists the neighbor counts that bring a dead cell to life. <b>S</b> lists the counts that keep a live cell alive. <b>C</b> (Generations rules) is the number of states: a cell that fails to survive fades through C−2 dying states that cannot be reborn or count as neighbors.</p>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Display</summary>
+      <div class="body">
+        <div class="field"><span class="lbl">Color cells by</span>
+          <div class="seg" id="colorSeg" role="group" aria-label="Color mode"><button data-v="ink">Plain</button><button data-v="age">Age</button><button data-v="heat">Heat map</button></div></div>
+        <p class="hint" id="colorHint"></p>
+        <label class="check"><input type="checkbox" id="trails"> Trails behind cells that die</label>
+        <div class="field"><label for="trailLen">Trail length <output id="trailLenOut">12 gens</output></label><input type="range" id="trailLen" min="2" max="80" value="12"></div>
+        <label class="check"><input type="checkbox" id="recordHist"> Record history for rewind <span class="pmeta mono" id="histCap"></span></label>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Import and export</summary>
+      <div class="body">
+        <button class="btn" id="bCopyRLE">Copy board as RLE</button>
+        <div class="field"><label for="rleIn">Paste an RLE or plaintext pattern</label>
+          <textarea id="rleIn" spellcheck="false" placeholder="#N Glider&#10;x = 3, y = 3, rule = B3/S23&#10;bo$2bo$3o!"></textarea></div>
+        <button class="btn" id="bImport">Use as stamp</button>
+        <p class="hint">RLE is the format used by the LifeWiki, Golly and Catagolue. Pasted stamps and copied regions are kept in this browser under “Your stamps”.</p>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Shortcuts and background</summary>
+      <div class="body">
+        <dl class="keys">
+          <dt><kbd>Space</kbd></dt><dd>Play or pause</dd>
+          <dt><kbd>→</kbd> <kbd>←</kbd></dt><dd>Step forward or back</dd>
+          <dt><kbd>Z</kbd></dt><dd>Rewind</dd>
+          <dt><kbd>F</kbd></dt><dd>Fast-forward ×2 … ×64</dd>
+          <dt><kbd>R</kbd></dt><dd>Reset to start state</dd>
+          <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Speed</dd>
+          <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Draw, Spray, Region, Stamp</dd>
+          <dt><kbd>Q</kbd> <kbd>E</kbd> <kbd>W</kbd></dt><dd>Rotate or flip the stamp</dd>
+          <dt><kbd>I</kbd> <kbd>G</kbd></dt><dd>Invert board, grid lines</dd>
+          <dt><kbd>T</kbd></dt><dd>Next team color for painting</dd>
+          <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Undo the last edit</dd>
+        </dl>
+        <p class="about">John Conway devised Life in 1970, and Martin Gardner introduced it in his Mathematical Games column in <i>Scientific American</i> that October. Conway first worked patterns out by hand with stones on a Go board; switch Cell shape to Go stone to play it that way. Reset returns to the board as it was when you last pressed Play or Step after editing.</p>
+      </div>
+    </details>
+  </aside>
+
+  <main class="stage">
+    <div class="viewport" id="viewport">
+      <div class="board-wrap" id="boardWrap">
+        <canvas id="base"></canvas>
+        <canvas id="overlay"></canvas>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="teambar" id="teamBar" hidden><div class="tb-bar" id="tbBar"></div><div class="tb-legend" id="tbLegend"></div></div>
+      <div class="readout" id="readout">Point at a cell to see its neighbor count.</div>
+      <div class="spark"><span class="lbl"><span id="sparkTitle">Population</span><output id="sparkRange" class="mono"></output></span><canvas id="spark"></canvas></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button id="toastBtn" hidden></button></div>
+
+<script>
+(() => {
+'use strict';
+const PATTERNS = [{"id":"block","name":"Block","cat":"Still lifes","rle":"2o$2o!","kind":"Still life","note":"The most common still life. Every cell has exactly three neighbors.","test":{"type":"still"}},{"id":"beehive","name":"Beehive","cat":"Still lifes","rle":"b2o$o2bo$b2o!","kind":"Still life","note":"The second most common still life in random soups.","test":{"type":"still"}},{"id":"loaf","name":"Loaf","cat":"Still lifes","rle":"b2o$o2bo$bobo$2bo!","kind":"Still life","note":"A seven-cell still life common in debris.","test":{"type":"still"}},{"id":"boat","name":"Boat","cat":"Still lifes","rle":"2o$obo$bo!","kind":"Still life","note":"The only five-cell still life.","test":{"type":"still"}},{"id":"ship","name":"Ship","cat":"Still lifes","rle":"2o$obo$b2o!","kind":"Still life","note":"A boat with an extra cell closing the stern.","test":{"type":"still"}},{"id":"tub","name":"Tub","cat":"Still lifes","rle":"bo$obo$bo!","kind":"Still life","note":"Four cells around an empty center.","test":{"type":"still"}},{"id":"pond","name":"Pond","cat":"Still lifes","rle":"b2o$o2bo$o2bo$b2o!","kind":"Still life","note":"An eight-cell ring.","test":{"type":"still"}},{"id":"eater1","name":"Eater 1","cat":"Still lifes","rle":"2o$obo$2bo$2b2o!","kind":"Still life (eater)","note":"Also called the fishhook. It absorbs a glider and rebuilds itself. Rotate it so the glider hits the hook.","test":{"type":"still"}},{"id":"blinker","name":"Blinker","cat":"Oscillators","rle":"3o!","kind":"Oscillator","note":"The smallest and most common oscillator.","test":{"type":"osc","p":2}},{"id":"toad","name":"Toad","cat":"Oscillators","rle":"b3o$3o!","kind":"Oscillator","note":"Two offset rows that breathe in and out.","test":{"type":"osc","p":2}},{"id":"beacon","name":"Beacon","cat":"Oscillators","rle":"2o$2o$2b2o$2b2o!","kind":"Oscillator","note":"Two blocks whose inner corners blink.","test":{"type":"osc","p":2}},{"id":"clock","name":"Clock","cat":"Oscillators","rle":"2bo$obo$bobo$bo!","kind":"Oscillator","note":"A small rotor that appears to tick.","test":{"type":"osc","p":2}},{"id":"pulsar","name":"Pulsar","cat":"Oscillators","rle":"2b3o3b3o2$o4bobo4bo$o4bobo4bo$o4bobo4bo$2b3o3b3o2$2b3o3b3o$o4bobo4bo$o4bobo4bo$o4bobo4bo2$2b3o3b3o!","kind":"Oscillator","note":"The most common period-3 oscillator, with four-fold symmetry.","test":{"type":"osc","p":3}},{"id":"octagon2","name":"Octagon 2","cat":"Oscillators","rle":"3b2o3b$2bo2bo2b$bo4bob$o6bo$o6bo$bo4bob$2bo2bo2b$3b2o!","kind":"Oscillator","note":"An eight-sided ring that cycles every five generations.","test":{"type":"osc","p":5}},{"id":"figure8","name":"Figure eight","cat":"Oscillators","rle":"2o4b$2obo2b$4bob$bo4b$2bob2o$4b2o!","kind":"Oscillator","note":"Two clusters that trade cells in a figure-eight motion.","test":{"type":"osc","p":8}},{"id":"galaxy","name":"Kok's galaxy","cat":"Oscillators","rle":"6ob2o$6ob2o$7b2o$2o5b2o$2o5b2o$2o5b2o$2o7b$2ob6o$2ob6o!","kind":"Oscillator","note":"Four arms that spin around an empty center.","test":{"type":"osc","p":8}},{"id":"tumbler","name":"Tumbler","cat":"Oscillators","rle":"bo5bob$obo3bobo$o2bobo2bo$2bo3bo2b$2b2ob2o!","kind":"Oscillator","note":"Flips upside down and back over fourteen generations.","test":{"type":"osc","p":14}},{"id":"pentadecathlon","name":"Pentadecathlon","cat":"Oscillators","rle":"2bo4bo2b$2ob4ob2o$2bo4bo!","kind":"Oscillator","note":"Period 15. A plain row of ten live cells evolves into one.","test":{"type":"osc","p":15}},{"id":"glider","name":"Glider","cat":"Spaceships","rle":"bo$2bo$3o!","kind":"Spaceship","note":"Moves one cell diagonally every four generations. Rotate to change its heading.","test":{"type":"ship","p":4,"dx":1,"dy":1}},{"id":"lwss","name":"Lightweight spaceship","cat":"Spaceships","rle":"bo2bo$o4b$o3bo$4o!","kind":"Spaceship","note":"Moves two cells every four generations (c/2), the fastest orthogonal speed in Life.","test":{"type":"ship","p":4,"dx":2,"dy":0}},{"id":"mwss","name":"Middleweight spaceship","cat":"Spaceships","rle":"3bo2b$bo3bo$o5b$o4bo$5o!","kind":"Spaceship","note":"One cell longer than the lightweight ship, same c/2 speed.","test":{"type":"ship","p":4,"dx":2,"dy":0}},{"id":"hwss","name":"Heavyweight spaceship","cat":"Spaceships","rle":"3b2o2b$bo4bo$o6b$o5bo$6o!","kind":"Spaceship","note":"The largest of the three classic c/2 ships.","test":{"type":"ship","p":4,"dx":2,"dy":0}},{"id":"loafer","name":"Loafer","cat":"Spaceships","rle":"b2o2bob2o$o2bo2b2o$bobo$2bo$8bo$6b3o$5bo$6bo$7b2o!","kind":"Spaceship","note":"A slow ship that moves one cell every seven generations (c/7). Found in 2013.","test":{"type":"ship","p":7,"dx":1,"dy":0}},{"id":"copperhead","name":"Copperhead","cat":"Spaceships","rle":"b2o2b2o$3b2o$3b2o$obo2bobo$o6bo2$o6bo$b2o2b2o$2b4o2$3b2o$3b2o!","kind":"Spaceship","note":"Moves one cell every ten generations (c/10). Found in 2016.","test":{"type":"ship","p":10,"dx":0,"dy":1}},{"id":"gosper","name":"Gosper glider gun","cat":"Guns","rle":"24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!","kind":"Gun","note":"The first known gun (Bill Gosper, 1970). It fires a glider every 30 generations, which proved a finite pattern can grow forever.","test":{"type":"gun","p":30,"grow":5}},{"id":"simkin","name":"Simkin glider gun","cat":"Guns","rle":"2o5b2o$2o5b2o2$4b2o$4b2o5$22b2ob2o$21bo5bo$21bo6bo2b2o$21b3o3bo3b2o$26bo4$20b2o$20bo$21b3o$23bo!","kind":"Gun","note":"A smaller gun found in 2015. It fires a glider every 120 generations.","test":{"type":"gun","p":120,"grow":5}},{"id":"rpent","name":"R-pentomino","cat":"Methuselahs","rle":"b2o$2o$bo!","kind":"Methuselah","note":"Five cells that churn for 1,103 generations on an open plane, ending at 116 cells including six escaping gliders. Turn off wrapping and use a large board to see the full run.","test":{"type":"meth","at":1103,"pop":116}},{"id":"acorn","name":"Acorn","cat":"Methuselahs","rle":"bo5b$3bo3b$2o2b3o!","kind":"Methuselah","note":"Seven cells that take 5,206 generations to settle, ending at 633 cells with 13 gliders.","test":{"type":"meth","at":5206,"pop":633}},{"id":"diehard","name":"Diehard","cat":"Methuselahs","rle":"6bob$2o6b$bo3b3o!","kind":"Methuselah","note":"Vanishes completely after exactly 130 generations.","test":{"type":"die","at":130}},{"id":"rabbits","name":"Rabbits","cat":"Methuselahs","rle":"o3b3o$3o2bo$bo!","kind":"Methuselah","note":"Nine cells that last 17,331 generations and end at 1,744 cells.","test":{"type":"meth","at":17331,"pop":1744}},{"id":"bhept","name":"B-heptomino","cat":"Methuselahs","rle":"ob2o$3o$bo!","kind":"Methuselah","note":"A seven-cell shape that turns up inside many larger reactions.","test":{"type":"none"}},{"id":"pihept","name":"Pi-heptomino","cat":"Methuselahs","rle":"3o$obo$obo!","kind":"Methuselah","note":"A symmetric seven-cell shape that keeps its mirror symmetry as it grows, settling at generation 173 with 55 cells.","test":{"type":"settle"}},{"id":"line39","name":"One-line infinite growth","cat":"Unbounded growth","rle":"8ob5o3b3o6b7ob5o!","kind":"Infinite growth","note":"A single row of 39 cells that grows without limit on an open plane.","test":{"type":"grow"}},{"id":"replicator","name":"HighLife replicator","cat":"Other rules","rule":"B36/S23","rle":"2b3o$bo2bo$o3bo$o2bo$3o!","kind":"Replicator","note":"In HighLife this shape copies itself every 12 generations, filling a growing triangle with copies.","test":{"type":"repl","p":12}}];
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('lifelab:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('lifelab:' + k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+};
+
+// ---------------- Rules ----------------
+const RULES = [
+  { g: 'Life-like', name: "Conway's Life", r: 'B3/S23', d: 'The original rule from 1970. Gliders, guns and long-lived chaos.' },
+  { g: 'Life-like', name: 'HighLife', r: 'B36/S23', d: 'Life plus birth on six neighbors. It has a small self-replicator (see the stamp library).' },
+  { g: 'Life-like', name: 'Day & Night', r: 'B3678/S34678', d: 'Live and dead cells follow mirror-image rules, so inverting the board and running it commutes. Try Invert mid-run.' },
+  { g: 'Life-like', name: 'Seeds', r: 'B2/S', d: 'Every live cell dies each generation. Almost anything explodes.' },
+  { g: 'Life-like', name: 'Life without Death', r: 'B3/S012345678', d: 'Cells never die, so patterns grow into ladders and blobs.' },
+  { g: 'Life-like', name: 'Maze', r: 'B3/S12345', d: 'Random starts grow into maze-like corridors.' },
+  { g: 'Life-like', name: 'Mazectric', r: 'B3/S1234', d: 'Like Maze, with longer and straighter corridors.' },
+  { g: 'Life-like', name: 'Coral', r: 'B3/S45678', d: 'Slow growth with coral-like branches.' },
+  { g: 'Life-like', name: '2×2', r: 'B36/S125', d: 'Patterns built from 2×2 blocks behave like a scaled-up rule.' },
+  { g: 'Life-like', name: '34 Life', r: 'B34/S34', d: 'Many small oscillators and spaceships.' },
+  { g: 'Life-like', name: 'Diamoeba', r: 'B35678/S5678', d: 'Large diamond-shaped blobs with wavering edges.' },
+  { g: 'Life-like', name: 'Morley', r: 'B368/S245', d: 'Also called Move. Rich in small spaceships.' },
+  { g: 'Life-like', name: 'Replicator', r: 'B1357/S1357', d: 'Every pattern copies itself. Draw a small shape on a cleared board.' },
+  { g: 'Life-like', name: 'Anneal', r: 'B4678/S35678', d: 'A twisted majority vote. Regions smooth out and merge.' },
+  { g: 'Life-like', name: 'Amoeba', r: 'B357/S1358', d: 'Chaotic blobs that wobble and drift.' },
+  { g: 'Life-like', name: 'Assimilation', r: 'B345/S4567', d: 'Diamond shapes that grow and fill in.' },
+  { g: 'Life-like', name: 'Walled Cities', r: 'B45678/S2345', d: 'Activity collects inside walled regions.' },
+  { g: 'Life-like', name: 'Gnarl', r: 'B1/S1', d: 'Tangled, exploding growth from a single cell.' },
+  { g: 'Life-like', name: 'Long Life', r: 'B345/S5', d: 'Known for very long-period oscillators.' },
+  { g: 'Life-like', name: 'Pedestrian Life', r: 'B38/S23', d: 'Close to Life, with one extra birth condition.' },
+  { g: 'Life-like', name: 'DryLife', r: 'B37/S23', d: 'Life with birth on seven neighbors added.' },
+  { g: 'Life-like', name: 'Serviettes', r: 'B234/S', d: 'Expanding, symmetric doily patterns.' },
+  { g: 'Generations', name: "Brian's Brain", r: 'B2/S/C3', d: 'Cells fire for one generation, then rest for one. Nothing stays still.' },
+  { g: 'Generations', name: 'Star Wars', r: 'B2/S345/C4', d: 'Dense battles with many fast spaceships.' },
+  { g: 'Generations', name: 'Frogs', r: 'B34/S12/C3', d: 'Small hopping clusters and spaceships.' },
+];
+
+function parseRuleStr(input) {
+  let s = String(input).trim().toUpperCase().replace(/\s+/g, '');
+  let vn = false;
+  if (/V$/.test(s)) { vn = true; s = s.slice(0, -1).replace(/\/$/, ''); }
+  let B, Sv, C = 2, m;
+  if ((m = s.match(/^B([0-8]*)\/S([0-8]*)(?:\/C?(\d+))?$/))) { B = m[1]; Sv = m[2]; if (m[3]) C = +m[3]; }
+  else if ((m = s.match(/^S([0-8]*)\/B([0-8]*)(?:\/C?(\d+))?$/))) { Sv = m[1]; B = m[2]; if (m[3]) C = +m[3]; }
+  else if ((m = s.match(/^B([0-8]*)S([0-8]*)$/))) { B = m[1]; Sv = m[2]; }
+  else if ((m = s.match(/^([0-8]*)\/([0-8]*)\/(\d+)$/))) { Sv = m[1]; B = m[2]; C = +m[3]; }
+  else if ((m = s.match(/^([0-8]*)\/([0-8]*)$/))) { Sv = m[1]; B = m[2]; }
+  else throw new Error('Use B/S notation, for example B3/S23 or B2/S/C3.');
+  if (C < 2 || C > 64) throw new Error('The number of states must be between 2 and 64.');
+  const bs = [...new Set(B)].map(Number).sort((a, b) => a - b);
+  const ss = [...new Set(Sv)].map(Number).sort((a, b) => a - b);
+  if (vn && bs.concat(ss).some((n) => n > 4)) throw new Error('A von Neumann cell has at most 4 neighbors.');
+  return { B: bs, S: ss, C, vn, base: `B${bs.join('')}/S${ss.join('')}${C > 2 ? '/C' + C : ''}` };
+}
+const ruleLabel = (r) => r.base + (r.vn ? 'V' : '');
+
+// ---------------- Engine ----------------
+let W = 0, H = 0, PW = 0, N = 0;
+let S, L, NS, NL, age, trail, hist, editGen, occ, T1, T2, TM, NTM;
+// Competition: 'off', 'imm' (Immigration), 'quad' (QuadLife) or 'cyc' (cyclic rock-paper-scissors)
+let teamMode = 'off', teamCount = 0, curTeam = 1, teamPops = new Int32Array(13), prevAlive = 0, winAck = false;
+const cyc = { K: 3, T: 3, vn: false };
+const BT_TALLY = new Int32Array(13);
+const liveVal = (v) => (teamMode === 'cyc' ? (v ? 1 : 0) : (v === 1 ? 1 : 0));
+const isLive = (i) => liveVal(S[i]) === 1;
+const pickTeam = () => curTeam || (1 + Math.floor(Math.random() * teamCount));
+let gen = 0, pop = 0, live = 0, births = 0, deaths = 0, occMax = 1, histFloor = 0;
+let wrapX = true, wrapY = true;
+const rule = { Bt: new Uint8Array(9), St: new Uint8Array(9), C: 2, vn: false, base: 'B3/S23' };
+let seen = new Map(), settled = null, settleAck = false;
+
+function mixHash(i, seed) {
+  let x = (i ^ seed) | 0;
+  x = Math.imul(x ^ (x >>> 16), 0x7feb352d); x = Math.imul(x ^ (x >>> 15), 0x846ca68b);
+  return (x ^ (x >>> 16)) | 0;
+}
+const idx = (x, y) => (y + 1) * PW + x + 1;
+
+function alloc(w, h, keep) {
+  const old = keep && S ? { W, H, PW, S, TM } : null;
+  W = w; H = h; PW = W + 2; N = PW * (H + 2);
+  S = new Uint8Array(N); L = new Uint8Array(N); NS = new Uint8Array(N); NL = new Uint8Array(N);
+  age = new Uint16Array(N); trail = new Uint8Array(N); hist = new Int32Array(N); editGen = new Int32Array(N);
+  occ = new Uint16Array(N); T1 = new Int32Array(N); T2 = new Int32Array(N); TM = new Uint8Array(N); NTM = new Uint8Array(N);
+  for (let i = 0; i < N; i++) { T1[i] = mixHash(i, 0x9e3779b9); T2[i] = mixHash(i, 0x85ebca6b); }
+  if (old) {
+    const ox = Math.floor((W - old.W) / 2), oy = Math.floor((H - old.H) / 2);
+    for (let y = 0; y < old.H; y++) for (let x = 0; x < old.W; x++) {
+      const nx = x + ox, ny = y + oy;
+      if (nx >= 0 && ny >= 0 && nx < W && ny < H) { const j = (y + 1) * old.PW + x + 1; S[idx(nx, ny)] = old.S[j]; TM[idx(nx, ny)] = old.TM[j]; }
+    }
+  }
+  for (let i = 0; i < N; i++) { L[i] = liveVal(S[i]); age[i] = L[i]; }
+  occMax = 1; histFloor = gen; editGen.fill(gen);
+  recount();
+}
+
+function recount() {
+  let p = 0, a = 0; const tp = new Int32Array(13), cy = teamMode === 'cyc';
+  for (let y = 1; y <= H; y++) {
+    let i = y * PW + 1;
+    for (let x = 0; x < W; x++, i++) {
+      const v = S[i];
+      if (cy) { if (v) { p++; tp[v]++; } } else if (v === 1) { p++; if (teamCount) tp[TM[i]]++; }
+      if (v) a++;
+    }
+  }
+  pop = p; live = a; teamPops = tp;
+  let alive = 0; for (let k = 1; k <= teamCount; k++) if (tp[k]) alive++;
+  prevAlive = alive;
+}
+
+function borders(A) {
+  for (let y = 1; y <= H; y++) { const r = y * PW; A[r] = wrapX ? A[r + W] : 0; A[r + W + 1] = wrapX ? A[r + 1] : 0; }
+  if (wrapY) { A.copyWithin(0, H * PW, H * PW + PW); A.copyWithin((H + 1) * PW, PW, 2 * PW); }
+  else { A.fill(0, 0, PW); A.fill(0, (H + 1) * PW, (H + 2) * PW); }
+}
+
+function step() {
+  if (teamMode === 'cyc') { stepCyclic(); return; }
+  borders(L);
+  const teams = teamCount > 0, quad = teamMode === 'quad';
+  if (teams) borders(TM);
+  const Bt = rule.Bt, St = rule.St, C = rule.C, vn = rule.vn;
+  const tp = new Int32Array(13);
+  let p = 0, act = 0, b = 0, d = 0, h1 = 0, h2 = 0, om = occMax;
+  for (let y = 1; y <= H; y++) {
+    let i = y * PW + 1, up = i - PW, dn = i + PW;
+    for (let x = 0; x < W; x++, i++, up++, dn++) {
+      const n = vn ? L[up] + L[dn] + L[i - 1] + L[i + 1]
+        : L[up - 1] + L[up] + L[up + 1] + L[i - 1] + L[i + 1] + L[dn - 1] + L[dn] + L[dn + 1];
+      const s = S[i];
+      let ns;
+      if (s === 0) ns = Bt[n];
+      else if (s === 1) ns = St[n] ? 1 : (C > 2 ? 2 : 0);
+      else ns = s + 1 >= C ? 0 : s + 1;
+      NS[i] = ns;
+      let tm = 0;
+      if (teams) { tm = ns === 0 ? 0 : s === 0 ? birthTeam(i, up, dn, vn, quad) : TM[i]; NTM[i] = tm; }
+      if (ns === 1) {
+        NL[i] = 1; p++; act++;
+        hist[i] = (hist[i] << 1) | 1;
+        if (s === 1) { if (age[i] < 65535) age[i]++; } else { age[i] = 1; b++; }
+        if (occ[i] < 65535) { const o = ++occ[i]; if (o > om) om = o; }
+        trail[i] = 0;
+        if (teams) tp[tm]++;
+        h1 = (h1 + Math.imul(T1[i], 1 + tm)) | 0; h2 ^= T2[i] ^ Math.imul(tm, 0x27d4eb2d);
+      } else {
+        NL[i] = 0;
+        hist[i] = hist[i] << 1;
+        if (s === 1) { d++; trail[i] = 1; } else if (trail[i]) trail[i] = trail[i] >= 250 ? 0 : trail[i] + 1;
+        age[i] = 0;
+        if (ns) { act++; h1 = (h1 + Math.imul(T1[i], ns)) | 0; h2 ^= (T2[i] << ns) | (T2[i] >>> (32 - ns)); }
+      }
+    }
+  }
+  let t = S; S = NS; NS = t; t = L; L = NL; NL = t;
+  if (teams) { t = TM; TM = NTM; NTM = t; teamPops = tp; }
+  gen++; pop = p; live = act; births = b; deaths = d; occMax = om;
+  noteHash(h1, h2);
+}
+
+// A newborn joins the majority team among its live parents. In QuadLife, three parents
+// from three different teams produce the fourth team. Other ties are broken by a fixed
+// per-cell hash so the run stays reproducible.
+function birthTeam(i, up, dn, vn, quad) {
+  const c = BT_TALLY; c.fill(0);
+  if (L[up]) c[TM[up]]++; if (L[dn]) c[TM[dn]]++; if (L[i - 1]) c[TM[i - 1]]++; if (L[i + 1]) c[TM[i + 1]]++;
+  if (!vn) { if (L[up - 1]) c[TM[up - 1]]++; if (L[up + 1]) c[TM[up + 1]]++; if (L[dn - 1]) c[TM[dn - 1]]++; if (L[dn + 1]) c[TM[dn + 1]]++; }
+  let best = 0, bc = 0, ties = 0;
+  for (let k = 1; k <= teamCount; k++) { if (c[k] > bc) { bc = c[k]; best = k; ties = 1; } else if (bc && c[k] === bc) ties++; }
+  if (ties > 1) {
+    if (quad && bc === 1 && c[1] + c[2] + c[3] + c[4] === 3) { for (let k = 1; k <= 4; k++) if (!c[k]) return k; }
+    let pick = ((T1[i] ^ Math.imul(gen, 0x9e3779b1)) >>> 0) % ties;
+    for (let k = 1; k <= teamCount; k++) if (c[k] === bc && pick-- === 0) return k;
+  }
+  return best || 1;
+}
+
+// Cyclic automaton: species s (1..K) is overtaken by s+1 (K by 1) when at least T neighbors
+// are of species s+1. Empty cells join the most common neighboring species.
+function stepCyclic() {
+  borders(S);
+  const K = cyc.K, th = cyc.T, vn = cyc.vn, c = BT_TALLY;
+  const tp = new Int32Array(13);
+  let act = 0, ch = 0, h1 = 0, h2 = 0;
+  for (let y = 1; y <= H; y++) {
+    let i = y * PW + 1, up = i - PW, dn = i + PW;
+    for (let x = 0; x < W; x++, i++, up++, dn++) {
+      const s = S[i];
+      let ns = s;
+      if (s) {
+        const nx = s === K ? 1 : s + 1;
+        let n = (S[up] === nx) + (S[dn] === nx) + (S[i - 1] === nx) + (S[i + 1] === nx);
+        if (!vn) n += (S[up - 1] === nx) + (S[up + 1] === nx) + (S[dn - 1] === nx) + (S[dn + 1] === nx);
+        if (n >= th) ns = nx;
+      } else {
+        c.fill(0);
+        c[S[up]]++; c[S[dn]]++; c[S[i - 1]]++; c[S[i + 1]]++;
+        if (!vn) { c[S[up - 1]]++; c[S[up + 1]]++; c[S[dn - 1]]++; c[S[dn + 1]]++; }
+        let bc = 0, ties = 0;
+        for (let k = 1; k <= K; k++) { if (c[k] > bc) { bc = c[k]; ns = k; ties = 1; } else if (bc && c[k] === bc) ties++; }
+        if (ties > 1) { let pick = ((T1[i] ^ Math.imul(gen, 0x9e3779b1)) >>> 0) % ties; for (let k = 1; k <= K; k++) if (c[k] === bc && pick-- === 0) { ns = k; break; } }
+      }
+      NS[i] = ns; NL[i] = ns ? 1 : 0;
+      if (ns !== s) { ch++; age[i] = 1; } else if (age[i] < 65535) age[i]++;
+      if (ns) { act++; tp[ns]++; h1 = (h1 + Math.imul(T1[i], ns)) | 0; h2 ^= (T2[i] << ns) | (T2[i] >>> (32 - ns)); }
+    }
+  }
+  let t = S; S = NS; NS = t; t = L; L = NL; NL = t;
+  gen++; pop = act; live = act; births = ch; deaths = 0; teamPops = tp;
+  noteHash(h1, h2);
+}
+
+function noteHash(h1, h2) {
+  const k = h1 + '_' + h2;
+  const g = seen.get(k);
+  if (live === 0) settled = { kind: 'extinct' };
+  else if (g !== undefined) settled = { kind: gen - g === 1 ? 'still' : 'osc', period: gen - g };
+  else settled = null;
+  seen.delete(k); seen.set(k, gen);
+  if (seen.size > 400) seen.delete(seen.keys().next().value);
+}
+function resetSettle() { seen.clear(); settled = null; settleAck = false; winAck = false; }
+
+// ---------------- Classification ----------------
+const PER_N = [], PER_MASK = [];
+for (let p = 2; p <= 15; p++) { const n = Math.min(Math.max(3 * p, 12), 32 - p); PER_N[p] = n; PER_MASK[p] = n >= 31 ? -1 : ((1 << n) - 1); }
+let lastPeriod = 0, lastMove = '';
+const MOVES = [];
+{
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  for (let p = 2; p <= 12; p++) for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+    const d = Math.max(Math.abs(dx), Math.abs(dy));
+    if (!d || d * 2 > p) continue;
+    const n = Math.min(Math.max(4 * p, 16), 32 - p), g = gcd(d, p);
+    MOVES.push({ p, dx, dy, n, mask: (1 << n) - 1, need: n + p, label: `${d / g === 1 ? '' : d / g}c/${p / g}${dx && dy ? ' diagonal' : ''}` });
+  }
+  MOVES.sort((a, b) => a.need - b.need || a.p - b.p);
+}
+function moveMatch(i, x, y, m) {
+  const sx = x - m.dx, sy = y - m.dy;
+  let j;
+  if (sx >= 0 && sx < W && sy >= 0 && sy < H) j = i - m.dy * PW - m.dx;
+  else { j = wrapIdx(sx, sy); if (j < 0) return false; }
+  if (gen - Math.max(editGen[j], histFloor) < m.need) return false;
+  return ((hist[i] ^ (hist[j] >>> m.p)) & m.mask) === 0;
+}
+// A live cell is moving when its recent history equals the history of a nearby cell shifted in time,
+// and its whole 5x5 neighborhood agrees on the same shift. That is what a spaceship looks like.
+function classifyMove(i, x, y) {
+  const v = gen - Math.max(editGen[i], histFloor);
+  for (const m of MOVES) {
+    if (v < m.need) break;
+    if (!moveMatch(i, x, y, m)) continue;
+    let ok = true;
+    for (let ny = -2; ny <= 2 && ok; ny++) for (let nx = -2; nx <= 2; nx++) {
+      if (!nx && !ny) continue;
+      const qx = x + nx, qy = y + ny;
+      let q;
+      if (qx >= 0 && qx < W && qy >= 0 && qy < H) q = i + ny * PW + nx;
+      else { q = wrapIdx(qx, qy); if (q < 0) continue; }
+      const p2 = wrapXY(qx, qy);
+      if (gen - Math.max(editGen[q], histFloor) < m.need || !moveMatch(q, p2[0], p2[1], m)) { ok = false; break; }
+    }
+    if (ok) { lastMove = m.label; return 3; }
+  }
+  return 0;
+}
+function classify(i) {
+  const v = gen - Math.max(editGen[i], histFloor);
+  if (v < 8) return 0;
+  const h = hist[i];
+  if ((h & 0xFF) === 0xFF) return 1;
+  for (let p = 2; p <= 15; p++) {
+    const n = PER_N[p];
+    if (v < n + p) break;
+    const m = PER_MASK[p];
+    if (((h ^ (h >>> p)) & m) === 0 && (h & m) !== 0) { lastPeriod = p; return 2; }
+  }
+  return 0;
+}
+
+// ---------------- History, undo, start state ----------------
+let hstack = [], maxHist = 1000, recording = true;
+let popSeries = [];
+const mkSeries = () => Array.from({ length: 13 }, () => []);
+let teamSeries = mkSeries();
+let undoStack = [];
+let startSnap = null, dirty = true;
+
+function setMaxHist() {
+  const bytes = rule.C === 2 && teamMode === 'off' ? Math.ceil(W * H / 8) : W * H * (teamCount && teamMode !== 'cyc' ? 2 : 1);
+  maxHist = Math.max(50, Math.min(5000, Math.floor(48e6 / bytes)));
+  if (hstack.length > maxHist) hstack.splice(0, hstack.length - maxHist);
+  $('histCap').textContent = `(up to ${maxHist.toLocaleString()})`;
+}
+function snapshot() {
+  const packed = rule.C === 2 && teamMode === 'off', withTeams = teamCount > 0 && teamMode !== 'cyc';
+  let data, tdata = null;
+  if (packed) {
+    data = new Uint8Array((W * H + 7) >> 3);
+    let b = 0;
+    for (let y = 1; y <= H; y++) { let i = y * PW + 1; for (let x = 0; x < W; x++, i++, b++) if (S[i] === 1) data[b >> 3] |= 1 << (b & 7); }
+  } else {
+    data = new Uint8Array(W * H); if (withTeams) tdata = new Uint8Array(W * H);
+    let b = 0;
+    for (let y = 1; y <= H; y++) { let i = y * PW + 1; for (let x = 0; x < W; x++, i++, b++) { data[b] = S[i]; if (tdata) tdata[b] = TM[i]; } }
+  }
+  hstack.push({ gen, data, tdata, packed });
+  if (hstack.length > maxHist) hstack.shift();
+}
+function restoreSnap(e) {
+  let b = 0;
+  for (let y = 1; y <= H; y++) {
+    let i = y * PW + 1;
+    for (let x = 0; x < W; x++, i++, b++) {
+      const v = e.packed ? ((e.data[b >> 3] >> (b & 7)) & 1) : e.data[b];
+      S[i] = v; L[i] = liveVal(v);
+      if (e.tdata) TM[i] = e.tdata[b];
+      age[i] = L[i] ? Math.max(1, age[i] - 1) : 0; trail[i] = 0;
+    }
+  }
+  gen = e.gen; histFloor = gen; recount(); births = deaths = 0; resetSettle();
+}
+function stepBack() {
+  const e = hstack.pop();
+  if (!e) return false;
+  restoreSnap(e); popSeries.pop(); for (const a of teamSeries) a.pop();
+  return true;
+}
+function clearHistory() { hstack = []; }
+function pushUndo() {
+  undoStack.push({ S: S.slice(), TM: TM.slice() });
+  const cap = Math.max(3, Math.min(30, Math.floor(40e6 / (2 * N))));
+  if (undoStack.length > cap) undoStack.shift();
+}
+function undo() {
+  const prev = undoStack.pop();
+  if (!prev || prev.S.length !== N) { toast('Nothing to undo'); return; }
+  S.set(prev.S); TM.set(prev.TM);
+  for (let i = 0; i < N; i++) { L[i] = liveVal(S[i]); age[i] = L[i] ? Math.max(1, age[i]) : 0; trail[i] = 0; }
+  editGen.fill(gen); edited();
+}
+function captureStart() {
+  if (!dirty && startSnap) return;
+  startSnap = { S: S.slice(), TM: TM.slice(), gen, n: N, mode: teamMode };
+  dirty = false;
+}
+function resetToStart() {
+  if (!startSnap || startSnap.n !== N || startSnap.mode !== teamMode) { toast('No start state yet. Press Play or Step first.'); return; }
+  pause();
+  S.set(startSnap.S); TM.set(startSnap.TM);
+  for (let i = 0; i < N; i++) { L[i] = liveVal(S[i]); age[i] = L[i]; trail[i] = 0; hist[i] = 0; occ[i] = 0; }
+  gen = startSnap.gen; histFloor = gen; occMax = 1; recount(); births = deaths = 0;
+  clearHistory(); popSeries = []; teamSeries = mkSeries(); resetSettle(); dirty = false;
+  needRender = true; statsNow();
+}
+
+// ---------------- Editing ----------------
+let mirror = 'none';
+function wrapIdx(x, y) {
+  if (x < 0 || x >= W) { if (!wrapX) return -1; x = ((x % W) + W) % W; }
+  if (y < 0 || y >= H) { if (!wrapY) return -1; y = ((y % H) + H) % H; }
+  return (y + 1) * PW + x + 1;
+}
+function wrapXY(x, y) {
+  if (x < 0 || x >= W) { if (!wrapX) return null; x = ((x % W) + W) % W; }
+  if (y < 0 || y >= H) { if (!wrapY) return null; y = ((y % H) + H) % H; }
+  return [x, y];
+}
+function symXY(x, y) {
+  const p = wrapXY(x, y);
+  if (!p) return [];
+  [x, y] = p;
+  const out = [[x, y]];
+  const mx = W - 1 - x, my = H - 1 - y;
+  if (mirror === 'x') out.push([mx, y]);
+  else if (mirror === 'y') out.push([x, my]);
+  else if (mirror === 'xy') out.push([mx, y], [x, my], [mx, my]);
+  else if (mirror === 'r180') out.push([mx, my]);
+  return out;
+}
+function setIdx(i, v, tm) {
+  if (teamMode === 'cyc') {
+    const sp = v ? (tm || pickTeam()) : 0;
+    if (S[i] === sp) return;
+    S[i] = sp; L[i] = sp ? 1 : 0; age[i] = 1; trail[i] = 0; editGen[i] = gen; return;
+  }
+  const t = v === 1 && teamCount ? (tm || pickTeam()) : 0;
+  if (S[i] === v && TM[i] === t) return;
+  S[i] = v; L[i] = v === 1 ? 1 : 0; age[i] = v === 1 ? 1 : 0; trail[i] = 0; editGen[i] = gen; TM[i] = t;
+}
+function applyCell(x, y, fn, tm) {
+  const pts = symXY(x, y);
+  if (!pts.length) return;
+  const v = fn(liveVal(S[idx(pts[0][0], pts[0][1])]));
+  if (v === undefined) return;
+  const t = tm || (teamCount ? pickTeam() : 0);
+  for (const [px, py] of pts) setIdx(idx(px, py), v, t);
+}
+function edited() {
+  dirty = true; resetSettle(); recount(); needRender = true; needOverlay = true; statsNow();
+}
+
+function randomFill(x0, y0, x1, y1, dens) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    if (mirror === 'none') setIdx(idx(x, y), Math.random() < dens ? 1 : 0);
+    else applyCell(x, y, () => (Math.random() < dens ? 1 : 0));
+  }
+}
+function invertRect(x0, y0, x1, y1) {
+  if (mirror === 'none') { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const i = idx(x, y); setIdx(i, isLive(i) ? 0 : 1); } }
+  else {
+    const seenOrb = new Uint8Array(W * H);
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const pts = symXY(x, y); if (pts.some(([a, b]) => seenOrb[b * W + a])) continue;
+      const v = isLive(idx(x, y)) ? 0 : 1, t = teamCount ? pickTeam() : 0;
+      for (const [a, b] of pts) { seenOrb[b * W + a] = 1; setIdx(idx(a, b), v, t); }
+    }
+  }
+}
+function clearRect(x0, y0, x1, y1) { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) applyCell(x, y, () => 0); }
+
+function clearBoard() {
+  pushUndo(); pause();
+  S.fill(0); L.fill(0); TM.fill(0); age.fill(0); trail.fill(0); hist.fill(0); occ.fill(0); occMax = 1;
+  gen = 0; histFloor = 0; editGen.fill(0); births = deaths = 0;
+  clearHistory(); popSeries = []; teamSeries = mkSeries(); startSnap = null; edited();
+}
+function invertBoard() { pushUndo(); invertRect(0, 0, W - 1, H - 1); edited(); }
+function removeSettled() {
+  if (teamMode === 'cyc') { toast('Rock-paper-scissors cells never settle in the Life sense, so there is nothing to remove'); return; }
+  pushUndo(); let n = 0;
+  for (let y = 1; y <= H; y++) { let i = y * PW + 1; for (let x = 0; x < W; x++, i++) if (S[i] === 1 && classify(i)) { setIdx(i, 0); n++; } }
+  edited(); toast(n ? `Removed ${n.toLocaleString()} settled cells` : 'No settled cells found yet. Let the board run a little longer.');
+}
+
+// ---------------- Patterns ----------------
+function parsePattern(text) {
+  const lines = String(text).replace(/\r/g, '').split('\n');
+  let name = '', ruleStr = '';
+  const body = lines.filter((l) => !/^\s*[#!]/.test(l) && l.trim() !== '');
+  lines.forEach((l) => { const t = l.trim(); if (/^#N\s/.test(t)) name = t.slice(3).trim(); if (/^!Name:/i.test(t)) name = t.replace(/^!Name:\s*/i, ''); });
+  const cells = [];
+  const isPlain = body.length && body.every((l) => /^[.O*]+$/.test(l.trim())) && !/^x\s*=/.test(body[0].trim());
+  if (isPlain) {
+    body.forEach((l, y) => { [...l.trim()].forEach((c, x) => { if (c === 'O' || c === '*') cells.push([x, y]); }); });
+  } else {
+    let src = '';
+    for (const l of body) { const t = l.trim(); if (/^x\s*=/.test(t)) { const m = t.match(/rule\s*=\s*([^\s,]+)/i); if (m) ruleStr = m[1]; continue; } src += t; if (t.includes('!')) break; }
+    let x = 0, y = 0, num = '';
+    for (const ch of src) {
+      if (ch >= '0' && ch <= '9') { num += ch; continue; }
+      const n = num ? parseInt(num, 10) : 1; num = '';
+      if (ch === 'b' || ch === '.') x += n;
+      else if (ch === '$') { y += n; x = 0; }
+      else if (ch === '!') break;
+      else if (/[a-zA-Z]/.test(ch)) { for (let k = 0; k < n; k++) cells.push([x + k, y]); x += n; }
+    }
+  }
+  return { cells: normCells(cells), name, rule: ruleStr };
+}
+function normCells(cells) {
+  if (!cells.length) return cells;
+  let mx = Infinity, my = Infinity;
+  for (const [x, y] of cells) { if (x < mx) mx = x; if (y < my) my = y; }
+  return cells.map(([x, y]) => [x - mx, y - my]);
+}
+function dims(cells) { let w = 0, h = 0; for (const [x, y] of cells) { if (x + 1 > w) w = x + 1; if (y + 1 > h) h = y + 1; } return [w, h]; }
+function encodeRLE(cells, ruleStr) {
+  const [w, h] = dims(cells);
+  const rows = Array.from({ length: h }, () => []);
+  for (const [x, y] of cells) rows[y].push(x);
+  let out = '', line = '', lastY = 0;
+  const emit = (tok) => { if (line.length + tok.length > 70) { out += line + '\n'; line = ''; } line += tok; };
+  const run = (n, c) => (n > 1 ? n : '') + c;
+  for (let y = 0; y < h; y++) {
+    const xs = rows[y].sort((a, b) => a - b);
+    if (!xs.length) continue;
+    if (y > lastY) emit(run(y - lastY, '$'));
+    lastY = y;
+    let x = 0, i = 0;
+    while (i < xs.length) {
+      let j = i; while (j + 1 < xs.length && xs[j + 1] === xs[j] + 1) j++;
+      if (xs[i] > x) emit(run(xs[i] - x, 'b'));
+      emit(run(j - i + 1, 'o')); x = xs[j] + 1; i = j + 1;
+    }
+  }
+  emit('!'); out += line;
+  return `x = ${w}, y = ${h}, rule = ${ruleStr}\n${out}`;
+}
+
+let library = [];
+function loadLibrary() {
+  library = PATTERNS.map((p) => ({ ...p, cells: parsePattern(p.rle).cells }));
+  const custom = store.get('stamps', []);
+  for (const c of custom) { const parsed = parsePattern(c.rle); if (parsed.cells.length) library.push({ id: c.id, name: c.name, cat: 'Your stamps', rule: c.rule || '', kind: 'Custom stamp', note: c.note || '', cells: parsed.cells, custom: true }); }
+}
+function saveCustom() {
+  store.set('stamps', library.filter((p) => p.custom).map((p) => ({ id: p.id, name: p.name, rule: p.rule, note: p.note, rle: encodeRLE(p.cells, p.rule || 'B3/S23') })));
+}
+function addCustom(cells, name, ruleStr, note) {
+  const p = { id: 'u' + Date.now().toString(36), name, cat: 'Your stamps', rule: ruleStr || '', kind: 'Custom stamp', note, cells: normCells(cells), custom: true };
+  library.push(p); saveCustom(); fillPatternSelect(); selectPattern(p.id); setTool('stamp');
+}
+function metaOf(p) {
+  const [w, h] = dims(p.cells);
+  const t = p.test || {};
+  let kind = p.kind || '';
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  if (t.type === 'osc') kind = `Period ${t.p} oscillator`;
+  else if (t.type === 'ship') {
+    const d = Math.max(t.dx, t.dy), g = gcd(d, t.p), num = d / g, den = t.p / g;
+    kind = `Spaceship · ${num === 1 ? '' : num}c/${den}${t.dx && t.dy ? ' diagonal' : ''}`;
+  } else if (t.type === 'gun') kind = `Period ${t.p} glider gun`;
+  return `${kind} · ${w}×${h} · ${p.cells.length} cells`;
+}
+
+// Stamp state
+let stampId = 'glider', stampRot = 0, stampFlip = false, stampCells = [];
+function currentPattern() { return library.find((p) => p.id === stampId) || library[0]; }
+function rebuildStamp() {
+  let cells = currentPattern().cells.map(([x, y]) => [stampFlip ? -x : x, y]);
+  for (let r = 0; r < stampRot; r++) cells = cells.map(([x, y]) => [-y, x]);
+  stampCells = normCells(cells);
+  needOverlay = true;
+}
+
+// ---------------- Rendering ----------------
+const base = $('base'), overlay = $('overlay'), wrapEl = $('boardWrap');
+const bctx = base.getContext('2d'), octx = overlay.getContext('2d');
+const cellsCv = document.createElement('canvas'), cctx = cellsCv.getContext('2d');
+const scratch = document.createElement('canvas'), sctx = scratch.getContext('2d');
+let img, buf, devCell = 6, cell = 6, dpr = 1;
+let needRender = true, needOverlay = true;
+let COL = {}, gridEdgePat = null, gridCenterPat = null, circlePat = null, sheenPat = null;
+let ageLUT, heatLUT, trailLUT, dyingLUT, AGEIDX;
+const counts = { active: 0, still: 0, osc: 0, move: 0, periods: new Set(), speeds: new Set() };
+
+function hexRGB(s) { s = s.trim().replace('#', ''); if (s.length === 3) s = [...s].map((c) => c + c).join(''); const n = parseInt(s, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+const pack = ([r, g, b]) => ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0;
+const blend = (a, b, t) => [0, 1, 2].map((k) => Math.round(a[k] * t + b[k] * (1 - t)));
+const rgbStr = ([r, g, b], a = 1) => `rgba(${r},${g},${b},${a})`;
+
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = (n) => hexRGB(cs.getPropertyValue(n));
+  const c = { board: g('--board'), ink: g('--ink'), grid: g('--gridline'), still: g('--still'), osc: g('--osc'), move: g('--move'), trail: g('--trail'), heat: g('--heat'), dying: g('--dying'), accent: g('--accent'),
+    a: g('--age-a'), b: g('--age-b'), cc: g('--age-c'), d: g('--age-d') };
+  COL = { rgb: c, ink: pack(c.ink), still: pack(c.still), osc: pack(c.osc), move: pack(c.move), dim: pack(blend(c.ink, c.board, 0.22)), ghost: pack(blend(c.osc, c.board, 0.3)) };
+  ageLUT = new Uint32Array(256);
+  const stops = [[0, c.a], [0.3, c.b], [0.62, c.cc], [1, c.d]];
+  for (let k = 0; k < 256; k++) {
+    const t = k / 255; let j = 0; while (j < stops.length - 2 && t > stops[j + 1][0]) j++;
+    const [t0, c0] = stops[j], [t1, c1] = stops[j + 1];
+    ageLUT[k] = pack(blend(c1, c0, (t - t0) / (t1 - t0)));
+  }
+  AGEIDX = new Uint8Array(1025);
+  for (let a = 1; a <= 1024; a++) AGEIDX[a] = Math.round(255 * Math.log(a) / Math.log(1024));
+  heatLUT = new Uint32Array(256);
+  for (let k = 0; k < 256; k++) heatLUT[k] = pack(blend(c.heat, c.board, 0.1 + 0.8 * (k / 255)));
+  buildTrailLUT(); buildDyingLUT(); buildPatterns();
+  ['swActive', 'swStill', 'swOsc', 'swMove'].forEach((id, k) => { $(id).style.background = rgbStr([c.ink, c.still, c.osc, c.move][k]); });
+  buildTeamColors(); buildTeamPicker();
+  needRender = true; needOverlay = true; drawStampPreview(); drawSpark();
+}
+let teamCol = new Uint32Array(13), teamRGB = [], teamNames = [''];
+function hsl(h, sat, l) {
+  const f = (n) => { const k = (n + h / 30) % 12, a = sat * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+  return [f(0), f(8), f(4)];
+}
+const HUE_NAMES = ['Red', 'Orange', 'Yellow', 'Lime', 'Green', 'Jade', 'Cyan', 'Azure', 'Blue', 'Violet', 'Magenta', 'Rose'];
+function buildTeamColors() {
+  if (!COL.rgb) return;
+  const b = COL.rgb.board, dark = 0.2126 * b[0] + 0.7152 * b[1] + 0.0722 * b[2] < 110;
+  const l = dark ? 0.62 : 0.42, sat = dark ? 0.72 : 0.78;
+  const cy = teamMode === 'cyc';
+  const hues = cy ? Array.from({ length: cyc.K }, (_, k) => (k * 360) / cyc.K) : [2, 218, 135, 275];
+  teamRGB = [null]; teamNames = [''];
+  hues.forEach((h, k) => {
+    const rgb = hsl(h, sat, l); teamRGB.push(rgb); teamCol[k + 1] = pack(rgb);
+    teamNames.push(cy ? HUE_NAMES[Math.round(h / 30) % 12] : ['Red', 'Blue', 'Green', 'Violet'][k]);
+  });
+}
+function buildTrailLUT() {
+  const tl = opt.trailLen, c = COL.rgb; trailLUT = new Uint32Array(256);
+  for (let t = 1; t <= 255; t++) trailLUT[t] = t > tl ? 0 : pack(blend(c.trail, c.board, 0.55 * (1 - (t - 1) / tl)));
+}
+function buildDyingLUT() {
+  const c = COL.rgb; dyingLUT = new Uint32Array(65);
+  for (let s = 2; s < 65; s++) { const f = Math.min(1, (s - 1) / Math.max(2, rule.C - 1)); dyingLUT[s] = pack(blend(c.dying, c.board, 1 - f * 0.85)); }
+}
+function tile(drawFn) { const t = document.createElement('canvas'); t.width = t.height = devCell; drawFn(t.getContext('2d'), devCell); return bctx.createPattern(t, 'repeat'); }
+function buildPatterns() {
+  if (!COL.rgb) return;
+  const gc = rgbStr(COL.rgb.grid);
+  gridEdgePat = tile((x, d) => { x.fillStyle = gc; x.fillRect(0, 0, d, 1); x.fillRect(0, 0, 1, d); });
+  gridCenterPat = tile((x, d) => { x.fillStyle = gc; const m = Math.floor(d / 2); x.fillRect(0, m, d, 1); x.fillRect(m, 0, 1, d); });
+  circlePat = tile((x, d) => { x.fillStyle = '#000'; x.beginPath(); x.arc(d / 2, d / 2, d * 0.47, 0, Math.PI * 2); x.fill(); });
+  sheenPat = tile((x, d) => {
+    const g = x.createRadialGradient(d * 0.36, d * 0.32, d * 0.02, d * 0.5, d * 0.5, d * 0.52);
+    g.addColorStop(0, 'rgba(255,255,255,0.34)'); g.addColorStop(0.45, 'rgba(255,255,255,0.06)'); g.addColorStop(1, 'rgba(0,0,0,0.22)');
+    x.fillStyle = g; x.fillRect(0, 0, d, d);
+  });
+}
+
+function layoutCanvas() {
+  dpr = window.devicePixelRatio || 1;
+  devCell = Math.max(1, Math.round(cell * dpr));
+  while (devCell > 1 && (W * devCell > 16000 || H * devCell > 16000 || W * H * devCell * devCell > 150e6)) devCell--;
+  const bw = W * devCell, bh = H * devCell;
+  for (const c of [base, overlay, scratch]) { c.width = bw; c.height = bh; }
+  wrapEl.style.width = bw / dpr + 'px'; wrapEl.style.height = bh / dpr + 'px';
+  cellsCv.width = W; cellsCv.height = H;
+  img = cctx.createImageData(W, H); buf = new Uint32Array(img.data.buffer);
+  buildPatterns(); needRender = true; needOverlay = true;
+}
+
+function render() {
+  const hl = (m) => (teamCount && m === 'highlight' ? 'normal' : m);
+  const stillM = hl(opt.still), oscM = hl(opt.osc), moveM = hl(opt.move), ghost = opt.ghost && !teamCount, mode = opt.color;
+  const trailsOn = opt.trails, tl = opt.trailLen;
+  const ink = COL.ink, stillC = COL.still, oscC = COL.osc, moveC = COL.move, dimC = COL.dim, ghostC = COL.ghost;
+  const logMax = Math.log1p(occMax);
+  let ca = 0, cs = 0, co = 0, cm = 0; const periods = counts.periods; periods.clear(); const speeds = counts.speeds; speeds.clear();
+  let p = 0;
+  if (teamMode === 'cyc') {
+    for (let y = 1; y <= H; y++) { let i = y * PW + 1; for (let x = 0; x < W; x++, i++, p++) { const s = S[i]; buf[p] = s ? (mode === 'age' ? ageLUT[age[i] > 1024 ? 255 : AGEIDX[age[i]]] : teamCol[s]) : 0; } }
+  } else
+  for (let y = 1; y <= H; y++) {
+    let i = y * PW + 1;
+    for (let x = 0; x < W; x++, i++, p++) {
+      const s = S[i]; let c = 0;
+      if (s === 1) {
+        let k = classify(i);
+        if (k === 0) k = classifyMove(i, x, y);
+        const baseC = mode === 'age' ? ageLUT[age[i] > 1024 ? 255 : AGEIDX[age[i]]] : teamCount ? teamCol[TM[i]] : ink;
+        if (k === 1) { cs++; c = stillM === 'highlight' ? stillC : stillM === 'dim' ? dimC : stillM === 'hide' ? 0 : baseC; }
+        else if (k === 2) { co++; periods.add(lastPeriod); c = oscM === 'highlight' ? oscC : oscM === 'dim' ? dimC : oscM === 'hide' ? 0 : baseC; }
+        else if (k === 3) { cm++; speeds.add(lastMove); c = moveM === 'highlight' ? moveC : moveM === 'dim' ? dimC : moveM === 'hide' ? 0 : baseC; }
+        else { ca++; c = baseC; }
+      } else if (s > 1) c = dyingLUT[s];
+      else {
+        if (ghost && hist[i] !== 0 && oscM !== 'hide' && classify(i) === 2) c = ghostC;
+        if (!c && trailsOn && trail[i] && trail[i] <= tl) c = trailLUT[trail[i]];
+        if (!c && mode === 'heat' && occ[i]) c = heatLUT[Math.min(255, Math.round(255 * Math.log1p(occ[i]) / logMax))];
+      }
+      buf[p] = c;
+    }
+  }
+  counts.active = ca; counts.still = cs; counts.osc = co; counts.move = cm;
+  cctx.putImageData(img, 0, 0);
+  const bw = base.width, bh = base.height;
+  bctx.imageSmoothingEnabled = false;
+  bctx.globalCompositeOperation = 'source-over';
+  bctx.fillStyle = rgbStr(COL.rgb.board); bctx.fillRect(0, 0, bw, bh);
+  const showGrid = opt.grid && cell >= 4 && devCell >= 4;
+  if (opt.shape === 'stone' && devCell >= 3) {
+    if (showGrid) { bctx.fillStyle = gridCenterPat; bctx.fillRect(0, 0, bw, bh); }
+    sctx.imageSmoothingEnabled = false;
+    sctx.globalCompositeOperation = 'copy'; sctx.drawImage(cellsCv, 0, 0, bw, bh);
+    sctx.globalCompositeOperation = 'destination-in'; sctx.fillStyle = circlePat; sctx.fillRect(0, 0, bw, bh);
+    if (devCell >= 8) { sctx.globalCompositeOperation = 'source-atop'; sctx.fillStyle = sheenPat; sctx.fillRect(0, 0, bw, bh); }
+    sctx.globalCompositeOperation = 'source-over';
+    bctx.drawImage(scratch, 0, 0);
+  } else {
+    bctx.drawImage(cellsCv, 0, 0, bw, bh);
+    if (showGrid) { bctx.fillStyle = gridEdgePat; bctx.fillRect(0, 0, bw, bh); }
+  }
+}
+
+// Overlay previews
+let hover = null, regionDrag = null;
+const shapeCache = new Map();
+function shapeOffsets(shape, r) {
+  const key = shape + r; if (shapeCache.has(key)) return shapeCache.get(key);
+  const out = [];
+  const R2 = (r + 0.5) * (r + 0.5), inner = r * 0.6, w = Math.max(0, Math.floor(r / 4)), bh = Math.max(0, Math.floor(r / 5));
+  for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    const e = Math.hypot(dx, dy); let inside = false, t = 0;
+    switch (shape) {
+      case 'circle': inside = dx * dx + dy * dy <= R2; t = e / (r + 0.5); break;
+      case 'square': inside = true; t = Math.max(Math.abs(dx), Math.abs(dy)) / (r + 0.5); break;
+      case 'diamond': inside = Math.abs(dx) + Math.abs(dy) <= r; t = (Math.abs(dx) + Math.abs(dy)) / (r + 0.5); break;
+      case 'ring': inside = dx * dx + dy * dy <= R2 && e >= inner - 0.5; t = Math.abs(e - (r + inner) / 2) / Math.max(1, (r - inner) / 2 + 0.5); break;
+      case 'cross': inside = Math.abs(dx) <= w || Math.abs(dy) <= w; t = e / (r + 0.5); break;
+      case 'hline': inside = Math.abs(dy) <= bh; t = Math.abs(dx) / (r + 0.5); break;
+    }
+    if (inside) out.push([dx, dy, Math.max(0, 1 - t * t)]);
+  }
+  shapeCache.set(key, out); return out;
+}
+function drawOverlay() {
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  const d = devCell, acc = COL.rgb ? COL.rgb.accent : [44, 75, 176];
+  if (regionDrag) {
+    const [x0, y0, x1, y1] = rectOf(regionDrag);
+    octx.fillStyle = rgbStr(acc, 0.14); octx.fillRect(x0 * d, y0 * d, (x1 - x0 + 1) * d, (y1 - y0 + 1) * d);
+    octx.strokeStyle = rgbStr(acc, 0.9); octx.lineWidth = Math.max(1, dpr); octx.setLineDash([4 * dpr, 3 * dpr]);
+    octx.strokeRect(x0 * d + 0.5, y0 * d + 0.5, (x1 - x0 + 1) * d - 1, (y1 - y0 + 1) * d - 1); octx.setLineDash([]);
+    if (mirror !== 'none') {
+      octx.strokeStyle = rgbStr(acc, 0.45);
+      for (const [a, b] of mirrorRects(x0, y0, x1, y1)) octx.strokeRect(a[0] * d + 0.5, a[1] * d + 0.5, (b[0] - a[0] + 1) * d - 1, (b[1] - a[1] + 1) * d - 1);
+    }
+    return;
+  }
+  if (!hover) return;
+  const [hx, hy] = hover;
+  const fillCells = (list, alpha) => {
+    octx.fillStyle = rgbStr(acc, alpha);
+    for (const [x, y] of list) for (const [a, b] of symXY(x, y)) octx.fillRect(a * d, b * d, d, d);
+  };
+  if (tool === 'draw') {
+    octx.strokeStyle = rgbStr(acc, 0.95); octx.lineWidth = Math.max(1, Math.round(dpr));
+    for (const [a, b] of symXY(hx, hy)) octx.strokeRect(a * d + 0.5, b * d + 0.5, Math.max(1, d - 1), Math.max(1, d - 1));
+    if (d < 4) fillCells([[hx, hy]], 0.6);
+  } else if (tool === 'spray') {
+    fillCells(shapeOffsets(opt.sprayShape, opt.spraySize).map(([dx, dy]) => [hx + dx, hy + dy]), 0.16);
+  } else if (tool === 'stamp') {
+    const [w, h] = dims(stampCells); const ox = hx - Math.floor(w / 2), oy = hy - Math.floor(h / 2);
+    if (opt.stampReplace) {
+      octx.fillStyle = rgbStr(acc, 0.1);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (const [a, b] of symXY(ox + x, oy + y)) octx.fillRect(a * d, b * d, d, d);
+    }
+    fillCells(stampCells.map(([x, y]) => [ox + x, oy + y]), 0.6);
+  } else if (tool === 'region') {
+    fillCells([[hx, hy]], 0.4);
+  }
+}
+function mirrorRects(x0, y0, x1, y1) {
+  const fx = (a) => W - 1 - a, fy = (b) => H - 1 - b, out = [];
+  const R = (ax, ay, bx, by) => out.push([[Math.min(ax, bx), Math.min(ay, by)], [Math.max(ax, bx), Math.max(ay, by)]]);
+  if (mirror === 'x' || mirror === 'xy') R(fx(x0), y0, fx(x1), y1);
+  if (mirror === 'y' || mirror === 'xy') R(x0, fy(y0), x1, fy(y1));
+  if (mirror === 'xy' || mirror === 'r180') R(fx(x0), fy(y0), fx(x1), fy(y1));
+  return out;
+}
+
+// ---------------- Pointer input ----------------
+let tool = 'draw', stroke = null, strokeMask = null;
+function cellAt(e) {
+  const r = wrapEl.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / r.width * W), y = Math.floor((e.clientY - r.top) / r.height * H);
+  return [Math.max(0, Math.min(W - 1, x)), Math.max(0, Math.min(H - 1, y))];
+}
+function line(x0, y0, x1, y1, fn) {
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) { fn(x0, y0); if (x0 === x1 && y0 === y1) break; const e2 = 2 * err; if (e2 >= dy) { err += dy; x0 += sx; } if (e2 <= dx) { err += dx; y0 += sy; } }
+}
+function sprayAt(cx, cy) {
+  const dens = opt.sprayDensity / 100, mode = opt.sprayMode, soft = opt.spraySoft;
+  for (const [dx, dy, wgt] of shapeOffsets(opt.sprayShape, opt.spraySize)) {
+    const p = wrapXY(cx + dx, cy + dy); if (!p) continue;
+    const m = p[1] * W + p[0]; if (strokeMask[m]) continue; strokeMask[m] = 1;
+    const prob = soft ? dens * wgt : dens;
+    const hit = Math.random() < prob;
+    if (mode === 'add') { if (hit) applyCell(p[0], p[1], () => 1); }
+    else if (mode === 'erase') { if (hit) applyCell(p[0], p[1], () => 0); }
+    else if (mode === 'random') applyCell(p[0], p[1], () => (hit ? 1 : 0));
+    else if (mode === 'invert') { if (hit) applyCell(p[0], p[1], (v) => (v === 1 ? 0 : 1)); }
+  }
+}
+function placeStamp(cx, cy) {
+  const [w, h] = dims(stampCells); const ox = cx - Math.floor(w / 2), oy = cy - Math.floor(h / 2);
+  if (opt.stampReplace) for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) applyCell(ox + x, oy + y, () => 0);
+  const st = teamCount ? pickTeam() : 0;
+  for (const [x, y] of stampCells) applyCell(ox + x, oy + y, () => 1, st);
+}
+function rectOf(r) { return [Math.min(r.x0, r.x1), Math.min(r.y0, r.y1), Math.max(r.x0, r.x1), Math.max(r.y0, r.y1)]; }
+
+wrapEl.addEventListener('contextmenu', (e) => e.preventDefault());
+wrapEl.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0 && e.button !== 2) return;
+  e.preventDefault();
+  try { wrapEl.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  const [x, y] = cellAt(e); hover = [x, y];
+  if (tool === 'region') { regionDrag = { x0: x, y0: y, x1: x, y1: y }; needOverlay = true; return; }
+  pushUndo();
+  if (tool === 'draw') {
+    const i0 = idx(x, y);
+    const mine = isLive(i0) && (!teamCount || !curTeam || (teamMode === 'cyc' ? S[i0] === curTeam : TM[i0] === curTeam));
+    const v = e.button === 2 ? 0 : (mine ? 0 : 1);
+    stroke = { x, y, v }; applyCell(x, y, () => v);
+  } else if (tool === 'spray') {
+    strokeMask = new Uint8Array(W * H); stroke = { x, y }; sprayAt(x, y);
+  } else if (tool === 'stamp') {
+    placeStamp(x, y);
+  }
+  edited();
+});
+wrapEl.addEventListener('pointermove', (e) => {
+  const [x, y] = cellAt(e);
+  if (!hover || hover[0] !== x || hover[1] !== y) { hover = [x, y]; needOverlay = true; updateReadout(); }
+  if (regionDrag) { regionDrag.x1 = x; regionDrag.y1 = y; needOverlay = true; return; }
+  if (!stroke) return;
+  if (tool === 'draw') { const v = stroke.v; line(stroke.x, stroke.y, x, y, (a, b) => applyCell(a, b, () => v)); }
+  else if (tool === 'spray') { const step = Math.max(1, Math.floor(opt.spraySize / 2)); let k = 0; line(stroke.x, stroke.y, x, y, (a, b) => { if (k++ % step === 0) sprayAt(a, b); }); sprayAt(x, y); }
+  stroke.x = x; stroke.y = y; edited();
+});
+const endStroke = () => {
+  if (regionDrag) {
+    const [x0, y0, x1, y1] = rectOf(regionDrag); regionDrag = null;
+    const act = opt.regionAction;
+    if (act === 'copy') {
+      const cells = [];
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (isLive(idx(x, y))) cells.push([x - x0, y - y0]);
+      if (!cells.length) toast('That region is empty, so there was nothing to copy');
+      else { addCustom(cells, `Copied ${dims(normCells(cells)).join('×')}`, ruleLabel(rule), `Copied from the board at generation ${gen.toLocaleString()}.`); toast('Copied to Your stamps. Click to place it.'); }
+    } else {
+      pushUndo();
+      if (act === 'fill') randomFill(x0, y0, x1, y1, opt.regionDensity / 100);
+      else if (act === 'clear') clearRect(x0, y0, x1, y1);
+      else if (act === 'invert') invertRect(x0, y0, x1, y1);
+      edited();
+    }
+    needOverlay = true;
+  }
+  stroke = null; strokeMask = null;
+};
+wrapEl.addEventListener('pointerup', endStroke);
+wrapEl.addEventListener('pointercancel', endStroke);
+wrapEl.addEventListener('pointerleave', () => { if (!stroke && !regionDrag) { hover = null; needOverlay = true; $('readout').textContent = 'Point at a cell to see its neighbor count.'; } });
+
+function updateReadout() {
+  if (!hover) return;
+  const [x, y] = hover; const i = idx(x, y), s = S[i];
+  const vnb = teamMode === 'cyc' ? cyc.vn : rule.vn;
+  const offs = vnb ? [[0, -1], [-1, 0], [1, 0], [0, 1]] : [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+  const nbr = offs.map(([dx, dy]) => wrapIdx(x + dx, y + dy)).filter((j) => j >= 0);
+  const head = `<b>x ${x}, y ${y}</b>`;
+  if (teamMode === 'cyc') {
+    if (!s) {
+      const c = new Array(13).fill(0); nbr.forEach((j) => c[S[j]]++);
+      let best = 0; for (let k = 1; k <= cyc.K; k++) if (c[k] > c[best]) best = k;
+      $('readout').innerHTML = `${head} · empty → next generation it ${best ? 'joins ' + teamNames[best] : 'stays empty'}`;
+      return;
+    }
+    const nx = s === cyc.K ? 1 : s + 1, n = nbr.filter((j) => S[j] === nx).length;
+    $('readout').innerHTML = `${head} · ${teamNames[s]} · ${n} ${teamNames[nx]} neighbor${n === 1 ? '' : 's'} (needs ${cyc.T}) → next generation it ${n >= cyc.T ? 'turns ' + teamNames[nx] : 'stays ' + teamNames[s]}`;
+    return;
+  }
+  const n = nbr.filter((j) => S[j] === 1).length;
+  let state, next;
+  if (s === 1) { state = teamCount ? `alive, ${teamNames[TM[i]]}` : 'alive'; next = rule.St[n] ? 'survives' : 'dies'; }
+  else if (s > 1) { state = `dying (${s - 1} of ${rule.C - 2})`; next = s + 1 >= rule.C ? 'clears' : 'keeps fading'; }
+  else { state = 'empty'; next = rule.Bt[n] ? 'is born' : 'stays empty'; }
+  $('readout').innerHTML = `${head} · ${state} · ${n} neighbor${n === 1 ? '' : 's'} → next generation it ${next}`;
+}
+
+// ---------------- Playback ----------------
+let running = false, rewinding = false, mult = 1, acc = 0, lastT = performance.now();
+const MULTS = [1, 2, 4, 8, 16, 32, 64];
+let rateCount = 0, rateT = performance.now(), rate = 0;
+
+function forward() {
+  if (recording) snapshot();
+  step();
+  popSeries.push(pop); if (popSeries.length > 2000) popSeries.shift();
+  for (let k = 1; k <= teamCount; k++) { const a = teamSeries[k]; a.push(teamPops[k]); if (a.length > 2000) a.shift(); }
+  rateCount++;
+  if (teamCount) {
+    let alive = 0, who = 0;
+    for (let k = 1; k <= teamCount; k++) if (teamPops[k] > 0) { alive++; who = k; }
+    const won = alive === 1 && prevAlive > 1 && !winAck;
+    prevAlive = alive;
+    if (won) {
+      winAck = true;
+      toast(`${teamNames[who]} wins at generation ${gen.toLocaleString()}`);
+      if (opt.autoPause) { pause(); return true; }
+    }
+  }
+  if (settled && opt.autoPause && !settleAck) {
+    settleAck = true; pause();
+    toast(settled.kind === 'extinct' ? `Everything died out at generation ${gen.toLocaleString()}` :
+      settled.kind === 'still' ? `Settled into still lifes at generation ${gen.toLocaleString()}` :
+      `Settled into a period ${settled.period} cycle at generation ${gen.toLocaleString()}`);
+    return true;
+  }
+  return false;
+}
+function play() { captureStart(); running = true; rewinding = false; syncTransport(); }
+function pause() { running = false; rewinding = false; syncTransport(); }
+function togglePlay() { running ? pause() : play(); }
+function stepOnce() { pause(); captureStart(); forward(); needRender = true; statsNow(); }
+function stepBackOnce() { pause(); if (!stepBack()) toast(recording ? 'No earlier generations recorded' : 'History recording is off'); needRender = true; statsNow(); }
+function toggleRewind() { if (rewinding) { pause(); return; } running = false; rewinding = true; syncTransport(); }
+function cycleFF() { const k = MULTS.indexOf(mult); mult = MULTS[(k + 1) % MULTS.length]; $('ffLabel').textContent = '×' + mult; if (!running && !rewinding && mult !== 1) play(); syncTransport(); }
+
+function frame(t) {
+  const dt = Math.min(100, t - lastT); lastT = t;
+  if (running || rewinding) {
+    acc += dt * opt.speed * mult / 1000;
+    const t0 = performance.now(); let did = 0;
+    while (acc >= 1) {
+      acc -= 1;
+      if (rewinding) { if (!stepBack()) { pause(); toast('Reached the start of recorded history'); acc = 0; break; } rateCount++; }
+      else if (forward()) { acc = 0; did++; break; }
+      did++;
+      if (performance.now() - t0 > 14) { acc = Math.min(acc, 1); break; }
+    }
+    if (did) needRender = true;
+  } else acc = 0;
+  if (needRender) { render(); needRender = false; }
+  if (needOverlay) { drawOverlay(); needOverlay = false; }
+  if (t - rateT >= 500) { rate = rateCount * 1000 / (t - rateT); rateCount = 0; rateT = t; }
+  if (t - lastStats > 140) statsNow();
+  requestAnimationFrame(frame);
+}
+
+// ---------------- Stats & UI sync ----------------
+let lastStats = 0;
+const fmt = (n) => n.toLocaleString();
+function statsNow() {
+  lastStats = performance.now();
+  $('sGen').textContent = fmt(gen);
+  $('sPop').textContent = fmt(pop);
+  $('sBD').textContent = teamMode === 'cyc' ? fmt(births) : `${fmt(births)} / ${fmt(deaths)}`;
+  $('sRate').innerHTML = `${Math.round(running || rewinding ? rate : 0)} <small>gen/s</small>`;
+  $('sHist').textContent = recording ? fmt(hstack.length) : 'off';
+  const chip = $('chip');
+  let s = 'paused', label = 'Paused';
+  if (rewinding) { s = 'rewind'; label = 'Rewinding'; }
+  else if (settled && settled.kind === 'extinct') { s = 'extinct'; label = 'Extinct'; }
+  else if (settled) { s = 'settled'; label = settled.kind === 'still' ? 'Settled · still' : `Settled · period ${settled.period}`; }
+  else if (running) { s = 'running'; label = 'Running'; }
+  chip.dataset.s = s; chip.textContent = label;
+  $('cActive').textContent = fmt(counts.active); $('cStill').textContent = fmt(counts.still); $('cOsc').textContent = fmt(counts.osc); $('cMove').textContent = fmt(counts.move);
+  $('moveSpeeds').textContent = counts.speeds.size ? '(' + [...counts.speeds].slice(0, 4).join(', ') + ')' : '';
+  $('oscPeriods').textContent = counts.periods.size ? '(' + [...counts.periods].sort((a, b) => a - b).map((p) => 'p' + p).join(' ') + ')' : '';
+  updateTeamBar(); drawSpark();
+}
+function updateTeamBar() {
+  const bar = $('teamBar'); bar.hidden = !teamCount;
+  if (!teamCount || teamRGB.length <= teamCount) return;
+  let tot = 0; for (let k = 1; k <= teamCount; k++) tot += teamPops[k];
+  let segs = '', leg = '';
+  for (let k = 1; k <= teamCount; k++) {
+    const pc = tot ? (teamPops[k] / tot) * 100 : 0, col = rgbStr(teamRGB[k]);
+    segs += `<span style="width:${pc.toFixed(2)}%;background:${col}"></span>`;
+    leg += `<span class="tchip"><span class="sw" style="background:${col}"></span>${teamNames[k]} <b class="mono">${fmt(teamPops[k])}</b><span class="pmeta mono">${pc.toFixed(0)}%</span></span>`;
+  }
+  $('tbBar').innerHTML = segs; $('tbLegend').innerHTML = leg;
+}
+const sparkCv = $('spark'), spx = sparkCv.getContext('2d');
+function drawSpark() {
+  if (!COL.rgb) return;
+  const r = sparkCv.getBoundingClientRect(); if (!r.width) return;
+  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+  if (sparkCv.width !== w || sparkCv.height !== h) { sparkCv.width = w; sparkCv.height = h; }
+  spx.clearRect(0, 0, w, h);
+  const cap = Math.max(2, Math.floor(r.width));
+  const teams = teamCount > 0 && teamRGB.length > teamCount;
+  $('sparkTitle').textContent = teams ? 'Population by team' : 'Population';
+  const lines = teams ? Array.from({ length: teamCount }, (_, k) => ({ d: teamSeries[k + 1].slice(-cap), c: teamRGB[k + 1] })) : [{ d: popSeries.slice(-cap), c: COL.rgb.accent }];
+  const len = lines[0].d.length;
+  if (len < 2) { $('sparkRange').textContent = ''; return; }
+  let mn = Infinity, mx = -Infinity;
+  for (const l of lines) for (const v of l.d) { if (v < mn) mn = v; if (v > mx) mx = v; }
+  if (teams) mn = 0;
+  $('sparkRange').textContent = teams ? `peak ${fmt(mx)} over ${fmt(len)} gens` : `${fmt(mn)} – ${fmt(mx)} over ${fmt(len)} gens`;
+  const pad = 3 * dpr, span = Math.max(1, mx - mn);
+  const X = (k) => (k / (len - 1)) * (w - pad * 2) + pad, Y = (v) => h - pad - ((v - mn) / span) * (h - pad * 2);
+  spx.strokeStyle = rgbStr(COL.rgb.grid, 0.9); spx.lineWidth = 1; spx.beginPath(); spx.moveTo(0, h - 0.5); spx.lineTo(w, h - 0.5); spx.stroke();
+  for (const l of lines) {
+    const d = l.d;
+    if (!teams) {
+      spx.beginPath(); d.forEach((v, k) => (k ? spx.lineTo(X(k), Y(v)) : spx.moveTo(X(k), Y(v))));
+      spx.lineTo(X(d.length - 1), h); spx.lineTo(X(0), h); spx.closePath(); spx.fillStyle = rgbStr(l.c, 0.14); spx.fill();
+    }
+    spx.beginPath(); d.forEach((v, k) => (k ? spx.lineTo(X(k), Y(v)) : spx.moveTo(X(k), Y(v))));
+    spx.strokeStyle = rgbStr(l.c, 1); spx.lineWidth = 1.5 * dpr; spx.stroke();
+    spx.fillStyle = rgbStr(l.c, 1); spx.beginPath(); spx.arc(X(d.length - 1), Y(d[d.length - 1]), 2.5 * dpr, 0, Math.PI * 2); spx.fill();
+  }
+}
+function syncTransport() {
+  const pb = $('bPlay');
+  $('playIcon').innerHTML = running ? '<path d="M3 2h4v12H3zM9 2h4v12H9z"/>' : '<path d="M4 2l10 6-10 6z"/>';
+  pb.setAttribute('aria-label', running ? 'Pause' : 'Play');
+  $('bRew').setAttribute('aria-pressed', String(rewinding));
+  $('bFF').setAttribute('aria-pressed', String(mult > 1));
+  statsNow();
+}
+
+let toastTimer = 0;
+function toast(msg, btnLabel, btnFn) {
+  const t = $('toast'); $('toastMsg').textContent = msg;
+  const b = $('toastBtn');
+  if (btnLabel) { b.hidden = false; b.textContent = btnLabel; b.onclick = () => { btnFn(); t.hidden = true; }; } else b.hidden = true;
+  t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, btnLabel ? 7000 : 3200);
+}
+
+// ---------------- Options & controls ----------------
+const DEF = { tool: 'draw', sprayShape: 'circle', sprayMode: 'add', spraySize: 4, sprayDensity: 30, spraySoft: false, regionAction: 'fill', regionDensity: 40,
+  stampReplace: false, mirror: 'none', fillDensity: 35, still: 'highlight', osc: 'highlight', move: 'highlight', ghost: false, autoPause: true,
+  cell: 6, wrapX: true, wrapY: true, grid: true, shape: 'square', rule: 'B3/S23', vn: false, color: 'ink', trails: false, trailLen: 12, speed: 20, record: true, stamp: 'glider',
+  teamMode: 'off', cycK: 3, cycT: 3, cycVN: false, curTeam: 1 };
+const opt = Object.assign({}, DEF, store.get('opt', {}));
+const saveOpt = () => store.set('opt', opt);
+
+function segInit(id, key, onChange) {
+  const el = $(id);
+  const sync = () => el.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === opt[key])));
+  el.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; opt[key] = b.dataset.v; sync(); saveOpt(); onChange && onChange(b.dataset.v); });
+  sync(); return sync;
+}
+function bindRange(id, key, outId, fmtFn, onChange) {
+  const el = $(id); el.value = opt[key];
+  const upd = () => { $(outId).textContent = fmtFn(+el.value); };
+  el.addEventListener('input', () => { opt[key] = +el.value; upd(); saveOpt(); onChange && onChange(); });
+  upd(); return () => { el.value = opt[key]; upd(); };
+}
+function bindCheck(id, key, onChange) { const el = $(id); el.checked = !!opt[key]; el.addEventListener('change', () => { opt[key] = el.checked; saveOpt(); onChange && onChange(); }); }
+function bindSelect(id, key, onChange) { const el = $(id); el.value = opt[key]; el.addEventListener('change', () => { opt[key] = el.value; saveOpt(); onChange && onChange(); }); }
+
+let syncTool;
+function setTool(t) { opt.tool = t; saveOpt(); syncTool(); showToolOpts(); needOverlay = true; }
+function showToolOpts() { ['draw', 'spray', 'region', 'stamp'].forEach((t) => { $('opt-' + t).hidden = opt.tool !== t; }); tool = opt.tool; if (tool === 'stamp') drawStampPreview(); }
+
+function fillPatternSelect() {
+  const sel = $('patternSel'); sel.innerHTML = '';
+  const groups = new Map();
+  for (const p of library) { if (!groups.has(p.cat)) groups.set(p.cat, []); groups.get(p.cat).push(p); }
+  for (const [cat, list] of groups) {
+    const og = document.createElement('optgroup'); og.label = cat;
+    for (const p of list) { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; og.appendChild(o); }
+    sel.appendChild(og);
+  }
+  sel.value = stampId;
+}
+function selectPattern(id) {
+  stampId = id; opt.stamp = id; saveOpt();
+  $('patternSel').value = id; stampRot = 0; stampFlip = false; rebuildStamp(); showPatternInfo();
+}
+function patternRule(p) { return p.rule || (p.custom ? '' : 'B3/S23'); }
+function showPatternInfo() {
+  const p = currentPattern();
+  $('pName').textContent = p.name; $('pMeta').textContent = metaOf(p); $('pNote').textContent = p.note || '';
+  $('delStamp').hidden = !p.custom;
+  const pr = patternRule(p);
+  let mismatch = false, target = null;
+  if (pr) { try { target = parseRuleStr(pr); mismatch = target.base !== rule.base || target.vn !== rule.vn; } catch (e) { mismatch = false; } }
+  $('pMismatch').hidden = !mismatch;
+  if (mismatch) {
+    const named = RULES.find((r) => r.r === target.base);
+    $('pMismatchText').textContent = `Built for ${named ? named.name + ' (' + target.base + ')' : target.base}.`;
+    $('pSwitch').onclick = () => setRule(ruleLabel(target));
+  }
+  drawStampPreview();
+}
+function drawStampPreview() {
+  const cv = $('stampPreview'); const r = cv.getBoundingClientRect(); if (!r.width || !COL.rgb || !stampCells.length) return;
+  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr); cv.width = w; cv.height = h;
+  const x = cv.getContext('2d');
+  x.fillStyle = rgbStr(COL.rgb.board); x.fillRect(0, 0, w, h);
+  const [pw, ph] = dims(stampCells);
+  const c = Math.max(1, Math.min(Math.floor((w - 16 * dpr) / pw), Math.floor((h - 16 * dpr) / ph), Math.round(12 * dpr)));
+  const ox = Math.floor((w - pw * c) / 2), oy = Math.floor((h - ph * c) / 2);
+  if (c >= 5) { x.strokeStyle = rgbStr(COL.rgb.grid, 0.7); x.lineWidth = 1; x.beginPath(); for (let i = 0; i <= pw; i++) { x.moveTo(ox + i * c + 0.5, oy); x.lineTo(ox + i * c + 0.5, oy + ph * c); } for (let j = 0; j <= ph; j++) { x.moveTo(ox, oy + j * c + 0.5); x.lineTo(ox + pw * c, oy + j * c + 0.5); } x.stroke(); }
+  x.fillStyle = rgbStr(COL.rgb.ink);
+  for (const [a, b] of stampCells) x.fillRect(ox + a * c, oy + b * c, c, c);
+}
+
+let syncRuleUI;
+function setRule(str, silent) {
+  let r;
+  try { r = parseRuleStr(str); } catch (e) { $('ruleErr').textContent = e.message; $('ruleErr').hidden = false; return false; }
+  $('ruleErr').hidden = true;
+  const oldC = rule.C;
+  rule.Bt = new Uint8Array(9); rule.St = new Uint8Array(9);
+  r.B.forEach((n) => { rule.Bt[n] = 1; }); r.S.forEach((n) => { rule.St[n] = 1; });
+  rule.C = r.C; rule.vn = r.vn; rule.base = r.base;
+  opt.rule = r.base; opt.vn = r.vn; saveOpt();
+  if (S && rule.C !== oldC) { for (let i = 0; i < N; i++) if (S[i] >= rule.C || (rule.C === 2 && S[i] > 1)) { S[i] = 0; L[i] = 0; } recount(); }
+  if (S) { clearHistory(); setMaxHist(); resetSettle(); histFloor = gen; dirty = true; }
+  if (COL.rgb) buildDyingLUT();
+  syncRuleUI(); needRender = true;
+  if (!silent) toast(`Rule set to ${ruleLabel(rule)}`);
+  return true;
+}
+function initRuleUI() {
+  const sel = $('ruleSel'); const groups = {};
+  for (const r of RULES) { if (!groups[r.g]) { groups[r.g] = document.createElement('optgroup'); groups[r.g].label = r.g; sel.appendChild(groups[r.g]); } const o = document.createElement('option'); o.value = r.r; o.textContent = `${r.name}  ${r.r}`; groups[r.g].appendChild(o); }
+  const og = document.createElement('optgroup'); og.label = 'Other'; const oc = document.createElement('option'); oc.value = 'custom'; oc.textContent = 'Custom rule'; og.appendChild(oc); sel.appendChild(og);
+  sel.addEventListener('change', () => { if (sel.value !== 'custom') { if (!setRule(sel.value + (rule.vn ? 'V' : ''))) syncRuleUI(); } else $('ruleInput').focus(); });
+  $('bRule').addEventListener('click', () => setRule($('ruleInput').value));
+  $('ruleInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') setRule($('ruleInput').value); });
+  const nbSync = segInit('nbSeg', '__nb', (v) => {
+    if (teamMode === 'cyc') { cyc.vn = v === 'vn'; cycChanged(false); return; }
+    if (!setRule(rule.base + (v === 'vn' ? 'V' : ''))) syncRuleUI();
+  });
+  syncRuleUI = () => {
+    const named = RULES.find((r) => r.r === rule.base);
+    sel.value = named ? named.r : 'custom';
+    $('ruleInput').value = ruleLabel(rule);
+    $('ruleTag').textContent = modeLabel();
+    $('ruleDesc').textContent = (named ? named.d : 'A custom rule.') + (rule.vn ? ' Counting only the four orthogonal neighbors.' : '');
+    opt.__nb = (teamMode === 'cyc' ? cyc.vn : rule.vn) ? 'vn' : 'moore'; nbSync();
+    if (library.length) showPatternInfo();
+  };
+}
+
+// ---------------- Competition ----------------
+const TEAM_DESC = {
+  off: 'Every live cell belongs to one population.',
+  imm: 'Immigration: the Life rule decides which cells live and die, exactly as usual. A newborn cell joins the team that holds the majority of its parents, so a side gains ground only by out-breeding the other. Works with any rule under Rules.',
+  quad: 'QuadLife: four teams. A newborn joins the majority team among its parents. When its three parents come from three different teams, it joins the fourth team instead.',
+  cyc: 'A cyclic automaton. Every cell belongs to a species, and each species is overtaken by the next one around the cycle. A cell converts when enough of its neighbors belong to the species that beats it. Empty cells join the species most common around them.',
+};
+function modeLabel() {
+  if (teamMode === 'cyc') return `Cyclic · ${cyc.K} species · T${cyc.T}${cyc.vn ? ' · vN' : ''}`;
+  return ruleLabel(rule) + (teamMode === 'imm' ? ' · Immigration' : teamMode === 'quad' ? ' · QuadLife' : '');
+}
+let lifeStash = null;
+function territory(x, y) { const t = x < W / 2 ? 1 : 2; return teamMode === 'quad' ? t + (y < H / 2 ? 0 : 2) : t; }
+function fillCyc() {
+  const K = cyc.K;
+  for (let y = 1; y <= H; y++) { let i = y * PW + 1; for (let x = 0; x < W; x++, i++) { S[i] = 1 + Math.floor(Math.random() * K); L[i] = 1; age[i] = 1; trail[i] = 0; TM[i] = 0; } }
+  editGen.fill(gen);
+}
+function afterModeChange() {
+  undoStack = []; clearHistory(); popSeries = []; teamSeries = mkSeries(); startSnap = null; dirty = true;
+  histFloor = gen; editGen.fill(gen); resetSettle(); setMaxHist(); recount();
+  buildTeamColors(); buildTeamPicker(); syncTeamUI(); syncRuleUI(); needRender = true; needOverlay = true; statsNow();
+}
+function setTeamMode(m) {
+  const prev = teamMode;
+  if (m === prev) return;
+  if (m === 'cyc') lifeStash = { S: S.slice(), TM: TM.slice(), n: N };
+  teamMode = m;
+  teamCount = m === 'imm' ? 2 : m === 'quad' ? 4 : m === 'cyc' ? cyc.K : 0;
+  if (curTeam > teamCount) curTeam = 1;
+  if (prev === 'cyc') {
+    if (lifeStash && lifeStash.n === N) { S.set(lifeStash.S); TM.set(lifeStash.TM); } else { S.fill(0); TM.fill(0); }
+    lifeStash = null;
+  }
+  if (m === 'cyc') fillCyc();
+  else {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = idx(x, y); TM[i] = teamCount && S[i] ? territory(x, y) : 0; }
+    for (let i = 0; i < N; i++) { L[i] = S[i] === 1 ? 1 : 0; age[i] = L[i]; trail[i] = 0; }
+  }
+  opt.teamMode = m; saveOpt();
+  afterModeChange();
+}
+function cycChanged(refill) {
+  if (cyc.vn && cyc.T > 4) cyc.T = 4;
+  opt.cycK = cyc.K; opt.cycT = cyc.T; opt.cycVN = cyc.vn; saveOpt();
+  if (teamMode !== 'cyc') { syncTeamUI(); return; }
+  teamCount = cyc.K; if (curTeam > teamCount) curTeam = 1;
+  if (refill) fillCyc();
+  afterModeChange();
+}
+function battleStart() {
+  if (!teamCount) return;
+  pushUndo();
+  if (teamMode === 'cyc') { fillCyc(); edited(); return; }
+  const d = opt.fillDensity / 100;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const gapV = Math.abs(x + 0.5 - W / 2) <= 2, gapH = teamMode === 'quad' && Math.abs(y + 0.5 - H / 2) <= 2;
+    setIdx(idx(x, y), !gapV && !gapH && Math.random() < d ? 1 : 0, territory(x, y));
+  }
+  edited();
+}
+function rotateTeams() {
+  if (!teamCount) return;
+  pushUndo();
+  for (let i = 0; i < N; i++) {
+    if (teamMode === 'cyc') { if (S[i]) S[i] = S[i] % teamCount + 1; }
+    else if (S[i] && TM[i]) TM[i] = TM[i] % teamCount + 1;
+  }
+  edited();
+}
+function buildTeamPicker() {
+  $('teamPick').hidden = !teamCount;
+  const el = $('teamSeg'); el.innerHTML = '';
+  if (!teamCount || teamRGB.length <= teamCount) return;
+  for (let k = 1; k <= teamCount; k++) {
+    const b = document.createElement('button'); b.dataset.v = k; b.style.background = rgbStr(teamRGB[k]);
+    b.title = teamNames[k]; b.setAttribute('aria-label', 'Paint as ' + teamNames[k]); el.appendChild(b);
+  }
+  const m = document.createElement('button'); m.dataset.v = 0; m.className = 'mixed'; m.textContent = 'Mixed'; m.title = 'Each new cell gets a random team'; el.appendChild(m);
+  syncTeamPicker();
+}
+function syncTeamPicker() {
+  $('teamSeg').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.v === curTeam)));
+  $('teamPickName').textContent = teamCount ? (curTeam ? teamNames[curTeam] : 'Mixed') : '';
+}
+function nextTeam() { if (!teamCount) return; curTeam = curTeam >= teamCount ? 0 : curTeam + 1; opt.curTeam = curTeam; saveOpt(); syncTeamPicker(); }
+function syncTeamUI() {
+  const cy = teamMode === 'cyc';
+  $('teamMode').value = teamMode;
+  $('teamDesc').textContent = TEAM_DESC[teamMode];
+  $('cycBox').hidden = !cy;
+  $('teamBtns').hidden = !teamCount;
+  $('bBattle').textContent = cy ? 'Random start' : 'Battle start';
+  $('bBattle').title = cy ? 'Fill the board with randomly mixed species' : 'Give each team its own territory, filled at the random density, with a gap between them';
+  $('lifeRuleBox').hidden = cy; $('bsHint').hidden = cy; $('cycRuleNote').hidden = !cy;
+  $('cycT').max = cyc.vn ? 4 : 8;
+  $('cycK').value = cyc.K; $('cycKOut').textContent = cyc.K;
+  $('cycT').value = cyc.T; $('cycTOut').textContent = `${cyc.T} neighbor${cyc.T === 1 ? '' : 's'}`;
+  const key = `${cyc.K},${cyc.T},${cyc.vn ? 'v' : 'm'}`;
+  $('cycPreset').value = [...$('cycPreset').options].some((o) => o.value === key) ? key : 'custom';
+  $('bdLabel').textContent = cy ? 'Converted' : 'Born / died';
+}
+function initTeams() {
+  $('teamMode').addEventListener('change', (e) => setTeamMode(e.target.value));
+  $('cycPreset').addEventListener('change', (e) => {
+    const v = e.target.value; if (v === 'custom') return;
+    const [k, t, n] = v.split(','); cyc.K = +k; cyc.T = +t; cyc.vn = n === 'v'; cycChanged(true);
+  });
+  $('cycK').addEventListener('input', (e) => { cyc.K = +e.target.value; cycChanged(true); });
+  $('cycT').addEventListener('input', (e) => { cyc.T = +e.target.value; cycChanged(false); });
+  $('bBattle').addEventListener('click', battleStart);
+  $('bRotTeams').addEventListener('click', rotateTeams);
+  $('teamSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; curTeam = +b.dataset.v; opt.curTeam = curTeam; saveOpt(); syncTeamPicker(); });
+  syncTeamUI();
+}
+
+// ---------------- Board sizing ----------------
+function applySize(cols, rows, keep = true) {
+  cols = Math.max(10, Math.min(1000, Math.round(cols) || 10)); rows = Math.max(10, Math.min(1000, Math.round(rows) || 10));
+  if (cols === W && rows === H) return;
+  pause(); undoStack = []; clearHistory(); startSnap = null; dirty = true;
+  alloc(cols, rows, keep); setMaxHist(); resetSettle(); popSeries = []; teamSeries = mkSeries();
+  $('cols').value = W; $('rows').value = H;
+  store.set('size', [W, H]);
+  layoutCanvas(); statsNow();
+}
+function fitSize() {
+  const vp = $('viewport'); const cs = getComputedStyle(vp);
+  const w = vp.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 8;
+  const h = vp.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 8;
+  return [Math.floor(w / cell), Math.floor(h / cell)];
+}
+function syncTopo() {
+  wrapEl.classList.toggle('wx', wrapX); wrapEl.classList.toggle('wy', wrapY);
+  const name = wrapX && wrapY ? 'a torus' : wrapX || wrapY ? 'a cylinder' : 'a bounded plane';
+  $('topoHint').textContent = `The board is ${name}. Dashed edges connect to the opposite side; cells beyond a solid edge count as dead.`;
+}
+
+// ---------------- Seeding ----------------
+function place(id, x, y, rot = 0, flip = false) {
+  const p = library.find((q) => q.id === id); if (!p) return;
+  let cells = p.cells.map(([a, b]) => [flip ? -a : a, b]);
+  for (let r = 0; r < rot; r++) cells = cells.map(([a, b]) => [-b, a]);
+  for (const [a, b] of normCells(cells)) { const i = wrapIdx(x + a, y + b); if (i >= 0) setIdx(i, 1); }
+}
+function seed() {
+  if (W >= 90 && H >= 50) {
+    place('gosper', 3, 3);
+    place('pulsar', W - 22, 6);
+    place('pentadecathlon', W - 26, H - 12);
+    place('galaxy', 8, H - 18);
+    place('acorn', Math.floor(W * 0.55), Math.floor(H * 0.55));
+    place('lwss', Math.floor(W * 0.62), 6, 0);
+  } else {
+    place('acorn', Math.floor(W / 2) - 3, Math.floor(H / 2));
+    place('glider', 3, 3);
+    if (W >= 40) place('pulsar', W - 16, 3);
+  }
+  recount();
+}
+
+// ---------------- Wire up ----------------
+function init() {
+  loadLibrary();
+  stampId = library.some((p) => p.id === opt.stamp) ? opt.stamp : 'glider';
+  cyc.K = opt.cycK; cyc.T = opt.cycT; cyc.vn = opt.cycVN; curTeam = opt.curTeam;
+  cell = opt.cell; wrapX = opt.wrapX; wrapY = opt.wrapY; recording = opt.record; mirror = opt.mirror;
+  initRuleUI();
+  setRule(opt.rule + (opt.vn ? 'V' : ''), true);
+
+  syncTool = segInit('toolSeg', 'tool', () => { showToolOpts(); needOverlay = true; });
+  showToolOpts();
+  bindSelect('sprayShape', 'sprayShape', () => { needOverlay = true; });
+  bindSelect('sprayMode', 'sprayMode');
+  bindRange('spraySize', 'spraySize', 'spraySizeOut', (v) => `${2 * v + 1} cells`, () => { needOverlay = true; });
+  bindRange('sprayDensity', 'sprayDensity', 'sprayDensityOut', (v) => v + '%');
+  bindCheck('spraySoft', 'spraySoft');
+  bindSelect('regionAction', 'regionAction', () => { $('regionDensityField').hidden = opt.regionAction !== 'fill'; });
+  $('regionDensityField').hidden = opt.regionAction !== 'fill';
+  bindRange('regionDensity', 'regionDensity', 'regionDensityOut', (v) => v + '%');
+  bindCheck('stampReplace', 'stampReplace', () => { needOverlay = true; });
+  bindSelect('mirror', 'mirror', () => { mirror = opt.mirror; needOverlay = true; });
+
+  fillPatternSelect(); selectPattern(stampId);
+  $('patternSel').addEventListener('change', (e) => selectPattern(e.target.value));
+  const rot = (d) => { stampRot = (stampRot + d + 4) % 4; rebuildStamp(); drawStampPreview(); };
+  $('rotL').addEventListener('click', () => rot(-1));
+  $('rotR').addEventListener('click', () => rot(1));
+  $('flipB').addEventListener('click', () => { stampFlip = !stampFlip; rebuildStamp(); drawStampPreview(); });
+  $('delStamp').addEventListener('click', () => { const p = currentPattern(); if (!p.custom) return; library = library.filter((q) => q !== p); saveCustom(); fillPatternSelect(); selectPattern('glider'); toast(`Removed ${p.name}`); });
+
+  bindRange('fillDensity', 'fillDensity', 'fillDensityOut', (v) => v + '%');
+  $('bRandom').addEventListener('click', () => { pushUndo(); randomFill(0, 0, W - 1, H - 1, opt.fillDensity / 100); edited(); });
+  $('bSoup').addEventListener('click', () => {
+    pushUndo(); const s = Math.min(16, W, H), x0 = Math.floor((W - s) / 2), y0 = Math.floor((H - s) / 2);
+    randomFill(x0, y0, x0 + s - 1, y0 + s - 1, 0.5); edited();
+  });
+  $('bInvert').addEventListener('click', invertBoard);
+  $('bClear').addEventListener('click', clearBoard);
+  $('bUndo').addEventListener('click', undo);
+
+  bindSelect('stillMode', 'still', () => { needRender = true; });
+  bindSelect('oscMode', 'osc', () => { needRender = true; });
+  bindSelect('moveMode', 'move', () => { needRender = true; });
+  bindCheck('ghost', 'ghost', () => { needRender = true; });
+  bindCheck('autoPause', 'autoPause', () => { settleAck = false; });
+  $('bRemoveSettled').addEventListener('click', removeSettled);
+
+  $('cols').value = W; $('rows').value = H;
+  $('bApplySize').addEventListener('click', () => applySize(+$('cols').value, +$('rows').value));
+  ['cols', 'rows'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') applySize(+$('cols').value, +$('rows').value); }));
+  $('bFit').addEventListener('click', () => { const [c, r] = fitSize(); applySize(c, r); });
+  bindRange('cellSize', 'cell', 'cellSizeOut', (v) => v + ' px', () => { cell = opt.cell; layoutCanvas(); });
+  bindCheck('wrapX', 'wrapX', () => { wrapX = opt.wrapX; syncTopo(); resetSettle(); needOverlay = true; });
+  bindCheck('wrapY', 'wrapY', () => { wrapY = opt.wrapY; syncTopo(); resetSettle(); needOverlay = true; });
+  bindCheck('gridOn', 'grid', () => { needRender = true; });
+  segInit('shapeSeg', 'shape', () => { needRender = true; });
+  syncTopo();
+
+  const colorHints = { ink: 'One color for every live cell.', age: 'Newborn cells are brightest and darken as they survive. Long-lived cells settle into the base ink.', heat: 'Shades every cell by how many generations it has been alive since the last reset. Glider lanes and oscillator rotors show up as tracks.' };
+  segInit('colorSeg', 'color', (v) => { $('colorHint').textContent = colorHints[v]; needRender = true; });
+  $('colorHint').textContent = colorHints[opt.color];
+  bindCheck('trails', 'trails', () => { needRender = true; });
+  bindRange('trailLen', 'trailLen', 'trailLenOut', (v) => v + ' gens', () => { buildTrailLUT(); needRender = true; });
+  bindCheck('recordHist', 'record', () => { recording = opt.record; if (!recording) clearHistory(); statsNow(); });
+
+  bindRange('speed', 'speed', 'speedOut', (v) => v + ' gen/s');
+  $('bPlay').addEventListener('click', togglePlay);
+  $('bStep').addEventListener('click', stepOnce);
+  $('bBack').addEventListener('click', stepBackOnce);
+  $('bRew').addEventListener('click', toggleRewind);
+  $('bFF').addEventListener('click', cycleFF);
+  $('bReset').addEventListener('click', resetToStart);
+
+  $('bCopyRLE').addEventListener('click', () => {
+    const cells = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (isLive(idx(x, y))) cells.push([x, y]);
+    if (!cells.length) { toast('The board is empty'); return; }
+    const text = `#N Board at generation ${gen}\n` + encodeRLE(normCells(cells), ruleLabel(rule));
+    const ta = $('rleIn');
+    const fallback = () => { ta.value = text; ta.closest('details').open = true; ta.focus(); ta.select(); toast('Copying was blocked, so the RLE is selected in the box below'); };
+    try { navigator.clipboard.writeText(text).then(() => toast(`Copied ${fmt(cells.length)} cells as RLE`), fallback); } catch (e) { fallback(); }
+  });
+  $('bImport').addEventListener('click', () => {
+    const txt = $('rleIn').value; if (!txt.trim()) { toast('Paste a pattern first'); return; }
+    const p = parsePattern(txt);
+    if (!p.cells.length) { toast('No live cells found. Check that it is RLE or plaintext (.cells).'); return; }
+    let rs = '';
+    if (p.rule) { try { rs = ruleLabel(parseRuleStr(p.rule)); } catch (e) { rs = ''; } }
+    addCustom(p.cells, p.name || `Pasted ${dims(p.cells).join('×')}`, rs, rs ? `Pasted pattern, rule ${rs}.` : 'Pasted pattern.');
+    toast('Added to Your stamps. Click the board to place it.');
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (t.matches('input, textarea, select')) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    const act = {
+      ' ': togglePlay, ArrowRight: stepOnce, ArrowLeft: stepBackOnce, z: toggleRewind, f: cycleFF, r: resetToStart,
+      '1': () => setTool('draw'), '2': () => setTool('spray'), '3': () => setTool('region'), '4': () => setTool('stamp'),
+      q: () => { stampRot = (stampRot + 3) % 4; rebuildStamp(); drawStampPreview(); }, e: () => { stampRot = (stampRot + 1) % 4; rebuildStamp(); drawStampPreview(); },
+      w: () => { stampFlip = !stampFlip; rebuildStamp(); drawStampPreview(); },
+      t: nextTeam, i: invertBoard, g: () => { opt.grid = !opt.grid; $('gridOn').checked = opt.grid; saveOpt(); needRender = true; },
+      '+': () => nudgeSpeed(1), '=': () => nudgeSpeed(1), '-': () => nudgeSpeed(-1), _: () => nudgeSpeed(-1),
+    }[k.length === 1 ? k.toLowerCase() : k];
+    if (act) { e.preventDefault(); act(); }
+  });
+  document.addEventListener('keyup', (e) => { if (e.key === ' ' && e.target.matches('button')) e.preventDefault(); });
+  function nudgeSpeed(d) { const steps = [1, 2, 3, 5, 8, 12, 20, 30, 45, 60]; let k = steps.findIndex((s) => s >= opt.speed); if (k < 0) k = steps.length - 1; k = Math.max(0, Math.min(steps.length - 1, k + d)); opt.speed = steps[k]; $('speed').value = opt.speed; $('speedOut').textContent = opt.speed + ' gen/s'; saveOpt(); }
+
+  // Board
+  const saved = store.get('size', null);
+  alloc(10, 10, false); // placeholder so layout can measure
+  layoutCanvas();
+  let cols, rows;
+  if (saved) [cols, rows] = saved; else [cols, rows] = fitSize();
+  W = 0; applySize(cols, rows, false);
+  setMaxHist();
+  readTheme();
+  seed(); dirty = true; needRender = true;
+  initTeams();
+  if (opt.teamMode && opt.teamMode !== 'off') setTeamMode(opt.teamMode);
+
+  new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme); } catch (e) { /* old browsers */ }
+  window.addEventListener('resize', () => { if ((window.devicePixelRatio || 1) !== dpr) layoutCanvas(); drawStampPreview(); drawSpark(); });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce) play(); else syncTransport();
+  requestAnimationFrame((t) => { lastT = t; frame(t); });
+}
+init();
+})();
+</script>
+
+</body>
+</html>

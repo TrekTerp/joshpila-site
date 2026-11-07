@@ -53,7 +53,6 @@ export function OriginArticle({ returnLink }: { returnLink: ReactNode }) {
         })}</ul>
       </section>
       <footer className="origin-colophon">
-        <p><em>{copy.disclaimer}</em></p>
         <p>Contact: <span className="contact-tbd">[CONTACT ROUTE TBD]</span> <span aria-hidden="true">·</span> Elsewhere: <a href="https://www.instagram.com/joshpila/">Instagram</a></p>
       </footer>
     </div>

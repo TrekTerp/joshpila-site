@@ -1,17 +1,19 @@
 const AppRoutes = (() => {
   const files = { 'magic_squares_construction.html': 'learn', 'magic_squares_lab.html': 'lab',
     'magic_squares_glossary.html': 'glossary', 'magic_squares_bibliography.html': 'sources' };
-  const views = ['learn', 'lab', 'glossary', 'sources'];
+  const views = ['lab', 'learn', 'glossary', 'sources'];
   const decode = text => { try { return decodeURIComponent(text); } catch { return text; } };
   const format = route => '#/' + route.view + (route.anchor ? '/' + encodeURIComponent(route.anchor) : '');
   function parse(hash, anchors = {}) {
     const text = hash.replace(/^#/, '');
+    if (!text) return { view: 'lab', anchor: 'top' };
     if (text.startsWith('/')) {
       const [, view, ...rest] = text.split('/');
-      return { view: views.includes(view) ? view : 'learn', anchor: decode(rest.join('/')) };
+      if (!views.includes(view)) return { view: 'lab', anchor: 'top' };
+      return { view, anchor: decode(rest.join('/')) };
     }
     const anchor = decode(text);
-    return { view: anchors[anchor] ?? 'learn', anchor };
+    return { view: anchors[anchor] ?? 'lab', anchor };
   }
   function target(raw, current) {
     if (!raw || /^(data|blob|mailto|javascript):/i.test(raw)) return null;
@@ -35,7 +37,7 @@ if (typeof document !== 'undefined') (() => {
   const assetURLs = new Map();
   const host = document.getElementById('app-views');
   const loading = document.getElementById('app-loading');
-  const names = { learn: 'Learn', lab: 'Magic Squares Lab', glossary: 'Glossary', sources: 'Sources' };
+  const names = { lab: 'Home', learn: 'Learn', glossary: 'Glossary', sources: 'Sources' };
   let active, current, returnLesson;
 
   function assetURL(id) {
@@ -62,7 +64,7 @@ if (typeof document !== 'undefined') (() => {
     document.getElementById('app-location').textContent = names[current.view];
     document.querySelectorAll('#nav-links a').forEach(link => {
       const route = AppRoutes.target(link.getAttribute('href'), current.view);
-      const selected = route.view === current.view && (route.view !== 'lab' || route.anchor === 'explore' && current.anchor !== 'build' || route.anchor === 'build' && current.anchor === 'build');
+      const selected = route.view === current.view && (route.view !== 'lab' || (route.anchor === 'build' ? current.anchor === 'build' : current.anchor !== 'build'));
       link.toggleAttribute('aria-current', selected);
       if (selected) link.setAttribute('aria-current', 'page');
     });

@@ -1,6 +1,7 @@
 import {cpSync,mkdirSync,existsSync,rmSync,readFileSync,writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {execFileSync} from 'node:child_process';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const dest=path.join(root,'pages-dist');rmSync(dest,{recursive:true,force:true});mkdirSync(dest,{recursive:true});
 cpSync(path.join(root,'website/out'),dest,{recursive:true});
@@ -30,4 +31,16 @@ if(!life.includes(lifeHeader))throw Error('Life Lab header missing; cannot inser
 life=life.replace(lifeHeader,lifeHeader+'<nav aria-label="Site navigation" style="display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;font-size:13px"><a href="/patterns/" style="color:var(--accent);padding:10px 0">Patterns</a><a href="/?selected=patterns" style="color:var(--accent);padding:10px 0">Return to Orrery</a></nav>');
 mkdirSync(path.join(dest,'patterns/life'),{recursive:true});
 writeFileSync(path.join(dest,'patterns/life/index.html'),life);
-console.log('Pages artifact assembled with SkyWatcher and existing D&D and Games intact.');
+// Build the portable Lab from editable source; never commit its encoded bundle.
+const labRoot=path.join(root,'website/vendor/magic-squares-lab');
+execFileSync('python3',[path.join(labRoot,'build.py')],{stdio:'inherit'});
+let lab=readFileSync(path.join(labRoot,'dist/magic_squares_lab_combined.html'),'utf8');
+lab=lab.replace('</head>','<link rel="canonical" href="https://www.joshpila.com/patterns/magic-squares/"><style>.app-tools{flex-wrap:wrap}.app-tools-context{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap}.site-return{display:flex;gap:14px}.site-return a{color:var(--copper);padding:5px 0;text-underline-offset:3px}</style></head>');
+const labTools='<section class="wrap app-tools" aria-label="Current view and page tools">';
+const labActions='<div class="app-tools-right">';
+if(!lab.includes(labTools)||!lab.includes(labActions))throw Error('Magic Squares Lab tools missing; cannot insert site navigation');
+lab=lab.replace(labTools,labTools+'<div class="app-tools-context"><nav class="site-return" aria-label="Site navigation"><a href="https://www.joshpila.com/patterns/">Patterns</a><a href="https://www.joshpila.com/?selected=patterns">Return to Orrery</a></nav>');
+lab=lab.replace(labActions,'</div>'+labActions);
+mkdirSync(path.join(dest,'patterns/magic-squares'),{recursive:true});
+writeFileSync(path.join(dest,'patterns/magic-squares/index.html'),lab);
+console.log('Pages artifact assembled with SkyWatcher, Life Lab, Magic Squares Lab, and existing D&D and Games intact.');

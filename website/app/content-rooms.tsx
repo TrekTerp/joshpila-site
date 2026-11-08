@@ -74,7 +74,7 @@ export function PatternsArticle({ returnLink }: { returnLink: ReactNode }) {
       <p>Magic squares, Conway’s Game of Life, 6174, and other systems that behave suspiciously well.</p>
     </header>
     <div className="patterns-entries">
-      <section aria-labelledby="magic-squares"><PatternMark kind="square" /><div><h2 id="magic-squares">Magic squares</h2><p>How to construct them, test them, and follow the patterns hidden in their rows, columns, and diagonals.</p><span className="pattern-status">In preparation</span></div></section>
+      <section aria-labelledby="magic-squares"><PatternMark kind="square" /><div><h2 id="magic-squares">Magic squares</h2><p>How to construct them, test them, and follow the patterns hidden in their rows, columns, and diagonals.</p><a className="life-lab-launch" href="/patterns/magic-squares/">Open Magic Squares Lab <RouteArrow /></a></div></section>
       <section aria-labelledby="life-lab"><PatternMark kind="life" /><div><h2 id="life-lab">Conway&apos;s Life Lab</h2><p>A playable Game of Life lab with Immigration, QuadLife, and rock-paper-scissors competition modes; drawing and stamp tools; 25 rule sets; rewind; and detection of still lifes, oscillators, and spaceships.</p><a className="life-lab-launch" href="/patterns/life/">Open Life Lab <RouteArrow /></a></div></section>
       <section aria-labelledby="kaprekar"><PatternMark kind="number" /><div><h2 id="kaprekar">The road to 6174</h2><p>Rearrange four digits. Subtract. Repeat. A number curiosity with a remarkably persistent destination.</p><span className="pattern-status">In preparation</span></div></section>
     </div>

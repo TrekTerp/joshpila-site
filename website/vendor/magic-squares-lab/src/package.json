@@ -1,0 +1,53 @@
+{
+  "views": {
+    "lab": "views/lab.html",
+    "sources": "views/sources.html",
+    "glossary": "views/glossary.html",
+    "learn": "views/learn.html"
+  },
+  "assets": {
+    "411de3ad1bf2f1970da49de5": {
+      "type": "image/webp",
+      "path": "assets/411de3ad1bf2f1970da49de5.webp"
+    },
+    "c4db6a929b54f933919172f9": {
+      "type": "image/webp",
+      "path": "assets/c4db6a929b54f933919172f9.webp"
+    },
+    "4f5feda45987b46388517eb6": {
+      "type": "image/png",
+      "path": "assets/4f5feda45987b46388517eb6.png"
+    },
+    "e7cd076f2c57b467ff7effd2": {
+      "type": "image/svg+xml",
+      "path": "assets/e7cd076f2c57b467ff7effd2.svg"
+    },
+    "a47afed9de396f4c98aed149": {
+      "type": "image/webp",
+      "path": "assets/a47afed9de396f4c98aed149.webp"
+    },
+    "29b7990261d7d71f0c363100": {
+      "type": "image/webp",
+      "path": "assets/29b7990261d7d71f0c363100.webp"
+    },
+    "06347d852a9004c181f3dffb": {
+      "type": "image/jpeg",
+      "path": "assets/06347d852a9004c181f3dffb.jpg"
+    },
+    "08aa35c62d07e09dccb45cc2": {
+      "type": "image/png",
+      "path": "assets/08aa35c62d07e09dccb45cc2.png"
+    },
+    "fbcd4465f553c44143f4afe9": {
+      "type": "image/jpeg",
+      "path": "assets/fbcd4465f553c44143f4afe9.jpg"
+    },
+    "9e0ac418d8522d0d2dd5e413": {
+      "type": "image/webp",
+      "path": "assets/9e0ac418d8522d0d2dd5e413.webp"
+    }
+  },
+  "documents": {
+    "magic_squares_glossary.md": "documents/magic_squares_glossary.md"
+  }
+}

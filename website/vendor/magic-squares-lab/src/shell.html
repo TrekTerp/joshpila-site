@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Magic Squares Lab</title>
+<meta name="description" content="Explore, learn, inspect, and research magic squares in one self-contained workshop.">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAABZElEQVRYhWP49u6e/Je39/Z8fnv/55d39//TA0Pt2v3t3V05BpDl9LIYC97FQE+fYwsJBhjn/p3z/69cOkYz/P7VHayOYIAxUguK/kvoWtAMgxxB0AFhcQn/lxVGYuCJ6SFgQ2ZXZ2OVDwoL+x+VnonV5zt2biTeAfHJyf/Xhpti4OmBpmBDQJZhk48MCwHrx2YByOKR54BHJ7b8v7i4C4wPTq37n+xkDqZBfJAczR1wcXEXVnUgDJIbvA4wcvYCG4aO/QMDwA4ApXZs8gYO7v+NXX3AZoBwZ0oIeQ4wRjIEGYOyGMgBIBqbPEgfVRyQSmZKRtdLdhSkDhcHPCI3G6ZSyQFkF0SpA+2AKAIVCojGJg/SR5XKSGKgq+OogQ6B1IFOA6mjDigY6VFgTKXaEJtegg6YMXcGVgOohUH9DrwO+DJAmGGAu2Y/QCGwewBDYBcDuHv+7v4uenfPP7+7vxPUPQcAPnFyrLVxU4wAAAAASUVORK5CYII="/>
+<link rel="icon" type="image/svg+xml" sizes="any" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsbGVkYnk9Imljb24tdGl0bGUiPjx0aXRsZSBpZD0iaWNvbi10aXRsZSI+TWFnaWMgU3F1YXJlcyBMYWIgc3F1YXJlPC90aXRsZT48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSI1IiBmaWxsPSIjZjRlZWRmIi8+PHBhdGggZD0iTTYgOWg0NXY0NUg2eiIgZmlsbD0iI2Y0ZWVkZiIvPjxwYXRoIGQ9Ik03LjUgMTAuNUgyMFYyM0g3LjV6TTIyLjUgMTAuNUgzNVYyM0gyMi41eiIgZmlsbD0iI2FkNTczNSIvPjxwYXRoIGQ9Ik02IDloNDV2NDVINnpNMjEgOXY0NU0zNiA5djQ1TTYgMjRoNDVNNiAzOWg0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTgyZDM4IiBzdHJva2Utd2lkdGg9IjIuNiIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIvPjxwYXRoIGQ9Ik00MyAxN2gxNHYxNEg0M3oiIGZpbGw9IiNhZDU3MzUiLz48L3N2Zz4="/>
+<style>
+@@SHELL_CSS@@
+</style>
+</head>
+<body>
+<a class="skip-link" id="app-skip" href="#app-main">Skip to the current view</a>
+<header class="site-header">
+<div class="wrap header-inner">
+    <a class="brand" href="magic_squares_lab.html" aria-label="Magic Squares Lab home">
+<img class="brand-logo" data-lab-art="a47afed9de396f4c98aed149" alt="Magic Squares Lab" width="1944" height="292" decoding="sync" fetchpriority="high"/>
+</a>
+    <button id="app-menu" class="menu-button" type="button" aria-controls="nav-links" aria-expanded="false">Menu</button>
+    <!-- Navigation icon paths from Lucide. ISC License
+
+Copyright (c) 2026 Lucide Icons and Contributors
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ -->
+    <nav class="nav-links" id="nav-links" aria-label="Main navigation">
+<a href="magic_squares_construction.html" aria-current="page">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
+<path d="m16 17 2 2 4-5"/>
+</svg>
+<span>Learn</span>
+</a>
+<a href="magic_squares_lab.html#explore">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<path d="M8 3 4 7l4 4">
+</path>
+<path d="M4 7h16">
+</path>
+<path d="m16 21 4-4-4-4">
+</path>
+<path d="M20 17H4">
+</path>
+</svg>
+<span>Puzzle</span>
+</a>
+<a href="magic_squares_lab.html#build">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<path d="M3 7V5a2 2 0 0 1 2-2h2">
+</path>
+<path d="M17 3h2a2 2 0 0 1 2 2v2">
+</path>
+<path d="M21 17v2a2 2 0 0 1-2 2h-2">
+</path>
+<path d="M7 21H5a2 2 0 0 1-2-2v-2">
+</path>
+<circle cx="12" cy="12" r="3">
+</circle>
+<path d="m16 16-1.9-1.9">
+</path>
+</svg>
+<span>Transformations</span>
+</a>
+<a href="magic_squares_glossary.html">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<path d="M12 7v14">
+</path>
+<path d="M16 12h2">
+</path>
+<path d="M16 8h2">
+</path>
+<path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z">
+</path>
+<path d="M6 12h2">
+</path>
+<path d="M6 8h2">
+</path>
+</svg>
+<span>Glossary</span>
+</a>
+<a href="magic_squares_bibliography.html">
+<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<rect width="8" height="18" x="3" y="3" rx="1">
+</rect>
+<path d="M7 3v18">
+</path>
+<path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z">
+</path>
+</svg>
+<span>Sources</span>
+</a>
+</nav>
+  </div>
+</header>
+<section class="wrap app-tools" aria-label="Current view and page tools">
+<span id="app-location" class="app-location">Magic Squares Lab</span>
+<div class="app-tools-right">
+<button id="app-return" hidden>← Back to lesson</button>
+<button id="app-download">Download HTML ↓</button>
+</div>
+</section>
+<main class="app-main" id="app-main" aria-label="Magic Squares Lab workspace">
+<div id="app-views">
+</div>
+<p class="app-loading" id="app-loading" role="status">Opening the workshop…</p>
+</main>
+<span class="sr-only" id="app-status" role="status">
+</span>
+<script type="application/json" id="lab-package">
+@@LAB_PACKAGE@@
+</script>
+<script>
+@@SHELL_JS@@
+</script>
+</body>
+</html>

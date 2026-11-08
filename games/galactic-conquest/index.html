@@ -212,7 +212,10 @@ form.setup { display: flex; flex-direction: column; gap: 16px; }
 .stepper output { min-width: 1.5em; text-align: center; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .overlay .stepper button { width: 38px; padding: 6px 0; font-size: 18px; }
 .prows { display: flex; flex-direction: column; gap: 8px; }
-.prow { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.prow { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; }
+.prow select { font: inherit; font-size: 14px; color: var(--text); background: var(--field); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 8px; max-width: 9.5em; }
+.prow select:disabled { opacity: .35; }
+@media (max-width: 540px) { .prow { grid-template-columns: 14px minmax(0, 1fr) auto; } .prow select { grid-column: 2 / -1; max-width: none; } }
 .swatch { width: 14px; height: 14px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 10px var(--pc); }
 .toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--muted); cursor: pointer; user-select: none; }
 .toggle input { width: 18px; height: 18px; }
@@ -383,14 +386,15 @@ function newGame(players, o) {
   S = { players, planets: null, fleets: [], turn: 1, maxTurns: o.turns, revolts: o.revolts, scouting: !!o.scouting,
         shape: o.shape || 'scattered', skill: o.skill || 'normal', nNeutral: o.neutral,
         realtime: !!o.realtime, speed: o.speed || 'normal', cyc: 0, ai: {},
-        standing: [], intel: {}, cur: 0, seq: 1, sid: 1, seed: ri(1, 1e9) };
+        standing: [], intel: {}, recent: {}, cur: 0, seq: 1, sid: 1, seed: ri(1, 1e9) };
+  assignStyles(players);
   S.planets = genUniverse(players, o.neutral, S.shape);
 }
 function reroll() { S.seed = ri(1, 1e9); S.planets = genUniverse(S.players, S.nNeutral, S.shape); }
 function normalize(s) {
   s.standing = s.standing || []; s.intel = s.intel || {}; s.skill = s.skill || 'normal'; s.shape = s.shape || 'scattered'; s.sid = s.sid || 1;
   if (s.nNeutral == null) s.nNeutral = s.planets.filter(p => p.home < 0).length;
-  s.cyc = s.cyc || 0; s.ai = s.ai || {}; s.speed = s.speed || 'normal';
+  s.cyc = s.cyc || 0; s.ai = s.ai || {}; s.speed = s.speed || 'normal'; s.recent = s.recent || {};
   return s;
 }
 const anyAI = () => S.players.some(p => p.ai);
@@ -439,7 +443,7 @@ const AI_SKILL = {
   normal: { margin: 1.3,  homeRes: 1,   res: 0.5, maxTargets: 99 },
   hard:   { margin: 1.15, homeRes: 0.6, res: 0.3, maxTargets: 99 },
 };
-function aiTurn(pi) {
+function aiBalanced(pi) {
   const skill = AI_SKILL[S.skill] ? S.skill : 'normal', K = AI_SKILL[skill];
   const mine = S.planets.filter(p => p.owner === pi);
   if (!mine.length) return;
@@ -493,6 +497,168 @@ function aiTurn(pi) {
   }
 }
 
+/* ---------- Computer personalities ----------
+   Each computer empire may carry a personality in S.players[i].style. 'balanced' is the original planner
+   above, unchanged, and is what an empire without a style plays (so older saves behave as before).
+   The others share one planner, aiStyled(), tuned by the knobs below. Every personality follows the same
+   information rules as its skill level: Easy and Normal plan from scouting and battle reports, and enemy
+   fleets are only seen in real time, where everyone sees every fleet. */
+const AI_STYLES = {
+  balanced: { code: 'BAL', label: 'Balanced', blurb: 'The original computer player, and the gentlest. Weighs what a world is worth against what it would cost to take.' },
+  raider:   { code: 'RAI', label: 'Raider', blurb: 'Strikes early and often at whatever is closest, and keeps little at home.',
+              margin: 1.0, res: 0.8, distW: 5, enemy: 1.6, neutral: 0.85, prodPow: 1, extraTargets: 2, range: 9, defend: 0.4, regroup: 0.25 },
+  fortress: { code: 'FOR', label: 'Fortress', blurb: 'Holds its border, masses ships behind it, and attacks only with crushing force.',
+              margin: 1.05, res: 1.4, inner: 0.2, distW: 3, enemy: 0.9, neutral: 1.1, prodPow: 1.15, extraTargets: 0, range: 8, defend: 1, regroup: 0.7, crush: 1.2 },
+  settler:  { code: 'SET', label: 'Settler', blurb: 'Races to claim neutral worlds, richest first, and fights other empires once space runs out.',
+              margin: 1.05, res: 0.6, distW: 2.2, enemy: 0.8, neutral: 1.3, prodPow: 1.5, extraTargets: 1, range: 11, defend: 0.8, regroup: 0.45, neutralFirst: true },
+  vulture:  { code: 'VUL', label: 'Vulture', blurb: 'Picks off freshly conquered worlds and hounds the weakest empire while avoiding the strongest.',
+              margin: 1.1, res: 0.8, distW: 3, enemy: 1.3, neutral: 0.9, prodPow: 1, extraTargets: 1, range: 10, defend: 0.8, regroup: 0.35, prey: true },
+};
+const STYLE_KEYS = Object.keys(AI_STYLES);
+const EASY_BLUNT = 0.3;
+const STYLE_CHOICES = { mixed: 'Surprise me', ...Object.fromEntries(STYLE_KEYS.map(k => [k, AI_STYLES[k].label])) };
+/* 'mixed' deals each computer empire a different personality at random (repeating only when there are more than five). */
+function assignStyles(players) {
+  const picked = players.filter(p => p.ai && AI_STYLES[p.style]).map(p => p.style);
+  let deck = null;   // secret ones avoid the personalities already chosen by hand
+  for (const p of players) {
+    if (!p.ai || p.style !== 'mixed') continue;
+    if (!deck) deck = shuffle(STYLE_KEYS.filter(k => !picked.includes(k)));
+    if (!deck.length) deck = shuffle(STYLE_KEYS.slice());
+    p.style = deck.pop(); p.secret = true;
+  }
+}
+const styleKey = p => AI_STYLES[p.style] ? p.style : 'balanced';
+/* What the setup and universe screens may say about a computer empire: secret personalities stay secret until the game ends. */
+const styleShown = (p, reveal = false) => !p.ai ? '' : p.secret && !reveal ? '' : AI_STYLES[styleKey(p)].label;
+
+/* What empire pi believes about planet t: the same rules the original planner uses. */
+function aiEstimate(pi, t, skill) {
+  if (skill === 'hard') return { prod: t.prod, kill: t.kill, ships: t.ships, grow: t.owner < 0 ? 1 : t.prod };
+  const r = intelOf(pi, t.name), scouted = t.owner < 0 && S.scouting, isHome = t.home >= 0 && t.home === t.owner;
+  const prod = scouted ? t.prod : r && r.prod != null ? r.prod : 10;
+  const kill = scouted ? t.kill : r ? r.kill : isHome ? 0.4 : 0.6;
+  const grow = t.owner < 0 ? 1 : prod;
+  const ships = r ? r.ships + grow * (S.turn - r.turn) : t.owner < 0 ? (scouted ? t.prod : 10) + S.turn - 1 : Math.round(prod * 2 + 10);
+  return { prod, kill, ships, grow };
+}
+
+function aiStyled(pi, ST) {
+  const skill = AI_SKILL[S.skill] ? S.skill : 'normal', K = AI_SKILL[skill];
+  // Easy keeps the personality's tastes but blunts its extra skills, so Easy still plays like Easy.
+  if (skill === 'easy') ST = { ...ST, extraTargets: 0, defend: ST.defend * EASY_BLUNT, regroup: ST.regroup * EASY_BLUNT, inner: ST.inner != null ? Math.max(ST.inner, 0.6) : null };
+  const mine = S.planets.filter(p => p.owner === pi);
+  if (!mine.length) return;
+  const rt = S.realtime, now = rt ? S.cyc : S.turn;
+  const seesFleets = rt;   // turn-based fleets are hidden from everyone, as the help says
+  const tt = d => rt ? d / 2 : travel(d);                         // time to cross d light years
+  const eta = f => rt ? f.start + f.dur - S.cyc : f.arrive - S.turn;
+  // Border worlds (within ~3 turns of a rival) can be told to hold more than interior ones.
+  const rivalsAt = S.planets.filter(p => p.owner >= 0 && p.owner !== pi);
+  const border = p => rivalsAt.some(o => dist(p, o) <= 6);
+  const reserve = p => Math.ceil(p.prod * (p.home === pi ? K.homeRes : K.res) * (border(p) ? ST.res : ST.inner != null ? ST.inner : ST.res));
+  const avail = new Map(mine.map(p => [p.name, Math.max(0, Math.floor(p.ships - reserve(p)))]));
+  const enRoute = {};
+  for (const f of S.fleets) if (f.owner === pi) enRoute[f.to] = (enRoute[f.to] || 0) + f.ships;
+  const send = (F, T, n) => {
+    n = Math.min(Math.floor(n), Math.floor(F.ships));
+    if (n < 1) return 0;
+    launch(pi, F, T, n);
+    avail.set(F.name, Math.max(0, avail.get(F.name) - n));
+    enRoute[T.name] = (enRoute[T.name] || 0) + n;
+    return n;
+  };
+
+  // 1. Defense: worlds with visible enemy fleets inbound keep their garrison and call for help if it can arrive in time.
+  if (seesFleets && ST.defend > 0) {
+    const threats = {};
+    for (const f of S.fleets) { if (f.owner === pi) continue; const T = pl(f.to); if (T.owner === pi) (threats[T.name] = threats[T.name] || []).push(f); }
+    for (const name of Object.keys(threats)) {
+      const P = pl(name), list = threats[name];
+      const first = Math.min(...list.map(eta)), atk = list.reduce((a, f) => a + f.ships * f.kill, 0);
+      const ownFirst = S.fleets.filter(f => f.owner === pi && f.to === name && eta(f) <= first).reduce((a, f) => a + f.ships, 0);
+      const hold = P.ships + P.prod * Math.max(0, rt ? first : first - 1) + ownFirst;
+      const need = Math.ceil(atk / P.kill * 1.15) + 1 - hold;
+      avail.set(name, 0);
+      if (need <= 0) continue;
+      let left = Math.ceil(need * ST.defend);
+      const inTime = s => rt ? tt(dist(s, P)) <= first - 0.05 : travel(dist(s, P)) < first;
+      const helpers = mine.filter(s => s !== P && !threats[s.name] && inTime(s)).sort((a, b) => dist(a, P) - dist(b, P));
+      if (helpers.reduce((a, s) => a + avail.get(s.name), 0) < left * 0.6) continue;   // can't save it: don't throw good ships after bad
+      for (const s of helpers) { if (left <= 0) break; left -= send(s, P, Math.min(avail.get(s.name), left)); }
+    }
+  }
+
+  // 2. Pick targets. The personality shifts what a world is worth and how much distance matters.
+  const counts = S.players.map((_, i) => S.planets.filter(p => p.owner === i).length);
+  const rivals = S.players.map((p, i) => p.alive && i !== pi && counts[i] > 0 ? i : -1).filter(i => i >= 0);
+  const weakest = rivals.length ? Math.min(...rivals.map(i => counts[i])) : -1;
+  const strongest = rivals.length ? Math.max(...rivals.map(i => counts[i])) : -1;
+  const recent = S.recent || {};
+  const neutralsNear = ST.neutralFirst && S.planets.some(t => t.owner < 0 && mine.some(s => dist(s, t) <= ST.range));
+  const targets = S.planets.filter(p => p.owner !== pi).map(t => {
+    const near = mine.map(s => ({ s, d: dist(s, t) })).sort((a, b) => a.d - b.d);
+    const e = { ...aiEstimate(pi, t, skill) };
+    let mult = t.owner >= 0 ? ST.enemy : ST.neutral;
+    if (t.home >= 0 && t.home === t.owner) mult *= 1.4;
+    if (neutralsNear && t.owner >= 0) mult *= 0.25;
+    if (ST.prey && t.owner >= 0) {
+      const r = recent[t.name], age = r ? now - r.at : 99;
+      // The news reports every capture, and a world that just changed hands is thinly held.
+      if (r && r.by === t.owner && age <= (rt ? 4 : 3)) { if (skill !== 'hard') e.ships = Math.min(e.ships, 4 + e.grow * age); mult *= 2.2; }
+      if (rivals.length > 1 && counts[t.owner] === weakest) mult *= 1.5;
+      if (rivals.length > 1 && counts[t.owner] === strongest) mult *= 0.6;
+      if (seesFleets && S.fleets.some(f => f.to === t.name && f.owner !== pi && f.owner !== t.owner)) mult *= 1.5;   // someone else is softening it up
+    }
+    const value = Math.pow(e.prod / 10, ST.prodPow) * 10 * (0.5 + e.kill) * mult;
+    const def = e.ships + e.grow * tt(near[0].d);
+    return { t, e, near, score: value / (def * e.kill / 0.5 + near[0].d * ST.distW + 5) };
+  }).sort((a, b) => b.score - a.score);
+
+  // 3. Attack the best targets it can afford, pooling up to three nearby worlds per strike.
+  const margin = K.margin * ST.margin, maxT = K.maxTargets + ST.extraTargets;
+  let launched = 0;
+  for (const tg of targets) {
+    if (launched >= maxT) break;
+    const t = tg.t, e = tg.e, crush = t.owner >= 0 && ST.crush ? ST.crush : 1;
+    const pool = []; let sum = 0, maxTT = 0;
+    for (const { s, d } of tg.near) {
+      const a = avail.get(s.name);
+      if (a <= 0 || d > ST.range) continue;
+      pool.push({ s, a }); sum += a; maxTT = Math.max(maxTT, tt(d));
+      const avgK = pool.reduce((x, p) => x + p.s.kill * p.a, 0) / sum;
+      const need = Math.ceil((e.ships + e.grow * maxTT) * e.kill / avgK * margin * crush) + 3 - (enRoute[t.name] || 0);
+      if (need <= 0) break;
+      if (sum >= need) {
+        let left = need;
+        for (const p of pool) { if (left <= 0) break; left -= send(p.s, t, Math.min(avail.get(p.s.name), left)); }
+        launched++;
+        break;
+      }
+      if (pool.length >= 3) break;
+    }
+  }
+
+  // 4. Regroup: interior worlds feed spare ships to the world nearest the next target.
+  const others = S.planets.filter(p => p.owner !== pi);
+  if (ST.regroup > 0 && mine.length > 1 && others.length) {
+    const fr = mine.map(s => ({ s, f: Math.min(...others.map(o => dist(s, o))) }));
+    const minF = Math.min(...fr.map(x => x.f));
+    const goal = targets[0].t;
+    const stage = mine.slice().sort((a, b) => dist(a, goal) - dist(b, goal))[0];
+    for (const { s, f } of fr) {
+      if (s === stage || f < minF + 3 || dist(s, stage) > 12) continue;
+      const n = Math.floor(avail.get(s.name) * ST.regroup);
+      if (n >= 5) send(s, stage, n);
+    }
+  }
+}
+
+function aiTurn(pi) {
+  const ST = AI_STYLES[S.players[pi].style];
+  return ST && ST.margin ? aiStyled(pi, ST) : aiBalanced(pi);
+}
+
 function fight(a, ak, d, dk) {
   while (a > 0 && d > 0) {
     const hitD = rnd() < ak, hitA = rnd() < dk;
@@ -515,6 +681,7 @@ function battle(f, news) {
   else setIntel(f.owner, P.name, { ships: d, kill: P.kill });
   if (a > 0) {
     P.owner = f.owner; P.ships = a;
+    (S.recent = S.recent || {})[P.name] = { at: S.realtime ? S.cyc : S.turn, by: f.owner, from: prev };
     if (prev < 0) news.push([nm(f.owner), [' has captured planet ', 7], plSeg(P.name), ['.', 7]]);
     else if (P.home === f.owner) news.push([nm(f.owner), [' has retaken home planet ', 7], plSeg(P.name), [' from ', 7], nm(prev), ['!', 7]]);
     else news.push([nm(f.owner), [' has conquered planet ', 7], plSeg(P.name), [' from ', 7], nm(prev), ['!', 7]]);
@@ -601,14 +768,13 @@ function cleanName(s, i, taken) {
 /* =====================================================================
    MODE SWITCHING
    ===================================================================== */
-const MODE_KEY = 'galcon-mode';
-let mode = (() => { try { return localStorage.getItem(MODE_KEY) === 'classic' ? 'classic' : 'modern'; } catch (e) { return 'modern'; } })();
+// The game always opens on the classic title screen; its first question offers the modern version.
+let mode = 'classic';
 class SwitchError extends Error {}
 let pendingReject = null;
 function setMode(m) {
   if (m === mode) return;
   mode = m;
-  try { localStorage.setItem(MODE_KEY, m); } catch (e) {}
   applyMode();
   if (pendingReject) { const r = pendingReject; pendingReject = null; waiter = null; r(new SwitchError()); }
 }
@@ -841,6 +1007,7 @@ async function cHelp() {
     '  LIST     all your planets          SAVE      save (also saves each turn)',
     '  QUIT     leave the game            F2        modern view',
     '  Enter    end your turn',
+    'Computer empires each have a personality, chosen or secret at setup.',
   ];
   L.forEach((l, i) => put(2 + i, 2, l, l.startsWith('  ') ? 11 : 7, 0));
   put(24, 2, 'Press any key to return to the game.', 8, 0);
@@ -1042,6 +1209,7 @@ async function cGameOver(reason) {
   const rows = finalRows();
   put(2, 2, reason, 7, 0);
   put(4, 2, 'EMPIRE', 8, 0); put(4, 18, 'PLANETS', 8, 0); put(4, 29, 'SHIPS', 8, 0); put(4, 38, 'AVG KILL', 8, 0); put(4, 50, 'SCORE', 8, 0);
+  if (anyAI()) put(4, 59, 'PLAYED AS', 8, 0);
   rows.forEach((r, j) => {
     const y = 5 + j;
     put(y, 2, r.p.name, PCOL[r.i], 0);
@@ -1049,6 +1217,7 @@ async function cGameOver(reason) {
     put(y, 29, String(r.ships).padStart(5), 7, 0);
     put(y, 38, kfmt(r.avgK).padStart(8), 7, 0);
     put(y, 50, String(r.score).padStart(5), 15, 0);
+    if (anyAI()) put(y, 59, r.p.ai ? AI_STYLES[styleKey(r.p)].label.toUpperCase() : 'HUMAN', r.p.ai ? 7 : 8, 0);
   });
   const w = rows[0];
   const line = [[w.p.name, PCOL[w.i]], [' rules the galaxy!', 15]];
@@ -1070,7 +1239,7 @@ function drawTitle() {
   center(3, 'G A L A C T I C     C O N Q U E S T', 14);
   center(5, 'A game of interstellar conquest for 2 to 6 empires', 7);
   center(6, 'Adapted from the 1988 QuickBASIC game by Rick Raddatz', 8);
-  center(8, 'Real-time games are set up in the modern view (F2).', 8);
+  center(8, 'The modern version adds a starmap, mouse controls and real-time play.', 8);
 }
 async function cUniverse(nNeutral) {
   cls(); screenTitle('GALACTIC CONQUEST', 'A NEW UNIVERSE');
@@ -1078,11 +1247,12 @@ async function cUniverse(nNeutral) {
   put(2, 54, 'THE EMPIRES', 15, 0);
   S.players.forEach((p, i) => {
     const h = S.planets.find(x => x.home === i);
-    segs(4 + i, 54, [[p.name.padEnd(11), PCOL[i]], [`home ${h.name}`, 7], [p.ai ? '  CPU' : '', 8]]);
+    segs(4 + i, 54, [[p.name.padEnd(11), PCOL[i]], [`home ${h.name}`, 7], [p.ai ? '  ' + (p.secret ? 'CPU' : AI_STYLES[styleKey(p)].code) : '', 8]]);
   });
   put(15, 54, `Galaxy shape ${SHAPES[S.shape].toUpperCase().padStart(10)}`, 7, 0);
   if (anyAI()) put(16, 54, `Computer skill ${SKILLS[S.skill].toUpperCase().padStart(8)}`, 7, 0);
   put(17, 54, `Scouting         ${(S.scouting ? 'ON' : 'OFF').padStart(6)}`, 7, 0);
+  if (anyAI()) put(14, 54, `Personalities  ${(S.players.some(p => p.ai && p.secret) ? 'SECRET' : 'SHOWN').padStart(8)}`, 7, 0);
   put(19, 54, `Neutral planets  ${String(nNeutral).padStart(6)}`, 7, 0);
   put(20, 54, `Turns ${String(S.maxTurns).padStart(3)}  Revolts ${S.revolts ? ' ON' : 'OFF'}`, 7, 0);
   msg('Look the universe over. Answer N to generate a different one.');
@@ -1092,6 +1262,13 @@ async function cUniverse(nNeutral) {
 async function cTitle() {
   drawTitle();
   locate(10, 0);
+  while (true) {
+    const v = (await input(' Play the Classic or Modern version (C/M) [C]? ', { max: 1 })).toUpperCase();
+    if (v === 'M') { setMode('modern'); throw new SwitchError(); }
+    if (v === '' || v === 'C') break;
+    println(' Please answer C or M.', 7);
+  }
+  println();
   const saved = loadSave();
   if (saved) {
     if (await askYN(` An autosaved game was found at turn ${saved.turn}. Resume it (Y/N) [Y]? `, true)) { S = normalize(saved); return; }
@@ -1113,6 +1290,11 @@ async function cTitle() {
   const sct = await askYN(' Scout neutral planets, showing their stats (Y/N) [N]? ', false);
   const shp = await askNum(' Galaxy shape: 1 Scattered 2 Clusters 3 Spiral 4 Ring 5 Two fronts [1]? ', 1, 5, 1);
   const skl = players.some(p => p.ai) ? await askNum(' Computer skill: 1 Easy  2 Normal  3 Hard [2]? ', 1, 3, 2) : 2;
+  if (players.some(p => p.ai)) {
+    const how = await askNum(' Computer personalities: 1 Surprise me  2 Choose each [1]? ', 1, 2, 1);
+    if (how === 2) println(' 1 Balanced  2 Raider  3 Fortress  4 Settler  5 Vulture', 11);
+    for (const p of players) if (p.ai) p.style = how === 2 ? STYLE_KEYS[(await askNum(` Personality for ${p.name} [1]? `, 1, 5, 1)) - 1] : 'mixed';
+  }
   newGame(players, { neutral: nn, turns: nt, revolts: rev, scouting: sct, shape: SHAPE_KEYS[shp - 1], skill: ['easy', 'normal', 'hard'][skl - 1] });
   while (!(await cUniverse(nn))) reroll();
 }
@@ -1676,6 +1858,7 @@ function openHelp() {
       <dt>Repeat</dt><dd>tick "Repeat every turn" or type AN 25 * to make a standing order. It sends up to that many ships at the start of each of your turns, and cancels itself if you lose the origin. Stop it from the sidebar or with STOP AN.</dd>
       <dt>~23</dt><dd>under a planet you don't hold is a battle report: the garrison your last failed attack met, or what you left behind when you lost it. Garrisons grow afterward.</dd>
       <dt>Real time</dt><dd>choose it in setup to play the computer against the clock. Click your planets to select them (A selects all) and click a target to send the chosen strength from each, or drag from one planet to another. Keys 1 to 4 pick 25, 50, 75 or all; Space pauses. Every fleet is visible, and each one shows its size.</dd>
+      <dt>Personalities</dt><dd>${STYLE_KEYS.map(k => `<strong>${AI_STYLES[k].label}</strong>: ${AI_STYLES[k].blurb}`).join(' ')} Choose one per computer empire in setup, or pick Surprise me to keep them secret until the game ends.</dd>
       <dt>Shapes</dt><dd>Clusters, Spiral, Ring and Two fronts change where planets sit, which changes where the fighting happens.</dd>
       <dt>F2</dt><dd>switches between the classic text screen and this view, even mid-turn.</dd>
     </dl>
@@ -1692,7 +1875,7 @@ $('#segModern').onclick = () => setMode('modern');
 $('#toModern').onclick = () => setMode('modern');
 
 /* ---------- title & setup ---------- */
-let setupState = { np: 2, players: [{ name: 'PLAYER 1', ai: false }, { name: 'PLAYER 2', ai: true }], neutral: 14, turns: 40, revolts: true, scouting: false, shape: 'scattered', skill: 'normal', gtype: 'turn', speed: 'normal' };
+let setupState = { np: 2, players: [{ name: 'PLAYER 1', ai: false, style: 'mixed' }, { name: 'PLAYER 2', ai: true, style: 'mixed' }], neutral: 14, turns: 40, revolts: true, scouting: false, shape: 'scattered', skill: 'normal', gtype: 'turn', speed: 'normal' };
 const choices = (name, opts, cur) => `<div class="choices" role="radiogroup">${Object.entries(opts).map(([k, v]) => `<label><input type="radio" name="${name}" id="${name}-${k}" value="${k}" ${cur === k ? 'checked' : ''}><span>${v}</span></label>`).join('')}</div>`;
 function setupHTML(saved) {
   const s = setupState, maxN = 26 - s.np, rt = s.gtype === 'realtime';
@@ -1701,7 +1884,8 @@ function setupHTML(saved) {
     return `
     <div class="prow"><span class="swatch" style="--pc:${MPC[i]}"></span>
       <input type="text" id="pname${i}" maxlength="10" value="${esc(p.name)}" aria-label="Name of empire ${i + 1}" autocomplete="off" spellcheck="false">
-      <label class="toggle"><input type="checkbox" id="pai${i}" ${ai ? 'checked' : ''} ${rt ? 'disabled' : ''}><span>Computer</span></label></div>`;
+      <label class="toggle"><input type="checkbox" id="pai${i}" ${ai ? 'checked' : ''} ${rt ? 'disabled' : ''}><span>Computer</span></label>
+      <select id="pstyle${i}" aria-label="Personality of empire ${i + 1}" ${ai ? '' : 'disabled'}>${Object.entries(STYLE_CHOICES).map(([k, v]) => `<option value="${k}" ${(p.style || 'mixed') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>`;
   }).join('');
   const when = saved ? (saved.realtime ? `Real time · day ${Math.floor(saved.cyc || 0) + 1}` : `Turn ${saved.turn} of ${saved.maxTurns}`) : '';
   const resume = saved ? `
@@ -1719,6 +1903,7 @@ function setupHTML(saved) {
         <div class="stepper"><button type="button" data-act="np-" aria-label="Fewer empires">−</button><output id="npOut">${s.np}</output><button type="button" data-act="np+" aria-label="More empires">+</button></div>
       </div>
       <div class="prows">${rows}</div>
+      <p class="hint">Each computer empire plays with a personality. Pick one for each, or choose Surprise me to deal them out in secret; they're revealed when the game ends. The help screen describes all five.</p>
       <div class="field"><label for="nNeutral">Neutral planets <output id="nnOut">${Math.min(s.neutral, maxN)}</output></label>
         <input type="range" id="nNeutral" min="5" max="${maxN}" value="${Math.min(s.neutral, maxN)}"></div>
       ${rt ? `<div class="field"><span class="fieldlabel">Speed</span>${choices('speed', { slow: 'Slow', normal: 'Normal', fast: 'Fast' }, s.speed)}
@@ -1738,6 +1923,7 @@ function readSetup() {
   for (let i = 0; i < s.np; i++) {
     const n = $('#pname' + i), a = $('#pai' + i);
     if (n) s.players[i].name = n.value; if (a) s.players[i].ai = a.checked;
+    const st = $('#pstyle' + i); if (st) s.players[i].style = st.value;
   }
   const nn = $('#nNeutral'), nt = $('#nTurns'), rv = $('#revolts'), sc_ = $('#scouting');
   if (nn) s.neutral = +nn.value; if (nt) s.turns = +nt.value; if (rv) s.revolts = rv.checked; if (sc_) s.scouting = sc_.checked;
@@ -1747,7 +1933,7 @@ function readSetup() {
 }
 function previewSide() {
   const facts = `<dl class="facts"><div><dt>Neutral</dt><dd>${S.planets.filter(p => p.owner < 0).length}</dd></div>${S.realtime ? `<div><dt>Speed</dt><dd>${{ slow: 'Slow', normal: 'Normal', fast: 'Fast' }[S.speed]}</dd></div>` : `<div><dt>Turns</dt><dd>${S.maxTurns}</dd></div>`}<div><dt>Revolts</dt><dd>${S.revolts ? 'On' : 'Off'}</dd></div><div><dt>Scouting</dt><dd>${S.scouting ? 'On' : 'Off'}</dd></div><div><dt>Shape</dt><dd>${SHAPES[S.shape]}</dd></div><div><dt>Computer</dt><dd>${anyAI() ? SKILLS[S.skill] : 'None'}</dd></div></dl>`;
-  const emp = S.players.map((p, i) => { const h = S.planets.find(x => x.home === i); return `<li>${chip(i)} <span class="muted">home</span> ${plTag(h.name)} <span class="muted" style="margin-left:auto">${p.ai ? 'Computer' : 'Human'}</span></li>`; }).join('');
+  const emp = S.players.map((p, i) => { const h = S.planets.find(x => x.home === i); return `<li>${chip(i)} <span class="muted">home</span> ${plTag(h.name)} <span class="muted" style="margin-left:auto">${p.ai ? 'Computer · ' + (styleShown(p) || 'secret') : 'Human'}</span></li>`; }).join('');
   side.innerHTML = `
     <section><h2>A new universe</h2><p class="muted small">Look it over before you commit. Home planets wear a dashed outer orbit. ${S.scouting ? 'Scouting is on, so hover a neutral world to see its production and kill rating.' : 'Scouting is off, so neutral worlds reveal nothing until you capture them.'}</p></section>
     <section><h3>Empires</h3><ul class="list">${emp}</ul></section>
@@ -1764,6 +1950,7 @@ async function mTitle() {
       const t = e.target;
       if (t.id === 'nNeutral') $('#nnOut').textContent = t.value;
       if (t.id === 'nTurns') $('#ntOut').textContent = t.value;
+      if (/^pai\d$/.test(t.id)) { const sel = $('#pstyle' + t.id.slice(3)); if (sel) sel.disabled = !t.checked; }
       if (t.name === 'gtype' || t.name === 'speed') { readSetup(); dialog.innerHTML = setupHTML(saved); const f = $(`#${t.name}-${t.value}`); if (f) f.focus({ preventScroll: true }); }
     };
     dialog.onclick = e => {
@@ -1774,7 +1961,7 @@ async function mTitle() {
         readSetup();
         const s = setupState;
         s.np = Math.max(2, Math.min(6, s.np + (act === 'np+' ? 1 : -1)));
-        while (s.players.length < s.np) s.players.push({ name: `PLAYER ${s.players.length + 1}`, ai: true });
+        while (s.players.length < s.np) s.players.push({ name: `PLAYER ${s.players.length + 1}`, ai: true, style: 'mixed' });
         s.neutral = Math.min(s.neutral, 26 - s.np);
         dialog.innerHTML = setupHTML(saved);
       }
@@ -1783,7 +1970,7 @@ async function mTitle() {
       e.preventDefault(); readSetup();
       const s = setupState, players = [];
       const rt = s.gtype === 'realtime';
-      for (let i = 0; i < s.np; i++) players.push({ name: cleanName(s.players[i].name, i, players.map(p => p.name)), ai: rt ? i > 0 : s.players[i].ai, alive: true });
+      for (let i = 0; i < s.np; i++) players.push({ name: cleanName(s.players[i].name, i, players.map(p => p.name)), ai: rt ? i > 0 : s.players[i].ai, style: s.players[i].style || 'mixed', alive: true });
       if (players.every(p => p.ai)) players[0].ai = false;
       s.players.forEach((p, i) => { if (players[i]) { p.name = players[i].name; if (!rt) p.ai = players[i].ai; } });
       done({ players, neutral: Math.min(s.neutral, 26 - s.np), turns: s.turns, revolts: s.revolts, scouting: s.scouting, shape: s.shape, skill: s.skill, realtime: rt, speed: s.speed });
@@ -2050,8 +2237,8 @@ async function mGameOver(reason) {
   side.innerHTML = `<section><h2>Final map</h2><p class="muted small">Every garrison is revealed. ${esc(reason)}</p></section><section>${standingsHTML()}</section>`;
   await mWait(done => {
     openDialog(`<p class="eyebrow">${esc(reason)}</p><h2>${chip(w.i)} rules the galaxy</h2>
-      <table class="final"><thead><tr><th>Empire</th><th>Planets</th><th>Ships</th><th>Avg kill</th><th>Score</th></tr></thead><tbody>
-      ${rows.map(r => `<tr><td>${chip(r.i)}</td><td>${r.planets}</td><td>${r.ships}</td><td>${kfmt(r.avgK)}</td><td class="score">${r.score}</td></tr>`).join('')}
+      <table class="final"><thead><tr><th>Empire</th><th>Planets</th><th>Ships</th><th>Avg kill</th><th>Score</th>${anyAI() ? '<th>Played as</th>' : ''}</tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${chip(r.i)}</td><td>${r.planets}</td><td>${r.ships}</td><td>${kfmt(r.avgK)}</td><td class="score">${r.score}</td>${anyAI() ? `<td>${r.p.ai ? AI_STYLES[styleKey(r.p)].label : 'Human'}</td>` : ''}</tr>`).join('')}
       </tbody></table><p class="muted small">Score is ships × average kill + 50 per planet.</p>
       <div class="row"><button type="button" class="ghost" data-act="map">See the map</button><button type="button" class="primary" data-act="ok" autofocus>Back to title</button></div>`, 'wide');
     dialog.onclick = e => {

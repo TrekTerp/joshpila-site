@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Advent of Cocktails — archive</title>
 <script>if(new URLSearchParams(location.search).get("embed") === "cabinet") document.documentElement.classList.add("cabinet-embedded");</script>
+<style>html:not(.archive-view-ready) .view { display: none; }</style>
+<noscript><style>html:not(.archive-view-ready) .view:not([hidden]) { display: block; }</style></noscript>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/site.css">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/cocktails-32.png"><link rel="icon" type="image/svg+xml" sizes="any" href="/icons/cocktails.svg"><link rel="apple-touch-icon" sizes="180x180" href="/icons/cocktails-180.png"></head>
@@ -25,6 +27,7 @@
 </header>
 
 <main id="main">
+  <p id="archive-loading" role="status" hidden>Loading the cocktail archive…</p>
 
   <!-- ============ BACKSTORY ============ -->
   <section id="view-backstory" class="view" data-view="backstory">
@@ -123,6 +126,7 @@
   <div id="detail-content"></div>
 </dialog>
 
+<script src="js/initial-view.js"></script>
 <script src="js/supabase.js"></script>
 <script src="data/data.js"></script>
 <script src="js/app.js"></script>

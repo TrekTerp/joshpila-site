@@ -553,6 +553,8 @@ window.cocktailReady = (async function () {
   }
   window.addEventListener("popstate", restoreLocation);
   restoreLocation();
+  document.getElementById('archive-loading').hidden = true;
+  views.forEach(view => view.removeAttribute('aria-busy'));
   function updatePhotos(saved) {
     // Keep the open card and its form in place while refreshing shared photo indexes.
     PHOTOS.splice(0, PHOTOS.length, ...saved.photos);

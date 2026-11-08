@@ -469,17 +469,22 @@ function aiBalanced(pi) {
     const value = e.prod * (0.5 + e.kill) * (t.owner >= 0 ? 1.2 : 1) * (t.home >= 0 && t.home === t.owner ? 1.4 : 1);
     return { t, e, near, score: value / (def * e.kill / 0.5 + near[0].d * 3 + 5) };
   }).sort((a, b) => b.score - a.score);
+  // 12 light years is a preference, not a wall: when nothing is that close, reach farther.
+  const reach = targets.some(tg => tg.near[0].d <= 12) ? 12 : Infinity;
   for (const tg of targets) {
     if (launched >= K.maxTargets) break;
+    // On a long-range strike, fleets land on different turns and lose one by one: send it all at once, then wait.
+    if (reach === Infinity && enRoute[tg.t.name]) continue;
     const pool = []; let sum = 0, maxTT = 0;
     for (const { s, d } of tg.near) {
       const a = avail.get(s.name);
-      if (a <= 0 || d > 12) continue;
+      if (a <= 0 || d > reach) continue;
       pool.push({ s, a }); sum += a; maxTT = Math.max(maxTT, travel(d));
       const t = tg.t, e = tg.e;
       const def = e.ships + e.grow * maxTT;
       const avgK = pool.reduce((x, p) => x + p.s.kill * p.a, 0) / sum;
-      const need = Math.ceil(def * e.kill / avgK * K.margin) + 3 - (enRoute[t.name] || 0);
+      const need = reach === Infinity ? Math.ceil(def * e.kill / avgK * K.margin * 2) + 3   // long shot: overwhelming force, one wave
+                                      : Math.ceil(def * e.kill / avgK * K.margin) + 3 - (enRoute[t.name] || 0);
       if (need <= 0) break;
       if (sum >= need) {
         let left = need;
@@ -617,6 +622,8 @@ function aiStyled(pi, ST) {
 
   // 3. Attack the best targets it can afford, pooling up to three nearby worlds per strike.
   const margin = K.margin * ST.margin, maxT = K.maxTargets + ST.extraTargets;
+  // Range is a preference, not a wall: when nothing is in reach, go the distance rather than sit on a growing fleet.
+  const range = targets.some(tg => tg.near[0].d <= ST.range) ? ST.range : Infinity;
   let launched = 0;
   for (const tg of targets) {
     if (launched >= maxT) break;
@@ -624,7 +631,7 @@ function aiStyled(pi, ST) {
     const pool = []; let sum = 0, maxTT = 0;
     for (const { s, d } of tg.near) {
       const a = avail.get(s.name);
-      if (a <= 0 || d > ST.range) continue;
+      if (a <= 0 || d > range) continue;
       pool.push({ s, a }); sum += a; maxTT = Math.max(maxTT, tt(d));
       const avgK = pool.reduce((x, p) => x + p.s.kill * p.a, 0) / sum;
       const need = Math.ceil((e.ships + e.grow * maxTT) * e.kill / avgK * margin * crush) + 3 - (enRoute[t.name] || 0);

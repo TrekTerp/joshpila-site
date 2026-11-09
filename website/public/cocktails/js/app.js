@@ -186,7 +186,7 @@ window.cocktailReady = (async function () {
       empty.textContent = "No cocktails have been added for this year.";
       grid.appendChild(empty);
     }
-    cards.forEach(({slot, displayName, isSub, photo}) => {
+    cards.forEach(({slot, displayName, photo}) => {
 
       const li = document.createElement("li");
       li.setAttribute("role", "listitem");
@@ -194,7 +194,7 @@ window.cocktailReady = (async function () {
       btn.type = "button";
       btn.className = "day-card";
       btn.dataset.day = String(slot.day).padStart(2,"0");
-      btn.setAttribute("aria-label", "Day " + slot.day + ": " + displayName + (isSub ? ", substituted" : ""));
+      btn.setAttribute("aria-label", "Day " + slot.day + ": " + displayName);
 
       const thumb = document.createElement("div");
       thumb.className = "thumb";
@@ -212,8 +212,7 @@ window.cocktailReady = (async function () {
       meta.className = "meta";
       meta.innerHTML =
         '<div class="day-num">Day ' + slot.day + "</div>" +
-        '<div class="day-name">' + escapeHtml(displayName) + "</div>" +
-        (isSub ? '<span class="badge sub">substituted</span>' : "");
+        '<div class="day-name">' + escapeHtml(displayName) + "</div>";
 
       btn.appendChild(thumb);
       btn.appendChild(meta);
@@ -462,36 +461,26 @@ window.cocktailReady = (async function () {
   }
 
   function daySlotContent(slot) {
-    // The calendar and detail share recipe/variant selection, including photos
-    // of that recipe made in another year. Keep substitutions and variant
-    // replacements scoped exactly as they are in the recipe detail.
+    // The calendar follows the published Advent schedule. Photos follow the
+    // recipe they depict, even when it was made as another day's substitution.
+    // A recorded/uploaded variant can select a spec only within this recipe.
     const official = recipeBySlug.get(slot.official_recipe_slug);
-    const actual = slot.actual_recipe_slug ? recipeBySlug.get(slot.actual_recipe_slug) : official;
-    const displayName = slot.actual_recipe_name || (actual ? actual.name : official ? official.name : "?");
-    const isSub = !!(slot.actual_recipe_slug && slot.actual_recipe_slug !== slot.official_recipe_slug) || !!slot.actual_recipe_name;
-    const unrecordedSubstitution = !!slot.actual_recipe_name && !slot.actual_recipe_slug;
-    const detailRecipe = unrecordedSubstitution ? null : (actual || official);
-    const dayVariants = detailRecipe ? variantsByDaySlug.get(detailRecipe.slug) || [] : [];
-    const latestVariantPhoto = slot.photo_ids.map(id => photoById.get(id)).find(p => p?.source === "owner-upload" && variantById.get(p.variant_id)?.day_slug === detailRecipe?.slug);
-    const confirmedVariant = latestVariantPhoto ? variantById.get(latestVariantPhoto.variant_id) : slot.actual_variant_id ? variantById.get(slot.actual_variant_id) : null;
+    const displayName = official?.name || "?";
+    const dayVariants = official ? variantsByDaySlug.get(official.slug) || [] : [];
+    const latestVariantPhoto = slot.photo_ids.map(id => photoById.get(id)).find(p => p?.source === "owner-upload" && variantById.get(p.variant_id)?.day_slug === official?.slug);
+    const recordedVariant = variantById.get(slot.actual_variant_id);
+    const confirmedVariant = latestVariantPhoto ? variantById.get(latestVariantPhoto.variant_id) : recordedVariant?.day_slug === official?.slug ? recordedVariant : null;
     const shownVariant = confirmedVariant || dayVariants[0] || null;
-    const photos = shownVariant ? photosForVariant(shownVariant) : selectDayPhotos(photoData(),slot.year,slot.day);
-    return {official, displayName, isSub, unrecordedSubstitution, detailRecipe, dayVariants, shownVariant, photos};
+    const photos = shownVariant ? photosForVariant(shownVariant) : [];
+    return {official, displayName, dayVariants, shownVariant, photos};
   }
 
   function openDaySlotDetail(slot) {
-    const {official, displayName, isSub, unrecordedSubstitution, detailRecipe, dayVariants, shownVariant, photos} = daySlotContent(slot);
+    const {official, displayName, dayVariants, shownVariant, photos} = daySlotContent(slot);
     activeDetail = {year:slot.year,day:slot.day,variantId:shownVariant?.id || '',label:shownVariant ? variantHeading(shownVariant) : displayName,kind:'day'};
 
     let html = "<h2>" + escapeHtml(displayName) + "</h2>";
     html += '<p class="detail-meta">' + slot.year + " · Day " + slot.day + "</p>";
-
-    if (isSub && official) {
-      html +=
-        '<p class="detail-meta">Official Day ' + slot.day + " recipe was <strong>" + escapeHtml(official.name) + "</strong>. " +
-        (slot.substitution_reason ? escapeHtml(slot.substitution_reason) : "Substituted.") +
-        "</p>";
-    }
 
     if(dayVariants.length > 1 && shownVariant) html += '<p class="detail-meta">Recipe: ' + escapeHtml(shownVariant.name) + '</p>';
     html += '<div id="detail-gallery">' + photoGalleryHtml(photos) + '</div><div id="detail-photo-upload"></div>';
@@ -501,12 +490,10 @@ window.cocktailReady = (async function () {
       html += siblingsHtml(shownVariant);
     }
 
-    if (unrecordedSubstitution) {
-      html += '<p>The exact recipe for this substitution has not been recorded.</p>';
-      const officialVariant = (variantsByDaySlug.get(official?.slug) || [])[0];
-      if (officialVariant) html += '<p>Scheduled recipe: <button type="button" class="vs-link" data-variant-id="' + escapeHtml(officialVariant.id) + '">' + escapeHtml(official.name) + '</button></p>';
+    html += sourceCiteHtml(official);
+    if (slot.substitution_reason) {
+      html += '<p class="detail-meta">Personal note: ' + escapeHtml(slot.substitution_reason) + '</p>';
     }
-    html += sourceCiteHtml(detailRecipe);
 
     document.getElementById("detail-content").innerHTML = html;
     wireSiblingLinks();
@@ -576,4 +563,5 @@ window.cocktailReady = (async function () {
   }
   return {recipes:RECIPES,photos:PHOTOS,daySlots:DAY_SLOTS,getDetail:()=>activeDetail,updatePhotos};
 })();
+
 

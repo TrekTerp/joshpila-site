@@ -647,8 +647,10 @@ function aiStyled(pi, ST) {
     if (neutralsNear && t.owner >= 0) mult *= 0.25;
     if (ST.prey && t.owner >= 0) {
       const r = recent[t.name], age = r ? now - r.at : 99;
-      // The news reports every capture, and a world that just changed hands is thinly held.
-      if (r && r.by === t.owner && age <= (rt ? 4 : 3)) { if (skill !== 'hard') e.ships = Math.min(e.ships, 4 + e.grow * age); mult *= 2.2; }
+      // The news reports every capture, and a world that just changed hands is thinly held,
+      // unless a battle report since the capture says otherwise (an owner may pour ships in to hold it).
+      const rep = intelOf(pi, t.name), since = rep && rep.turn >= (rt ? Math.floor(r ? r.at : 0) + 1 : r ? r.at : 0);
+      if (r && r.by === t.owner && age <= (rt ? 4 : 3) && !since) { if (skill !== 'hard') e.ships = Math.min(e.ships, 4 + e.grow * age); mult *= 2.2; }
       if (rivals.length > 1 && counts[t.owner] === weakest) mult *= 1.5;
       if (rivals.length > 1 && counts[t.owner] === strongest) mult *= 0.6;
       if (seesFleets && S.fleets.some(f => f.to === t.name && f.owner !== pi && f.owner !== t.owner)) mult *= 1.5;   // someone else is softening it up
@@ -788,13 +790,19 @@ function histAwards() {
   const peak = z(); let peakT = z();
   for (const s of H.snaps) s.p.forEach((r, i) => { if (r[0] > peak[i]) { peak[i] = r[0]; peakT[i] = s.t; } });
   if ((x = top(peak))) out.push({ title: 'High Tide', who: x.who, value: `${Math.round(100 * x.m / total)}% of the galaxy`, note: `${plural(x.m, 'world')} at once, on ${U} ${peakT[x.who[0]]}.` });
-  // Comeback: the biggest climb from an empire's worst rank (after the opening) to where it finished.
-  const snaps = H.snaps.filter(s => s.t >= 3);
+  // Comeback: the biggest climb from an empire's worst rank to where it finished. A rank only counts once the
+  // opening is over (turn 10, or a quarter of the game if sooner) and while the empire was truly behind:
+  // under 75% of the leader's score at that moment.
+  const lastT = H.snaps[H.snaps.length - 1].t, from = Math.min(10, Math.ceil(lastT / 4));
+  const snaps = H.snaps.filter(s => s.t >= from);
   if (snaps.length > 1) {
     const rankAt = s => s.p.map(r => 1 + s.p.filter(q => q[4] > r[4]).length);
     const fin = rankAt(H.snaps[H.snaps.length - 1]);
-    const worst = z();
-    for (const s of snaps) rankAt(s).forEach((r, i) => { worst[i] = Math.max(worst[i], r); });
+    const worst = fin.slice();
+    for (const s of snaps) {
+      const lead = Math.max(...s.p.map(r => r[4]));
+      rankAt(s).forEach((r, i) => { if (s.p[i][4] < 0.75 * lead) worst[i] = Math.max(worst[i], r); });
+    }
     const climb = worst.map((w, i) => S.players[i].alive ? w - fin[i] : 0);
     if ((x = top(climb))) out.push({ title: 'Comeback Kid', who: x.who, value: `${ord(worst[x.who[0]])} to ${ord(fin[x.who[0]])}`, note: 'Biggest climb up the standings.' });
   }

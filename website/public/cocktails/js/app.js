@@ -173,7 +173,12 @@ window.cocktailReady = (async function () {
 
     const slots = DAY_SLOTS.filter((s) => s.year === currentYear).sort((a, b) => a.day - b.day);
     document.getElementById("collection-title").textContent = "December " + currentYear;
-    document.getElementById("collection-count").textContent = slots.length ? slots.length + " days · " + slots.filter(s => s.photo_ids.length).length + " photographed" : "No entries yet";
+    const cards = slots.map(slot => {
+      const content = daySlotContent(slot);
+      const photo = content.photos.find(p => p.role === "primary") || content.photos.find(p => p.role === "mocktail") || content.photos[0] || null;
+      return {slot, ...content, photo};
+    });
+    document.getElementById("collection-count").textContent = slots.length ? slots.length + " days · " + cards.filter(card => card.photo).length + " with photos" : "No entries yet";
 
     if (!slots.length) {
       const empty = document.createElement("p");
@@ -181,12 +186,7 @@ window.cocktailReady = (async function () {
       empty.textContent = "No cocktails have been added for this year.";
       grid.appendChild(empty);
     }
-    slots.forEach((slot) => {
-      const official = recipeBySlug.get(slot.official_recipe_slug);
-      const actual = slot.actual_recipe_slug ? recipeBySlug.get(slot.actual_recipe_slug) : official;
-      const displayName = slot.actual_recipe_name || (actual ? actual.name : official ? official.name : "?");
-      const isSub = !!(slot.actual_recipe_slug && slot.actual_recipe_slug !== slot.official_recipe_slug) || !!slot.actual_recipe_name;
-      const photo = primaryPhotoForIds(slot.photo_ids);
+    cards.forEach(({slot, displayName, isSub, photo}) => {
 
       const li = document.createElement("li");
       li.setAttribute("role", "listitem");
@@ -461,14 +461,10 @@ window.cocktailReady = (async function () {
     remember({recipe: variant.id});
   }
 
-  function openDaySlotDetail(slot) {
-    // Entry point from the calendar. Shows the substitution context (what
-    // was officially scheduled vs. what was actually made) plus the same
-    // per-spec body as the finder. If we know exactly which spec was made,
-    // that variant is shown with its own exclusive photo(s); otherwise this
-    // falls back to the day's own photo(s) directly -- we're already
-    // anchored to one specific calendar day here, so there's no ambiguity
-    // about which day's photos to show, only which spec they best match.
+  function daySlotContent(slot) {
+    // The calendar and detail share recipe/variant selection, including photos
+    // of that recipe made in another year. Keep substitutions and variant
+    // replacements scoped exactly as they are in the recipe detail.
     const official = recipeBySlug.get(slot.official_recipe_slug);
     const actual = slot.actual_recipe_slug ? recipeBySlug.get(slot.actual_recipe_slug) : official;
     const displayName = slot.actual_recipe_name || (actual ? actual.name : official ? official.name : "?");
@@ -480,6 +476,11 @@ window.cocktailReady = (async function () {
     const confirmedVariant = latestVariantPhoto ? variantById.get(latestVariantPhoto.variant_id) : slot.actual_variant_id ? variantById.get(slot.actual_variant_id) : null;
     const shownVariant = confirmedVariant || dayVariants[0] || null;
     const photos = shownVariant ? photosForVariant(shownVariant) : selectDayPhotos(photoData(),slot.year,slot.day);
+    return {official, displayName, isSub, unrecordedSubstitution, detailRecipe, dayVariants, shownVariant, photos};
+  }
+
+  function openDaySlotDetail(slot) {
+    const {official, displayName, isSub, unrecordedSubstitution, detailRecipe, dayVariants, shownVariant, photos} = daySlotContent(slot);
     activeDetail = {year:slot.year,day:slot.day,variantId:shownVariant?.id || '',label:shownVariant ? variantHeading(shownVariant) : displayName,kind:'day'};
 
     let html = "<h2>" + escapeHtml(displayName) + "</h2>";
@@ -575,3 +576,4 @@ window.cocktailReady = (async function () {
   }
   return {recipes:RECIPES,photos:PHOTOS,daySlots:DAY_SLOTS,getDetail:()=>activeDetail,updatePhotos};
 })();
+

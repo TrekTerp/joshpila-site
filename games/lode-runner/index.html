@@ -1650,7 +1650,7 @@ function createLegend(opts) {
   }
   function fig(col, row, monk) {
     return { col, row, xa: 2, ya: 2, face: 1, pose: monk ? 'run' : 'stand', frame: 0, t: 0, next: null, prog: 0,
-      carry: 0, carryVal: '', trap: 0, inHole: false, escape: 0, fallFrom: null, res: 0, monk: !!monk, wig: 0 };
+      carry: 0, carryVal: '', trap: 0, inHole: false, escape: 0, fallFrom: null, res: 0, monk: !!monk, wig: 0, mv: null };
   }
 
   const bgAt = (r, c) => (r < 0 || r > MAXR || c < 0 || c > MAXC) ? STONE : g.bg[r][c];
@@ -1690,7 +1690,8 @@ function createLegend(opts) {
     if (f.monk) dropCarry(f);
     const or = f.row, oc = f.col;
     f.row = r; f.col = c; f.xa = xa; f.ya = ya;
-    if (f.monk) { if (g.act[r][c] === PLAYER) caught(); g.act[r][c] = GUARD; f.inHole = false; }
+    // Catching is by overlap only (checkCaught), not by entering Jake's cell.
+    if (f.monk) { g.act[r][c] = GUARD; f.inHole = false; }
     else if (g.act[r][c] !== GUARD) g.act[r][c] = PLAYER;
     vacate(or, oc);
   }
@@ -1900,7 +1901,6 @@ function createLegend(opts) {
     nudgeCol(m); m.ya++; m.pose = 'fall';
     if (m.ya >= 5) {
       m.row++; m.ya = 0;
-      if (g.act[m.row][m.col] === PLAYER) caught();
       g.act[m.row][m.col] = GUARD;
       vacate(m.row - 1, m.col);
       return;
@@ -2074,8 +2074,13 @@ function createLegend(opts) {
       if (!mSide(dir, true)) { m.escape = 0; return null; }
       return { cost: 1 / (5 * S.run), dx: dir, dy: 0, run: () => { mSide(dir); m.escape--; } };
     }
-    if (falling(m)) return { cost: 1 / (5 * S.fall), dx: 0, dy: 1, run: mFall };
-    const a = decide(m.col, m.row);
+    if (falling(m)) { m.mv = null; return { cost: 1 / (5 * S.fall), dx: 0, dy: 1, run: mFall }; }
+    // As in Legend Returns, a monk finishes the step he started (to the
+    // middle of the next cell) before choosing again, so he can't turn
+    // round mid-stride. Jake can drop past a monk who is heading under him.
+    let a = m.xa === 2 && m.ya === 2 ? null : m.mv;
+    if (!a || !(a === 'up' ? mUp(true) : a === 'down' ? mDown(true) : mSide(a === 'left' ? -1 : 1, true))) a = decide(m.col, m.row);
+    m.mv = a;
     if (a === 'up' && mUp(true)) return { cost: 1 / (5 * S.up), dx: 0, dy: -1, run: () => mUp() };
     if (a === 'down' && mDown(true)) {
       const climbing = g.bg[m.row][m.col] === LADDER || bgAt(m.row + 1, m.col) === LADDER;

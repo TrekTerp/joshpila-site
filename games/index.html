@@ -47,6 +47,10 @@ a{color:var(--accent)}
 /* header */
 header{display:grid;gap:10px;margin-bottom:clamp(28px,5vw,48px)}
 .eyebrow{font:400 20px/1 var(--f-term);color:var(--muted);letter-spacing:.04em}
+.site-return{font:400 18px/1 var(--f-term);letter-spacing:.04em}
+.site-return a{color:var(--muted);text-decoration:none}
+.site-return a:hover,.site-return a:focus-visible{color:var(--accent);text-decoration:underline}
+footer .site-return{display:block;margin-top:10px}
 .eyebrow b{color:var(--ok);font-weight:400}
 h1{margin:0;line-height:0}
 h1 img{display:block;width:min(620px,100%);height:auto;margin-left:-1%;filter:drop-shadow(0 6px 8px rgba(10,14,12,.28))}
@@ -124,17 +128,18 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
 <body>
 <div class="wrap">
   <header>
+    <nav class="site-return" aria-label="Site navigation"><a href="/?selected=games">&larr; Return to Orrery</a></nav>
     <div class="eyebrow">A:\&gt; <b>DIR</b> /GAMES</div>
     <h1><img id="logo" alt="Retro Disk Box" width="1260" height="234"></h1>
     <p class="tag">Taking the games of my childhood and giving them new life. Each one is evolved from the original: the classic version first, then new looks and modes on top. Each disk opens the game in a new tab.</p>
-    <div class="count" id="count">7 games on the shelf<span class="cursor"></span></div>
+    <div class="count" id="count">8 games on the shelf<span class="cursor"></span></div>
   </header>
 
   <h2>On the shelf, oldest original first</h2>
   <section class="shelf" id="shelf"></section>
 
 
-  <footer>Fan tributes, made for fun. Each game credits its original creators and is not affiliated with them. Saved scores live inside each game, on the device you play on.</footer>
+  <footer>Fan tributes, made for fun. Each game credits its original creators and is not affiliated with them. Saved scores live inside each game, on the device you play on.<nav class="site-return" aria-label="Site navigation"><a href="/?selected=games">&larr; Return to Orrery</a></nav></footer>
 </div>
 
 <script>

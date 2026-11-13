@@ -1,0 +1,69 @@
+{
+  "width": 768,
+  "height": 384,
+  "worlds": [
+    {
+      "style": "ocean",
+      "seed": 40,
+      "file": "ocean.webp",
+      "encoding": "webp-q90",
+      "bytes": 8166,
+      "pixelsSha256": "8338f2bcf8acdb249a85509699991cb9cc8ea98d6dd53d890a7a65798a8b0d3c",
+      "fileSha256": "8c6b9c930b71e83cc5db914af2d8d3eab221f7a86069041fae512115efbb3097"
+    },
+    {
+      "style": "atlas",
+      "seed": 71,
+      "file": "atlas.webp",
+      "encoding": "webp-q90",
+      "bytes": 7234,
+      "pixelsSha256": "c717031851b883073cce5512da7ed711fe05a353a78935c769b853148739465e",
+      "fileSha256": "ebf07f024887638b372ed7cc12d524bf30008ba3f88c5ed3f69604f72dd8935d"
+    },
+    {
+      "style": "lattice",
+      "seed": 102,
+      "file": "lattice.webp",
+      "encoding": "webp-q90",
+      "bytes": 24216,
+      "pixelsSha256": "0ac9371f44cae80a0271a47f8fe65cde8a16023b8fbf32bee555bd13d373d535",
+      "fileSha256": "4b042b1854f059a1bc8c797c04144e7db1a115eba7abb4a2c319b6d2cbe13092"
+    },
+    {
+      "style": "archive",
+      "seed": 133,
+      "file": "archive.webp",
+      "encoding": "webp-q90",
+      "bytes": 30088,
+      "pixelsSha256": "022eda44b280ab43c9adf3c0d0034f0d491094622ee4eb58d0555226e8a2d2e8",
+      "fileSha256": "3cfabc30c65b23d73440416179500ee012a378cdb877d327c7eaab0f46a6a57a"
+    },
+    {
+      "style": "gas",
+      "seed": 164,
+      "file": "gas.webp",
+      "encoding": "webp-q90",
+      "bytes": 24484,
+      "pixelsSha256": "bf0affcaffb5d9331759fa58d362e048850edaf4165e8da82e0d5646d8f60ae4",
+      "fileSha256": "4f4cfa305625ffa0e1845c697505acfe115fd4eab08ccd0a0aec884dde9f779b"
+    },
+    {
+      "style": "forge",
+      "seed": 195,
+      "file": "forge.webp",
+      "encoding": "webp-q90",
+      "bytes": 56346,
+      "pixelsSha256": "bc720057858da1c81efc10e7092c476ad79843f8e454604cee96e8acf391fe24",
+      "fileSha256": "bd43ccf0bd9c0c373eaab4c6f5ee13d8ad3b540c25dd5b431a88a126e7f825c8"
+    },
+    {
+      "style": "arcade",
+      "seed": 226,
+      "file": "arcade.webp",
+      "encoding": "webp-lossless",
+      "bytes": 2340,
+      "pixelsSha256": "ed46299353680d2f10470bc5279a7e82f37992ff3bc32a3e9145628e10e313e0",
+      "fileSha256": "6d0426e8e58c8a44f26d754bb988ef09ca7afd34770dc6a82fd0cde06642f74d"
+    }
+  ]
+}

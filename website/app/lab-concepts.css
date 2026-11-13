@@ -22,6 +22,7 @@
 .orrery-world-labels button { position: absolute; z-index: 1; left: 0; top: 0; min-height: 32px; padding: 5px 8px; border: 0; border-bottom: 1px solid #7bb8c674; background: #02070db8; color: #a9c3cc; cursor: pointer; pointer-events: auto; white-space: nowrap; transition: color .2s, border-color .2s, background .2s, box-shadow .2s; }
 .orrery-world-labels button strong { font-size: .76rem; font-weight: 650; letter-spacing: .055em; }
 .orrery-world-labels button:hover, .orrery-world-labels button.selected { color: #fff4de; border-color: #d9a45c; background: #17130fcf; box-shadow: 0 7px 25px #0009, inset 0 -2px #d9a45c; }
+.orrery-scene:not([data-ready]) .orrery-world-labels button, .orrery-scene:not([data-ready]) .orrery-origin { visibility: hidden; }
 .orrery-label-leader { position: absolute; z-index: 0; height: 1px; opacity: 0; transform-origin: left center; background: linear-gradient(90deg, #8cb5bfaa, #8cb5bf22); pointer-events: none; transition: opacity .16s ease; }
 .orrery-origin { position: absolute; z-index: 5; left: 0; top: 0; min-height: 32px; padding: 5px 8px; border: 0; border-bottom: 1px solid #d9a45c8f; background: #17110bd1; color: #f4d7a3; cursor: pointer; text-align: center; box-shadow: 0 6px 28px #0009; }
 .orrery-origin strong { font: 650 .76rem/1.1 system-ui, sans-serif; letter-spacing: .055em; }

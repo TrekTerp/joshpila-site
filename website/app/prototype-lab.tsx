@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Component, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { artifactPages, artifactHref, type Artifact } from "./data";
 import { useCabinetTransition } from "./cabinet-transition";
 import { BrandMark } from "./brand-mark";
@@ -35,18 +35,29 @@ class OrreryBoundary extends Component<{ children: ReactNode }, { unavailable: b
   }
 }
 
-export function OrreryHome({ initialSelectedId }: { initialSelectedId?: string }) {
+export function OrreryHome() {
   const [quiet, setQuiet] = useState(false);
   return <main className={`site-shell concept-orrery ${quiet ? "quiet-motion" : ""}`}>
     <SiteHeader quiet={quiet} setQuiet={setQuiet} />
-    <Orrery quiet={quiet} initialSelectedId={initialSelectedId} />
+    <Orrery quiet={quiet} />
   </main>;
 }
 
-function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedId?: string }) {
+// Reading the query string opts its subtree out of prerendering, so this reader renders nothing
+// and sits in its own Suspense boundary. The rest of the page is then present in the static HTML.
+function SelectedWorldFromQuery({ onSelected }: { onSelected: (item: Artifact) => void }) {
+  const selectedId = useSearchParams().get("selected");
+  useLayoutEffect(() => {
+    const item = artifactPages.find((artifact) => artifact.id === selectedId);
+    if (item) onSelected(item);
+  }, [selectedId, onSelected]);
+  return null;
+}
+
+function Orrery({ quiet }: { quiet: boolean }) {
   const router = useRouter();
   const cabinetTransition = useCabinetTransition();
-  const [selected, setSelected] = useState<Artifact | null>(() => artifactPages.find((item) => item.id === initialSelectedId) ?? null);
+  const [selected, setSelected] = useState<Artifact | null>(null);
   const [departing, setDeparting] = useState(false);
   const [capturingCabinet, setCapturingCabinet] = useState(false);
   const departureTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,6 +127,7 @@ function Orrery({ quiet, initialSelectedId }: { quiet: boolean; initialSelectedI
   };
   return (
     <section className={`concept-stage orrery-stage ${selected ? "orrery-engaged" : ""} ${departing && !capturingCabinet ? "orrery-departing" : ""} ${capturingCabinet ? "orrery-cabinet-departing" : ""}`} aria-labelledby="concept-title">
+      <Suspense><SelectedWorldFromQuery onSelected={setSelected} /></Suspense>
       <div className="concept-intro orrery-intro"><h1 id="concept-title">Orrery Ascendant</h1><span>Astronomy, games, recipes, and other projects.</span></div>
       <div className="orrery-viewport">
         <OrreryBoundary><Suspense fallback={<div className="orrery-loading" role="status">Loading Orrery…</div>}>

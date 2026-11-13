@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GLASSES_PER_SHELF, cocktailArchiveHref } from "./cabinet-years";
 import { CocktailYearsProvider, useCocktailYears } from "./cocktail-years-context";
 import { CabinetArtScene } from "./cabinet-art-scene";
@@ -251,6 +251,26 @@ function MotionStudyContent({ concept, initialYear, initialSection = "overview" 
     clearTimers(); setSection(next); setPhaseState(next === "advent" ? 4 : 3); setActiveTarget(null); rememberShelf(next, selectedYear);
     if (next === "overview") requestAnimationFrame(() => overlayRef.current?.querySelector<HTMLButtonElement>(`.shelf-${section === "backstory" ? "story" : section === "recipes" ? "recipes" : "advent"}`)?.focus());
   }, [clearTimers, rememberShelf, selectedYear, section]);
+  // The cabinet page is prerendered closed. A deep link's ?panel= and ?year= are applied once,
+  // before the first paint after hydration, with the same validation the page used when it read
+  // them during render.
+  const restoredFromAddress = useRef(false);
+  useLayoutEffect(() => {
+    if (concept !== "cabinet" || restoredFromAddress.current) return;
+    restoredFromAddress.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const panel = params.get("panel");
+    const next = panel === "backstory" || panel === "recipes" || panel === "advent" ? panel : "overview";
+    const requestedYear = Number(params.get("year"));
+    const year = Number.isInteger(requestedYear) && requestedYear >= 2020 && requestedYear <= 2100 ? requestedYear : undefined;
+    if (!year && next === "overview") return;
+    setSection(next);
+    setPhaseState(3);
+    if (year) {
+      setSelectedYear(year);
+      setYearOffset(Math.min(Math.max(0, adventYears.findIndex(item => item.year === year)), Math.max(0, adventYears.length - GLASSES_PER_SHELF)));
+    }
+  }, [concept, adventYears]);
   useEffect(() => {
     if (concept !== "cabinet") return;
     const restoreShelf = () => {

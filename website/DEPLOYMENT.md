@@ -57,6 +57,18 @@ Origin's footer maps the supplied placeholder links to existing destinations:
 
 Return links include the selected world ID; internal departures also preserve it in browser history. Reduced-motion users skip the return transition. The Origin text was compared against the supplied handoff after rendering. Desktop and 375px layouts, keyboard focus, and return navigation were checked in the browser. This QA browser lacks WebGL; the unchanged Orrery geometry and light behavior pass the existing numeric checks.
 
+## Orrery first load, 0.19.2 (2026-11-12)
+
+The Orrery used to paint its seven world surfaces pixel by pixel in the browser before drawing its first frame, which froze the page for several seconds. The surfaces are now baked images in `public/orrery/worlds/`, preloaded by the home page and loaded by the scene without waiting for them.
+
+- `lib/orrery/world-texture.mjs` is the single source of the texture math. After changing it, or a world's style or seed, run `pnpm run bake:worlds` and commit the regenerated images and `lib/orrery/world-textures.manifest.json`. `check:orrery` fails if the images no longer match the math.
+- The bake writes WebP at quality 90, or lossless WebP where that is smaller (the tiled Games surface). `sharp` is a development dependency used only by the bake script.
+- If a surface image fails to load, that world falls back to a flat tint of its atmosphere colour.
+- World labels and the Origin label stay hidden until the scene has positioned them (`data-ready` on `.orrery-scene`).
+- The home page and `/study/cabinet/` are now prerendered. `?selected=` is read by a small suspended component; the cabinet applies `?panel=` and `?year=` once after it mounts, with the same validation as before. Without JavaScript the home page shows the header, heading, and a working Explore menu.
+
+Checked in headless Chrome with software WebGL against the previous build: the reduced-motion home frame is pixel-identical (largest channel difference 1 of 255); `?selected=`, Return to Orrery, keyboard focus order, and six cabinet deep-link cases end in the same state as before; a 390px viewport and the image-failure fallback render without errors. Time to the first positioned frame in that environment fell from 9.8 s to 3.3 s. It has not been measured on a real GPU or a phone.
+
 ## Validation on 2026-11-01
 
 - Production static export and TypeScript pass.

@@ -96,3 +96,26 @@ assert.equal(artifactHref(artifacts.find((item) => item.id === "campaigns")), "h
 assert.equal(artifactHref(artifacts.find((item) => item.id === "workshop")), "/artifact/workshop");
 assert.equal(artifactHref(artifacts.find((item) => item.id === "cocktails")), "/study/cabinet");
 console.log("Seven complete gear pairs; distinct Games/Workshop; live destinations and Cabinet route pass.");
+
+// The Orrery loads baked world textures instead of generating them in the browser. Make sure the
+// committed images still correspond to the texture math and to the scene's world order.
+const { createHash } = await import("node:crypto");
+const { existsSync, statSync } = await import("node:fs");
+const worldTexture = await import("../lib/orrery/world-texture.mjs");
+const manifest = JSON.parse(readFileSync(new URL("../lib/orrery/world-textures.manifest.json", import.meta.url), "utf8"));
+const sceneStyles = vm.runInContext("worldConfigs.map((world) => world.style)", context);
+assert.deepEqual([...sceneStyles], worldTexture.worldTextureStyles, "worldConfigs styles must match worldTextureStyles in order");
+assert.deepEqual(manifest.worlds.map((world) => world.style), worldTexture.worldTextureStyles, "Manifest must list every world in order");
+assert.equal(manifest.width, worldTexture.worldTextureWidth);
+assert.equal(manifest.height, worldTexture.worldTextureHeight);
+assert.ok(!/makeWorldTexture|renderWorldTexturePixels/.test(source), "The scene must load baked textures, not generate them at runtime");
+manifest.worlds.forEach((world, index) => {
+  assert.equal(world.seed, worldTexture.worldTextureSeed(index), `${world.style}: seed changed; run pnpm run bake:worlds`);
+  const pixels = worldTexture.renderWorldTexturePixels(world.style, world.seed);
+  assert.equal(createHash("sha256").update(pixels).digest("hex"), world.pixelsSha256, `${world.style}: texture math changed; run pnpm run bake:worlds`);
+  const file = new URL(`../public/orrery/worlds/${world.file}`, import.meta.url);
+  assert.ok(existsSync(file), `${world.file} is missing; run pnpm run bake:worlds`);
+  assert.equal(statSync(file).size, world.bytes, `${world.file} does not match the manifest; run pnpm run bake:worlds`);
+  assert.equal(createHash("sha256").update(readFileSync(file)).digest("hex"), world.fileSha256, `${world.file} does not match the manifest; run pnpm run bake:worlds`);
+});
+console.log(`Baked world textures: ${manifest.worlds.length} images match the texture math (${Math.round(manifest.worlds.reduce((sum, world) => sum + world.bytes, 0) / 1024)} KB).`);

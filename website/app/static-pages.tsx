@@ -1,8 +1,7 @@
 "use client";
 import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { OrreryHome } from './prototype-lab';
 import { MotionStudy } from './motion-study';
-export function HomeClient() { const q=useSearchParams(); return <OrreryHome initialSelectedId={q.get('selected')||undefined}/>; }
-export function CabinetClient() { const q=useSearchParams(); const panel=q.get('panel'); const section=panel==='backstory'||panel==='recipes'||panel==='advent'?panel:'overview'; const y=Number(q.get('year')); return <MotionStudy concept="cabinet" initialSection={section} initialYear={Number.isInteger(y)&&y>=2020&&y<=2100?y:undefined}/>; }
+// The cabinet restores ?panel= and ?year= from the address bar itself after it mounts, so this
+// page can be prerendered instead of waiting for the browser to read the query string.
+export function CabinetClient() { return <MotionStudy concept="cabinet" />; }
 export function RedirectClient({href}:{href:string}) { useEffect(()=>{window.location.replace(href+window.location.search+window.location.hash);},[href]);return <a href={href}>Continue</a>; }

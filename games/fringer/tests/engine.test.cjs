@@ -10,6 +10,7 @@ function fixture(knots,colors=[0,1,2,3]){
 test('3,000 generated boards reverse to a complete solution',()=>{
   for(let seed=1;seed<=100;seed++)for(let level=1;level<=30;level++){
     const g=new Game(seed);g.level=level;g.newLevel();
+    assert.equal(g.cleared,0,`No free starting ropes: seed=${seed} level=${level}`);
     let safety=100;
     while(g.knots.length&&safety--){
       const knot=g.knots.reduce((a,b)=>a.id>b.id?a:b);

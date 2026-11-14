@@ -387,7 +387,8 @@ class Game {
       // Prefer shallow columns to keep the first board broad and readable.
       const minHeight = Math.min(...choices.map(i=>Math.max(heights[i],heights[i+1])));
       const pool = step < n ? choices.filter(i=>Math.max(heights[i],heights[i+1])===minHeight) : choices;
-      const c = pool[Math.floor(rng()*pool.length)];
+      const coverPairs=Math.floor(n/2);
+      const c = step<coverPairs ? step*2 : (n%2 && step===coverPairs ? n-2 : pool[Math.floor(rng()*pool.length)]);
       const row = Math.max(heights[c],heights[c+1])+1;
       dir *= -1;
       this.knots.push({id:this.nextId++,col:c,row,dir,spark:step%5===3,original:true});

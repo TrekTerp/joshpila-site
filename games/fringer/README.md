@@ -3,7 +3,7 @@
 A new browser implementation for the Retro Disk Box, inspired by the 1997 Microsoft Entertainment Pack: The Puzzle Collection game.
 
 - Live route: `/games/fringer/`.
-- The portable playable file is `index.html`; `icon.svg` is optional when opened offline.
+- The playable page is `index.html`. Keep the `assets/` folder beside it for painted Evolved graphics; the procedural view remains available if art fails to load.
 - Edit `src/engine.js`, `src/app.js`, `src/style.css`, and `src/page.html`.
 - Build with `python3 games/fringer/build.py` from the repository root.
 - Validate with `node games/fringer/tests/engine.test.cjs`.
@@ -28,3 +28,11 @@ Rules cross-check: [Pico Fringer developer's how-to-play and explanation of the 
 ## Validation
 
 Engine tests cover solvability, angle/color rules, blocked access, score farming, strand identity after lane collapse, sparkle awards, depleted bonuses, pressure ordering, immediate bottom loss, practice and terminal-state input handling, and determinism. Browser QA covers the three lessons, keyboard actions, on-screen controls, pause/resume, both looks, and the phone layout.
+
+## Evolved art pack
+
+The approved second sprite sheet is preserved at `art-source/evolved-pack-v1.png`. Run `python3 games/fringer/prepare-art.py` (Pillow + NumPy), then the normal build, to reproduce the sliced atlas, registration metadata, and turn icon. Preparation removes near-transparent color-key residue, normalizes rope ports, and reprojects the painted curved strands onto the engine’s cubic paths at all three supported lane spacings. Hardware uses cap/middle/cap drawing with repeating centers.
+
+`src/evolved-art.js` reads the same engine state as Classic. It paints braided ropes, sockets, tassels, walnut supports, the brass moving comb, both selection frames, sparkles and release bursts. Selection frames sit behind the ropes; the over-strand gets a narrow occlusion edge so same-color crossings stay legible. The cached atlas is WebP; all pieces are static and motion honors reduced-motion preferences.
+
+Run `node games/fringer/tests/art.test.cjs` to check art coverage, rendering invariance, and the retained Classic renderer hash.

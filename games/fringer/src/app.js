@@ -3,6 +3,7 @@
 'use strict';
 const $=id=>document.getElementById(id), canvas=$('board'), ctx=canvas.getContext('2d');
 const W=720,H=760,top=70,bottom=700,dy=(bottom-top)/16;
+const paintedArt=new EvolvedArt(ctx,FRINGER_ART);
 const palette=['#dbac58','#6aaca8','#d47e72','#91b474','#ad8dbc'];
 const paletteBright=['#e9bd5e','#55c9d0','#f48c93','#a4d66c','#bf9de3'];
 let game=new Fringer.Game(), running=false, look='evolved', sound=false, audio=null;
@@ -45,6 +46,7 @@ function star(cx,cy,r,color){
   ctx.lineTo(cx-r,cy);ctx.lineTo(cx-r*.27,cy-r*.27);ctx.closePath();ctx.fillStyle=color;ctx.fill();
 }
 function draw(t){
+  if(look==='evolved'&&paintedArt.render(game,t,flash,reduce))return;
   const classic=look==='classic', bg=classic?'#101b27':'#162b30';
   ctx.clearRect(0,0,W,H);ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   if(classic){ctx.fillStyle='#213342';for(let yy=0;yy<H;yy+=16)for(let xx=(yy%32?8:0);xx<W;xx+=16)ctx.fillRect(xx,yy,1,1);}

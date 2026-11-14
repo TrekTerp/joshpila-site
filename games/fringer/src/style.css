@@ -305,3 +305,10 @@ padding:10px}
 @media(max-width:650px){.board-wrap{height:clamp(350px,calc(100svh - 255px),620px);aspect-ratio:auto}}
 .overlay{overflow:auto}.modal{margin:auto}
 @media(min-width:651px){body[data-look=classic] .board-wrap{height:clamp(370px,calc(100svh - 340px),640px)}}
+
+.turn-art{width:27px;height:27px;object-fit:contain;vertical-align:middle;margin-right:5px}
+.turn-fallback{display:none}
+body[data-look=classic] .turn-art{display:none}
+body[data-look=classic] .turn-fallback{display:inline}
+body[data-look=evolved] .board-wrap{border-color:#a58a58;box-shadow:0 18px 60px #0005,0 0 0 4px #e5b56f07}
+@media(max-width:650px){body[data-look=evolved] .board-wrap{height:auto;aspect-ratio:720/760}}

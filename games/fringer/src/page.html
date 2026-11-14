@@ -24,7 +24,7 @@
 <div class="record"><span>BEST</span><strong id="best">0</strong></div>
 </div>
 <div class="board-wrap" id="boardWrap">
-<canvas id="board" width="720" height="760" tabindex="0" aria-label="Fringer playfield. Left and right select a pair, Space twists or untwists, Down spends a turn bonus. P pauses."></canvas>
+<canvas id="board" width="720" height="760" tabindex="0" aria-label="Fringer playfield. Left and right select a pair, Space or Up twists or untwists, Down spends a turn bonus, Enter repaints when available. P pauses."></canvas>
 <div id="overlay" class="overlay">
 <div class="modal" id="modal"></div>
 </div>
@@ -36,12 +36,14 @@
 <button id="right" aria-label="Move right"><span>→</span><small>RIGHT</small></button>
 <button id="flip"><span><img class="turn-art" src="assets/turn-bonus-v1.png" alt=""><span class="turn-fallback">↻ </span><b id="bonus">2</b></span><small>TURN · ↓</small></button>
 </div>
+<div id="mobileSpecial"><div class="special-strip" id="special" hidden><div><strong id="specialTitle"></strong><span id="specialTime"></span></div><progress id="specialProgress" max="1" value="1" aria-label="Special effect time remaining"></progress><p id="specialNote"></p><button id="paint">Repaint · Enter</button></div></div>
 </section>
 <aside>
 <div class="aside-title"><span class="eyebrow">THE PUZZLE COLLECTION · 1997</span><h1>One good turn.</h1><p>Follow the threads.<br>Find your way out.</p></div>
 <div class="settings"><span class="eyebrow">LOOK</span><div class="segmented" role="group" aria-label="Visual style"><button id="evolved" aria-pressed="true">Evolved</button><button id="classic" aria-pressed="false">Classic</button></div><p class="fine">Two looks. The same knotty rules.</p></div>
+<div id="desktopSpecial"></div>
 <div class="guide"><h2>Find the loose end</h2><ol><li><b>Choose two neighboring ropes.</b><br>Use ← → or tap a pair.</li><li><b>Match the top thread’s angle.</b><br>Space unties a matching knot. A blocked pair gets a new twist.</li><li><b>Keep ahead of the bar.</b><br>Free all the ropes before a knot reaches the bottom.</li></ol><div class="bonus-note"><span>✦</span><p>Sparkling knots earn a free turn. Press <kbd>↓</kbd> to change your angle without adding a knot.</p></div></div>
-<div class="aside-foot"><button id="newGame" class="text-btn">New game</button><button id="lesson" class="text-btn">Learn to play</button><button id="about" class="text-btn">About this remake</button><a href="../">Back to the game pack ↗</a></div>
+<div class="aside-foot"><button id="newGame" class="text-btn">New game</button><button id="lesson" class="text-btn">Learn to play</button><button id="specialPractice" class="text-btn">Try special rules</button><button id="about" class="text-btn">About this remake</button><a href="../">Back to the game pack ↗</a></div>
 </aside>
 </main>
 <footer>A little less tangled, one turn at a time.</footer>

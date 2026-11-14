@@ -29,6 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: node games/fringer/tests/engine.test.cjs
       - run: pnpm install --frozen-lockfile
         working-directory: website
       - run: pnpm run check:astronomy && pnpm run check:cocktail-import && pnpm run check:backend && pnpm run build && pnpm run check:cocktails && pnpm run check:orrery

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#121e25">
+<meta name="description" content="Untwist the ropes before the bar pushes the knots to the bottom. A Fringer browser remake for Josh's Retro Disk Box.">
+<title>Fringer · Retro Disk Box</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<!-- STYLE -->
+</head>
+<body data-look="evolved">
+<header class="topbar">
+<a href="../" class="back">← <span>Retro Disk Box</span></a>
+<a class="wordmark" href="#" id="homeLink">FRINGER<span>UNWEAVE THE TANGLE</span></a>
+<div class="tools"><button id="sound" aria-label="Enable sound" aria-pressed="false">Sound off</button><button id="help" aria-label="How to play">?</button><button id="pause">Pause</button></div>
+</header>
+<main>
+<section class="play-column" aria-label="Fringer game">
+<div class="scorebar">
+<div><span>LEVEL</span><strong id="level">01</strong></div>
+<div><span>SCORE</span><strong id="score">0</strong></div>
+<div><span>ROPES FREED</span><strong id="freed">0 / 6</strong></div>
+<div class="record"><span>BEST</span><strong id="best">0</strong></div>
+</div>
+<div class="board-wrap" id="boardWrap">
+<canvas id="board" width="720" height="760" tabindex="0" aria-label="Fringer playfield. Left and right select a pair, Space twists or untwists, Down spends a turn bonus. P pauses."></canvas>
+<div id="overlay" class="overlay">
+<div class="modal" id="modal"></div>
+</div>
+</div>
+<div class="status" id="status" role="status" aria-live="polite">Untie the knots. Free every rope.</div>
+<div class="controls" aria-label="Game controls">
+<button id="left" aria-label="Move left"><span>←</span><small>LEFT</small></button>
+<button id="twist" class="action"><span>Twist / untwist</span><small>SPACE</small></button>
+<button id="right" aria-label="Move right"><span>→</span><small>RIGHT</small></button>
+<button id="flip"><span>↻ <b id="bonus">2</b></span><small>TURN · ↓</small></button>
+</div>
+</section>
+<aside>
+<div class="aside-title"><span class="eyebrow">THE PUZZLE COLLECTION · 1997</span><h1>One good turn.</h1><p>Follow the threads.<br>Find your way out.</p></div>
+<div class="settings"><span class="eyebrow">LOOK</span><div class="segmented" role="group" aria-label="Visual style"><button id="evolved" aria-pressed="true">Evolved</button><button id="classic" aria-pressed="false">Classic</button></div><p class="fine">Two looks. The same knotty rules.</p></div>
+<div class="guide"><h2>Find the loose end</h2><ol><li><b>Choose two neighboring ropes.</b><br>Use ← → or tap a pair.</li><li><b>Match the top thread’s angle.</b><br>Space unties a matching knot. A blocked pair gets a new twist.</li><li><b>Keep ahead of the bar.</b><br>Free all the ropes before a knot reaches the bottom.</li></ol><div class="bonus-note"><span>✦</span><p>Sparkling knots earn a free turn. Press <kbd>↓</kbd> to change your angle without adding a knot.</p></div></div>
+<div class="aside-foot"><button id="newGame" class="text-btn">New game</button><button id="lesson" class="text-btn">Learn to play</button><button id="about" class="text-btn">About this remake</button><a href="../">Back to the game pack ↗</a></div>
+</aside>
+</main>
+<footer>A little less tangled, one turn at a time.</footer>
+<!-- ENGINE -->
+<!-- APP -->
+</body>
+</html>

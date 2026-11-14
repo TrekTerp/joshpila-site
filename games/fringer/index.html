@@ -645,6 +645,11 @@ function pause(){
 }
 function help(){showModal('help',`<span class="eyebrow">HOW TO PLAY</span><h2>Find your angle.</h2><p>Move the frame left or right. It rises to the lowest reachable position between two ropes.</p><p><b>Space</b> unties a knot when your frame matches the angle of the thread passing over the top. Same-color knots work from either angle.</p><p>At a blocked pair, Space adds a twist. Every twist or untwist turns your frame.</p><p><b>↓</b> spends a sparkling-knot bonus to turn without twisting. Freed ropes vanish. A knot reaching the bottom ends the game.</p>${button('close','Got it',true)}`);}
 function about(){showModal('about',`<span class="eyebrow">REMADE FOR THE GAME PACK</span><h2>A familiar tangle.</h2><p>Inspired by Fringer, designed by Alexey Pajitnov and Vladimir Pokhilko for Microsoft’s 1997 <i>The Puzzle Collection</i>.</p><p>This is a fresh browser implementation with new art, generated levels, sound and scoring. Classic and Evolved change only the presentation.</p><p class="fine">v1 implements the core rope, angle, sparkle and advancing-bar game. Original fire, repaint and bonus-stage variations are not implemented. Timing and scoring are newly tuned.</p><p class="fine"><a href="https://www.lexaloffle.com/bbs/?pid=picofringer-3" target="_blank" rel="noreferrer">Rules cross-check: Pico Fringer ↗</a></p>${button('close','Back',true)}`);}
+function returnToGame(){
+  if(!running){menu();return;}
+  paused=false;
+  if(game.state==='playing'){closeModal();targetStatus();}else afterAction();
+}
 function restart(){showModal('restart',`<h2>Start again?</h2><p>This ends the current run.</p>${button('start','New game',true)}${button('close','Keep playing')}`);}
 $('modal').addEventListener('click',e=>{
   const action=e.target.closest('[data-action]')?.dataset.action;
@@ -653,7 +658,7 @@ $('modal').addEventListener('click',e=>{
   else if(action==='resume'){paused=false;closeModal();targetStatus();}
   else if(action==='menu')menu();else if(action==='restart')restart();
   else if(action==='next'){game.next();closeModal();targetStatus();}
-  else if(action==='close'){if(!running)menu();else{paused=false;closeModal();targetStatus();}}
+  else if(action==='close')returnToGame();
 });
 $('evolved').onclick=()=>setLook('evolved');$('classic').onclick=()=>setLook('classic');
 $('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',sound);$('sound').setAttribute('aria-label',sound?'Disable sound':'Enable sound');if(sound)playTone('untie');};
@@ -671,7 +676,7 @@ canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')selectPoint
 canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();canvas.focus();selectPoint(e);act();});
 window.addEventListener('keydown',e=>{
   if(e.key==='Tab'&&modalKind){const items=[...$('modal').querySelectorAll('button,a')];if(items.length){if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus();}}return;}
-  if(e.key==='Escape'||e.key.toLowerCase()==='p'){e.preventDefault();if(modalKind&&modalKind!=='paused'){if(running&&game.state==='playing'){paused=false;closeModal();}else if(modalKind==='help'||modalKind==='about')menu();}else pause();return;}
+  if(e.key==='Escape'||e.key.toLowerCase()==='p'){e.preventDefault();if(modalKind&&modalKind!=='paused'){if(['help','about','restart'].includes(modalKind))returnToGame();}else pause();return;}
   if(modalKind)return;
   // Preserve normal keyboard operation for focused buttons and links.
   if(/^(BUTTON|A)$/.test(document.activeElement?.tagName)&&[' ','Enter'].includes(e.key))return;

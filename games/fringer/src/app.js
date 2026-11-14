@@ -8,7 +8,7 @@ const palette=['#dbac58','#6aaca8','#d47e72','#91b474','#ad8dbc'];
 const paletteBright=['#e9bd5e','#55c9d0','#f48c93','#a4d66c','#bf9de3'];
 let game=new Fringer.Game(), running=false, look='evolved', sound=false, audio=null;
 let modalKind='menu', last=0, flash=null, lastHud='', tutorial=-1, savedBest=0;
-let paused=false, focusBeforeModal=null;
+let paused=false, focusBeforeModal=null, practiceKind=null;
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 try{savedBest=Number(localStorage.getItem('fringer.best.v1'))||0;look=localStorage.getItem('fringer.look.v1')||'evolved';}catch{}
 function saveBest(){if(!game.practice&&game.score>savedBest){savedBest=game.score;try{localStorage.setItem('fringer.best.v1',savedBest);}catch{}}}
@@ -46,7 +46,7 @@ function star(cx,cy,r,color){
   ctx.lineTo(cx-r,cy);ctx.lineTo(cx-r*.27,cy-r*.27);ctx.closePath();ctx.fillStyle=color;ctx.fill();
 }
 function draw(t){
-  if(look==='evolved'&&paintedArt.render(game,t,flash,reduce))return;
+  if(look==='evolved'&&paintedArt.render(game,t,flash,reduce)){drawVariations(t);return;}
   const classic=look==='classic', bg=classic?'#101b27':'#162b30';
   ctx.clearRect(0,0,W,H);ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   if(classic){ctx.fillStyle='#213342';for(let yy=0;yy<H;yy+=16)for(let xx=(yy%32?8:0);xx<W;xx+=16)ctx.fillRect(xx,yy,1,1);}
@@ -86,7 +86,7 @@ function draw(t){
   const danger=game.knots.some(k=>k.row>13);
   ctx.strokeStyle=danger?'#ed8c7c':'#bc827255';ctx.lineWidth=1;ctx.setLineDash([5,6]);ctx.beginPath();ctx.moveTo(40,bottom);ctx.lineTo(W-40,bottom);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=danger?'#f4a797':'#ad9082';ctx.textAlign='center';ctx.font='9px system-ui';ctx.fillText('DO NOT LET A KNOT CROSS THIS LINE',W/2,H-18);
-  if(!game.practice&&game.bar>=-.3){
+  if(!game.practice&&!game.powerUp&&game.bar>=-.3){
     const by=y(game.bar);rounded(35,by-5,W-70,10,classic?0:3,classic?'#c0c0c0':'#ab9270','#dcc7a3');
     for(let c=0;c<n;c++)rounded(x(c)-3,by+3,6,10,2,'#aa9170');
   }
@@ -103,22 +103,56 @@ function draw(t){
   if(flash&&t-flash.time<650&&!reduce){
     const age=(t-flash.time)/650;ctx.globalAlpha=1-age;ctx.fillStyle='#ffdd99';ctx.font='bold 18px system-ui';ctx.textAlign='center';ctx.fillText(flash.text,flash.x,flash.y-age*40);ctx.globalAlpha=1;
   }
+  drawVariations(t);
+}
+function drawVariations(t){
+  const power=game.powerUp;if(!power)return;
+  const row=(1-power.remaining/power.duration)*16,by=y(row);
+  const paint=power.type==='paint',color=paint?'#b39bff':'#ff795b';
+  ctx.save();ctx.fillStyle='#0d1c27';ctx.fillRect(38,12,390,20);ctx.fillStyle=color;ctx.font='bold 11px system-ui';ctx.textAlign='left';
+  ctx.fillText(paint?(power.queued?'REPAINT QUEUED':'REPAINT AVAILABLE · ENTER'):'FIRE · CONNECT THE TWO RED DOTS',47,26);
+  line(()=>{ctx.moveTo(40,by);ctx.lineTo(W-40,by);},'#101820',7);
+  line(()=>{ctx.moveTo(40,by);ctx.lineTo(W-40,by);},color,3);
+  if(!paint){
+    const topCol=game.ropes.findIndex(r=>r.id===power.topId);
+    for(const [cx,cy] of [[x(topCol),83],[x(power.bottomCol),724]]){
+      ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);ctx.fillStyle='#9b2420';ctx.fill();ctx.strokeStyle='#ffe5cd';ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle='#ff7657';ctx.fill();
+    }
+    ctx.fillStyle='#10252a';ctx.fillRect(170,732,380,22);
+    ctx.textAlign='center';ctx.fillStyle='#ffe0bd';ctx.font='bold 11px system-ui';
+    ctx.fillText(game.fireConnected()?'CONNECTED · HOLD THE ROUTE':'CONNECT BEFORE THE RED BAR FINISHES',W/2,747);
+  }
+  ctx.restore();
+}
+function powerHud(){
+  const p=game.powerUp;$('special').hidden=!p;
+  $('paint').hidden=p?.type!=='paint';$('paint').disabled=!p||p.queued||paused||!!modalKind||!running;
+  if(!p)return;
+  $('specialTitle').textContent=p.type==='fire'?'Candle fire':p.queued?'Repaint queued':'Paintbrush available';
+  $('specialTime').textContent=`${Math.ceil(p.remaining)}s`;
+  $('specialProgress').value=p.remaining/p.duration;
+  $('specialNote').textContent=p.type==='fire'?(game.fireConnected()?'Connected. Keep the marked route until the red bar finishes.':'Route the top red dot to the bottom red dot before the red bar finishes.'):(p.queued?'Colors will change when the violet bar finishes.':'Enter changes the whole color scheme at the end of this pass. It may help or hurt.');
+  $('paint').textContent=p.queued?'Queued':'Repaint · Enter';
 }
 function hud(){
-  $('level').textContent=game.practice?'PRACTICE':String(game.level).padStart(2,'0');
+  $('level').textContent=game.practice?(game.bonusLevel?`PRACTICE B${game.bonusLevel}`:'PRACTICE'):game.stageLabel;
   $('score').textContent=game.score.toLocaleString();$('freed').textContent=`${game.cleared} / ${game.startRopes}`;
   $('best').textContent=savedBest.toLocaleString();$('bonus').textContent=game.practice?'∞':game.bonuses;
   $('flip').disabled=!game.practice&&game.bonuses===0;
   const active=running&&!paused&&!modalKind;
   for(const id of ['left','right','twist'])$(id).disabled=!active;
   $('flip').disabled=!active||(!game.practice&&game.bonuses===0);
-  $('pause').disabled=!running; $('pause').textContent=paused?'Resume':'Pause';
+  $('pause').disabled=!running; $('pause').textContent=paused?'Resume':'Pause';powerHud();
 }
 function status(text){if(text!==lastHud){$('status').textContent=text;lastHud=text;}}
 function targetStatus(){
   if(game.practice&&tutorial===0)return status('Lesson 1: the frame is over a knot. Press Space or tap Twist / untwist.');
   if(game.practice&&tutorial===1)return status('Lesson 2: different colors, wrong angle. Press ↓ to turn, then Space to untie.');
-  if(game.practice)return status('Lesson 3: use ← → to choose a pair. Free all four ropes. Turns are unlimited.');
+  if(game.practice&&tutorial===2)return status('Lesson 3: use ← → to choose a pair. Free all four ropes. Turns are unlimited.');
+  if(practiceKind==='fire')return status('Fire practice: untie the lower knot, then keep the red dots connected until the pass ends.');
+  if(practiceKind==='paint')return status('Repaint practice: press Enter or Repaint, then watch the colors at the end of the pass.');
+  if(practiceKind==='bonus')return status('Bonus practice: one screen per bonus level. No pressure or recorded high score.');
   status('← → choose a pair · Space twist / untwist · ↓ spend a turn bonus');
 }
 function showModal(kind,html){
@@ -129,12 +163,23 @@ function showModal(kind,html){
 }
 function closeModal(){modalKind=null;$('overlay').hidden=true;last=performance.now();hud();canvas.focus();}
 const button=(action,label,primary=false)=>`<button data-action="${action}" class="${primary?'primary':'secondary'}">${label}</button>`;
-function menu(){running=false;paused=false;tutorial=-1;game=new Fringer.Game();
-  showModal('menu',`<span class="eyebrow">A RETRO DISK BOX REMAKE</span><h2>Fringer</h2><p>A few colored ropes.<br>A wonderfully tangled problem.</p><p>Unweave every knot before the bar pushes it to the bottom.</p>${button('start','Play Fringer',true)}<br>${button('learn','Learn to play')}<p class="fine">Keyboard, mouse, or touch · best score saved here</p>`);status('Untie the knots. Free every rope.');
+function menu(){running=false;paused=false;tutorial=-1;practiceKind=null;game=new Fringer.Game();
+  showModal('menu',`<span class="eyebrow">A RETRO DISK BOX REMAKE</span><h2>Fringer</h2><p>A few colored ropes.<br>A wonderfully tangled problem.</p><p>Unweave every knot before the bar pushes it to the bottom.</p><label class="start-level" for="startLevel">Start level <select id="startLevel">${Array.from({length:9},(_,i)=>`<option>${i+1}</option>`).join('')}</select></label>${button('start','Play Fringer',true)}<br>${button('learn','Learn to play')}<p class="fine">Keyboard, mouse, or touch · best score saved here</p>`);status('Untie the knots. Free every rope.');
 }
-function start(){tutorial=-1;game=new Fringer.Game();running=true;paused=false;closeModal();targetStatus();}
+function start(){const level=$('startLevel')?.value||1;tutorial=-1;practiceKind=null;game=new Fringer.Game(Date.now(),false,level);running=true;paused=false;closeModal();targetStatus();}
+function specialMenu(){showModal('specialMenu',`<span class="eyebrow">TRY THE SPECIAL RULES</span><h2>A new twist.</h2><p>Short practice boards. No high scores; the fire and repaint timers still run.</p>${button('practiceFire','Fire practice',true)}${button('practicePaint','Repaint practice')}${button('practiceBonus','Bonus practice')}<p class="fine">Starting practice ends the current run.</p>${button('close','Back')}`);}
+function specialPractice(kind){
+  tutorial=-1;practiceKind=kind;game=new Fringer.Game(42,true,kind==='bonus'?9:3);
+  if(kind==='bonus'){game.bonusLevel=1;game.newLevel();}
+  else{
+    game.ropes=[{id:0,color:0},{id:1,color:1}];game.startRopes=2;game.cleared=0;game.score=0;game.colorCount=2;game.column=0;
+    game.knots=[{id:0,col:0,row:3,dir:1,spark:false,original:true},{id:1,col:0,row:6,dir:-1,spark:true,original:true}];game.direction=-1;game.nextId=2;
+    game.startPower(kind,15);if(kind==='fire'){game.powerUp.topId=0;game.powerUp.bottomCol=1;}game.drainEvents();
+  }
+  running=true;paused=false;closeModal();targetStatus();
+}
 function lessonBoard(index){
-  tutorial=index;game=new Fringer.Game(42,true);game.ropes=Array.from({length:index===2?4:2},(_,id)=>({id,color:index===0?0:id%2}));
+  tutorial=index;practiceKind=null;game=new Fringer.Game(42,true);game.ropes=Array.from({length:index===2?4:2},(_,id)=>({id,color:index===0?0:id%2}));
   game.knots=index===2?[{id:0,col:1,row:3,dir:1,spark:true,original:true},{id:1,col:0,row:5,dir:-1,spark:false,original:true},{id:2,col:2,row:6,dir:1,spark:true,original:true}]:[{id:0,col:0,row:6,dir:1,spark:index===1,original:true}];
   game.direction=index===1?-1:1;game.column=index===2?2:0;game.state='playing';game.score=0;game.cleared=0;game.startRopes=game.ropes.length;game.nextId=3;game.bar=-1.2;
   running=true;paused=false;closeModal();targetStatus();
@@ -148,15 +193,33 @@ function act(){
     flash={...pos,time:performance.now(),text:event.freed?`${event.freed} rope${event.freed===1?'':'s'} freed`:event.spark?'✦ +1 turn':event.points?`+${event.points}`:'Untied'};
     status(event.spark?'Spark collected: +1 turn bonus.':event.freed?`${event.freed} rope${event.freed===1?'':'s'} freed. Keep going!`:'Knot untied. Your frame turns after each move.');
   }else{playTone('twist');status('A twist was added. Your angle has changed.');}
-  afterAction();
+  processEvents();afterAction();
+}
+function processEvents(){
+  const events=game.drainEvents();
+  for(const e of events){
+    if(e.type==='burn'){playTone('free');flash={x:W/2,y:300,time:performance.now(),text:`${e.freed} rope${e.freed===1?'':'s'} burned / freed`};status(`Fire cleared ${e.freed} rope${e.freed===1?'':'s'}.`);}
+    else if(e.type==='repaint'){playTone('flip');status('The whole color scheme changed. Check which knots now match.');}
+    else if(e.type==='paintQueued')status('Repaint queued. It takes effect when the violet bar finishes.');
+    else if(e.type==='fireMiss')status('The fire pass ended without a connected route. No ropes burned.');
+    else if(e.type==='fireReleased')status('The marked rope was untied normally. Fire opportunity complete.');
+    else if(e.type==='paintSkipped')status('Paintbrush passed. Colors kept.');
+    else if(e.type==='powerStart')status(e.power==='fire'?'Candle: connect the two red dots before the red bar finishes.':'Paintbrush: press Enter to queue a new color scheme.');
+  }
+  if(events.length)hud();
 }
 function afterAction(){
   saveBest();hud();
   if(game.state==='won'){
     if(tutorial>=0){
       showModal('lessonWon',`<span class="eyebrow">LESSON ${tutorial+1} OF 3</span><h2>${tutorial===2?'You’ve got it.':'Nicely untied.'}</h2><p>${tutorial===0?'Same-color knots can be untied from either angle. Different colors ask a little more of you.':tutorial===1?'A turn bonus changes the frame without adding a knot. Sparkling knots replenish your supply.':'In a real game, the bar advances and turn bonuses are limited. Keep working from the loose ends.'}</p>${button(tutorial===2?'start':'nextLesson',tutorial===2?'Play Fringer':'Next lesson',true)}`);
-    }else showModal('won',`<span class="eyebrow">LEVEL ${game.level} COMPLETE</span><h2>All unwoven.</h2><p>${game.startRopes} ropes freed · ${game.timeBonus} time bonus</p><p>Score <b>${game.score.toLocaleString()}</b></p>${button('next','Next level',true)}${button('menu','Main menu')}`);
-  }else if(game.state==='lost')showModal('lost',`<span class="eyebrow">THE TANGLE CAUGHT UP</span><h2>One knot too far.</h2><p>Level ${game.level} · ${game.totalFreed} ropes freed</p><p>Final score <b>${game.score.toLocaleString()}</b></p>${button('start','Try again',true)}${button('menu','Main menu')}`);
+    }else if(practiceKind&&practiceKind!=='bonus')showModal('practiceWon',`<span class="eyebrow">PRACTICE COMPLETE</span><h2>All unwoven.</h2><p>${game.startRopes} ropes freed.</p>${button('specialMenu','Try another variation',true)}${button('start','Play Fringer')}`);
+    else{
+      const finale=!game.bonusLevel&&game.level===9&&game.screen===3;
+      const nextLabel=finale?'Enter bonus levels':game.bonusLevel?'Next bonus level':game.screen===3?'Next level':'Next screen';
+      showModal('won',`<span class="eyebrow">${game.stageLabel} COMPLETE</span><h2>${finale?'You beat Fringer!':'All unwoven.'}</h2><p>${finale?'All nine main levels cleared. The challenge continues with single-screen bonus levels.':`${game.startRopes} ropes freed · ${game.timeBonus} time bonus`}</p>${game.stageBonus?`<p>Bonus-stage award: <b>+${game.stageBonus.toLocaleString()}</b></p>`:''}<p>Score <b>${game.score.toLocaleString()}</b></p>${button('next',nextLabel,true)}${button('menu','Main menu')}`);
+    }
+  }else if(game.state==='lost')showModal('lost',`<span class="eyebrow">THE TANGLE CAUGHT UP</span><h2>One knot too far.</h2><p>${game.stageLabel} · ${game.totalFreed} ropes freed</p><p>Final score <b>${game.score.toLocaleString()}</b></p>${button('start','Try again',true)}${button('menu','Main menu')}`);
 }
 function pause(){
   if(!running)return;
@@ -164,8 +227,9 @@ function pause(){
   if(modalKind)return;paused=true;
   showModal('paused',`<span class="eyebrow">TAKE YOUR TIME</span><h2>Paused.</h2><p>The ropes can wait.</p>${button('resume','Resume',true)}${button('restart','New game')}`);status('Paused.');
 }
-function help(){showModal('help',`<span class="eyebrow">HOW TO PLAY</span><h2>Find your angle.</h2><p>Move the frame left or right. It rises to the lowest reachable position between two ropes.</p><p><b>Space</b> unties a knot when your frame matches the angle of the thread passing over the top. Same-color knots work from either angle.</p><p>At a blocked pair, Space adds a twist. Every twist or untwist turns your frame.</p><p><b>↓</b> spends a sparkling-knot bonus to turn without twisting. Freed ropes vanish. A knot reaching the bottom ends the game.</p>${button('close','Got it',true)}`);}
-function about(){showModal('about',`<span class="eyebrow">REMADE FOR THE GAME PACK</span><h2>A familiar tangle.</h2><p>Inspired by Fringer, designed by Alexey Pajitnov and Vladimir Pokhilko for Microsoft’s 1997 <i>The Puzzle Collection</i>.</p><p>This is a fresh browser implementation with new art, generated levels, sound and scoring. Classic and Evolved change only the presentation.</p><p class="fine">v1 implements the core rope, angle, sparkle and advancing-bar game. Original fire, repaint and bonus-stage variations are not implemented. Timing and scoring are newly tuned.</p><p class="fine"><a href="https://www.lexaloffle.com/bbs/?pid=picofringer-3" target="_blank" rel="noreferrer">Rules cross-check: Pico Fringer ↗</a></p>${button('close','Back',true)}`);}
+function help(){showModal('help',`<span class="eyebrow">HOW TO PLAY</span><h2>Find your angle.</h2><p>← → selects a pair. <b>Space or ↑</b> twists or untwists. Match the over-strand’s angle; same-color knots work from either angle. <b>↓</b> spends a sparkle to turn the frame.</p><p><b>Fire:</b> route the marked top rope to the bottom red dot. The connected rope burns away when the red bar finishes.</p><p><b>Repaint:</b> while the brush is available, <b>Enter</b> queues a new color scheme. It takes effect when the violet bar finishes, and may make the puzzle easier or harder.</p><p>Clear three screens per level, through level 9. Then continue through single-screen bonus levels. A knot reaching the bottom ends the run.</p>${button('specialMenu','Try special rules')}${button('close','Got it',true)}`);}
+
+function about(){showModal('about',`<span class="eyebrow">REMADE FOR THE GAME PACK</span><h2>A familiar tangle.</h2><p>Inspired by Fringer, designed by Alexey Pajitnov and Vladimir Pokhilko for Microsoft’s 1997 <i>The Puzzle Collection</i>.</p><p>This is a fresh browser implementation with new art, generated levels, sound and scoring. Classic and Evolved change only the presentation.</p><p class="fine">Includes candle fire, whole-scheme repainting, nine three-screen levels and continuing single-screen bonus levels. Generated boards, effect availability and pressure timing are tuned for this remake; this is not a binary port. Bonus-stage completion awards follow the original help table.</p><p class="fine"><a href="https://archive.org/details/MEPTPC" target="_blank" rel="noreferrer">Rules source: original Fringer help and tips ↗</a></p>${button('close','Back',true)}`);}
 function returnToGame(){
   if(!running){menu();return;}
   paused=false;
@@ -178,39 +242,47 @@ $('modal').addEventListener('click',e=>{
   if(action==='start')start();else if(action==='learn')lessonBoard(0);else if(action==='nextLesson')lessonBoard(tutorial+1);
   else if(action==='resume'){paused=false;closeModal();targetStatus();}
   else if(action==='menu')menu();else if(action==='restart')restart();
+  else if(action==='specialMenu')specialMenu();
+  else if(action==='practiceFire')specialPractice('fire');else if(action==='practicePaint')specialPractice('paint');else if(action==='practiceBonus')specialPractice('bonus');
   else if(action==='next'){game.next();closeModal();targetStatus();}
   else if(action==='close')returnToGame();
 });
 $('evolved').onclick=()=>setLook('evolved');$('classic').onclick=()=>setLook('classic');
 $('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',sound);$('sound').setAttribute('aria-label',sound?'Disable sound':'Enable sound');if(sound)playTone('untie');};
-$('pause').onclick=pause;$('help').onclick=help;$('about').onclick=about;
+$('pause').onclick=pause;$('help').onclick=help;$('about').onclick=about;$('specialPractice').onclick=specialMenu;
 $('newGame').onclick=()=>running?restart():start();$('lesson').onclick=()=>{
   if(running)showModal('restart',`<h2>Open the lesson?</h2><p>This ends your current run.</p>${button('learn','Learn to play',true)}${button('close','Keep playing')}`);else lessonBoard(0);
 };
 $('homeLink').onclick=e=>{e.preventDefault();if(running)restart();else menu();};
 function move(d){if(!running||paused||modalKind)return;game.move(d);targetStatus();}
 function flip(){if(!running||paused||modalKind)return;if(game.flip()){playTone('flip');status('Frame turned. No knot added.');}else status('No turn bonuses left. Untie a sparkling knot to earn one.');hud();}
+function repaint(){if(!running||paused||modalKind)return;if(game.repaint())processEvents();hud();}
+$('paint').onclick=repaint;
 $('left').onclick=()=>move(-1);$('right').onclick=()=>move(1);$('twist').onclick=act;$('flip').onclick=flip;
 function point(e){const rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)*W/rect.width,y:(e.clientY-rect.top)*H/rect.height};}
 function selectPoint(e){if(!running||paused||modalKind||game.ropes.length<2)return;const p=point(e);let col=0,min=Infinity;for(let i=0;i<game.ropes.length-1;i++){const d=Math.abs(p.x-(x(i)+x(i+1))/2);if(d<min){min=d;col=i;}}game.select(col);}
 canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')selectPoint(e);});
 canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();canvas.focus();selectPoint(e);act();});
 window.addEventListener('keydown',e=>{
-  if(e.key==='Tab'&&modalKind){const items=[...$('modal').querySelectorAll('button,a')];if(items.length){if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus();}}return;}
-  if(e.key==='Escape'||e.key.toLowerCase()==='p'){e.preventDefault();if(modalKind&&modalKind!=='paused'){if(['help','about','restart'].includes(modalKind))returnToGame();}else pause();return;}
-  if(modalKind)return;
+  if(e.key==='Tab'&&modalKind){const items=[...$('modal').querySelectorAll('button:not(:disabled),a[href],select,input:not(:disabled),textarea:not(:disabled)')];if(items.length){if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0].focus();}}return;}
+  if(e.key==='Escape'||e.key.toLowerCase()==='p'){e.preventDefault();if(modalKind&&modalKind!=='paused'){if(['help','about','restart','specialMenu'].includes(modalKind))returnToGame();}else pause();return;}
+  if(modalKind||/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement?.tagName))return;
   // Preserve normal keyboard operation for focused buttons and links.
   if(/^(BUTTON|A)$/.test(document.activeElement?.tagName)&&[' ','Enter'].includes(e.key))return;
-  if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();
+  if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' ','Enter'].includes(e.key))e.preventDefault();
   if(e.key==='ArrowLeft')move(-1);else if(e.key==='ArrowRight')move(1);
-  else if(e.key===' '&&!e.repeat)act();else if((e.key==='ArrowDown'||e.key==='ArrowUp')&&!e.repeat)flip();
+  else if((e.key===' '||e.key==='ArrowUp')&&!e.repeat)act();else if(e.key==='ArrowDown'&&!e.repeat)flip();else if(e.key==='Enter'&&!e.repeat)repaint();
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!modalKind&&!paused)pause();});
 window.addEventListener('blur',()=>{if(running&&!modalKind&&!paused)pause();});
-function fit(){const rect=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);draw(performance.now());}
+function fit(){
+  const dock=window.matchMedia('(min-width:651px)').matches?$('desktopSpecial'):$('mobileSpecial');
+  if($('special').parentElement!==dock)dock.appendChild($('special'));
+  const rect=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);draw(performance.now());
+}
 new ResizeObserver(fit).observe(canvas);
 function frame(now){const dt=last?Math.min(.25,(now-last)/1000):0;last=now;
-  if(running&&!paused&&!modalKind){game.tick(dt);if(game.state==='lost')afterAction();}
+  if(running&&!paused&&!modalKind){game.tick(dt);processEvents();powerHud();if(game.state==='lost'||game.state==='won')afterAction();}
   draw(now);requestAnimationFrame(frame);
 }
 setLook(look);menu();fit();requestAnimationFrame(frame);

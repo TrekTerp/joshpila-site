@@ -107,7 +107,7 @@ class EvolvedArt {
     c.beginPath();c.moveTo(40,bottom);c.lineTo(W-40,bottom);c.stroke();c.setLineDash([]);
     c.fillStyle=danger?'#f4a797':'#b8a18c';c.textAlign='center';c.font='9px system-ui';
     c.fillText('DO NOT LET A KNOT CROSS THIS LINE',W/2,H-18);
-    if(!game.practice&&game.bar>=-.3)this.beam('comb',35,W-35,y(game.bar)-4,12);
+    if(!game.practice&&!game.powerUp&&game.bar>=-.3)this.beam('comb',35,W-35,y(game.bar)-4,12);
     if(flash&&time-flash.time<650){
       const age=(time-flash.time)/650;
       if(!reduce){c.save();c.globalAlpha=(1-age)*.85;const size=36+age*30;

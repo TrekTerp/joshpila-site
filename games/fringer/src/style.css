@@ -321,3 +321,17 @@ body[data-look=evolved] .board-wrap{border-color:#a58a58;box-shadow:0 18px 60px 
 .special-strip p{margin:6px 0;color:var(--muted)}
 .special-strip button{padding:7px 16px;margin-top:4px}
 body[data-look=classic] .special-strip{border-radius:0}
+
+
+/* The Evolved canvas must preserve its720:760 drawing proportions at every size. */
+body[data-look=evolved] .board-wrap{
+  height:auto;
+  aspect-ratio:720/760;
+  width:100%;
+  margin-inline:auto;
+}
+@media(min-width:651px){
+  body[data-look=evolved] .board-wrap{
+    width:min(100%,clamp(320px,calc((100svh - 300px) * 720 / 760),644px));
+  }
+}

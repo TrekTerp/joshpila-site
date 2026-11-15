@@ -1,20 +1,18 @@
 /* Painted Evolved view. This module only reads game state; Classic uses its original renderer. */
 class EvolvedArt {
   constructor(ctx, data) {
-    this.ctx=ctx;this.data=data;this.ready=false;this.patterns=[];
-    this.image=new Image();
+    this.ctx=ctx;this.data=data;this.ready=false;
+    this.image=new Image();this.material=new Image();
     document.documentElement.dataset.fringerArt='loading';
-    this.image.onload=()=>{
-      for(let i=0;i<5;i++){
-        const s=data.sprites[`straight${i}`],c=document.createElement('canvas');
-        c.width=19;c.height=122;
-        c.getContext('2d').drawImage(this.image,s.x,s.y,s.w,s.h,0,0,c.width,c.height);
-        this.patterns.push(ctx.createPattern(c,'repeat'));
-      }
+    const finish=()=>{
+      if(!this.image.complete||!this.image.naturalWidth||!this.material.complete||!this.material.naturalWidth)return;
+      this.ropePainter=new RopePainter(this.material);
       this.ready=true;document.documentElement.dataset.fringerArt='ready';
     };
-    this.image.onerror=()=>{document.documentElement.dataset.fringerArt='fallback';};
-    this.image.src=data.image;
+    this.image.onload=finish;this.material.onload=finish;
+    const failed=()=>{document.documentElement.dataset.fringerArt='fallback';};
+    this.image.onerror=failed;this.material.onerror=failed;
+    this.image.src=data.image;this.material.src='assets/rope-material-v2.png';
   }
   sprite(name,x,y,w,h){
     const s=this.data.sprites[name];if(!s)return;
@@ -30,11 +28,6 @@ class EvolvedArt {
     c.save();c.beginPath();c.rect(start,top-M.joinTop*scale,end-start,M.h*scale);c.clip();
     for(let x=start;x<end;x+=M.w*scale-0.5)this.sprite(prefix+'M',x,top-M.joinTop*scale,M.w*scale,M.h*scale);
     c.restore();
-  }
-  straight(color,x,from,to){
-    if(to<=from)return;
-    const c=this.ctx;c.save();c.translate(x-9.5,58);c.fillStyle=this.patterns[color];
-    c.fillRect(0,from-58,19,to-from);c.restore();
   }
   render(game,time,flash,reduce){
     if(!this.ready)return false;
@@ -58,33 +51,15 @@ class EvolvedArt {
       c.save();c.shadowColor='#fce1a866';c.shadowBlur=6;
       this.sprite('cursor'+game.direction,cx-(gap+29)/2,cy-27,gap+29,54);c.restore();
     }
-    const lanes=game.ropes.map(r=>r.id),ends=Array(n).fill(64);
-    const colors=new Map(game.ropes.map(r=>[r.id,r.color]));
-    const knots=[...game.knots].sort((a,b)=>a.row-b.row||a.col-b.col);
-    for(const k of knots){
-      const l=k.col,r=l+1,cy=y(k.row),half=dy*.44;
-      for(const col of [l,r])this.straight(colors.get(lanes[col]),x(col),ends[col]-0.5,cy-half+0.6);
-      const draw=(direction,color,over)=>{
-        if(over){
-          // A narrow occlusion edge separates even two identical-colored ropes.
-          c.save();c.strokeStyle='#09191f';c.lineWidth=18;c.lineCap='butt';
-          const from=direction===1?l:r,to=direction===1?r:l;
-          c.beginPath();c.moveTo(x(from),cy-half);
-          c.bezierCurveTo(x(from),cy-half*.25,x(to),cy+half*.25,x(to),cy+half);c.stroke();c.restore();
-        }
-        this.sprite(`curve${direction}_${color}_${gap.toFixed(2)}`,x(l)-12,cy-half,gap+24,half*2);
-      };
-      if(k.dir===1){draw(-1,colors.get(lanes[r]),false);draw(1,colors.get(lanes[l]),true);}
-      else{draw(1,colors.get(lanes[l]),false);draw(-1,colors.get(lanes[r]),true);}
-      [lanes[l],lanes[r]]=[lanes[r],lanes[l]];ends[l]=ends[r]=cy+half;
+    const endColors=this.ropePainter.draw(c,game);
+    for(const k of game.knots){
       if(k.spark){
         const p=reduce?1:.94+Math.sin(time/350+k.id)*.06;
-        this.sprite('spark',(x(l)+x(r))/2+13,cy-29,25*p,25*p);
+        this.sprite('spark',(x(k.col)+x(k.col+1))/2+13,y(k.row)-29,25*p,25*p);
       }
     }
     for(let col=0;col<n;col++){
-      const color=colors.get(lanes[col]);this.straight(color,x(col),ends[col]-0.6,bottom+6);
-      const s=this.data.sprites['tassel'+color],scale=15/s.neck;
+      const color=endColors[col],s=this.data.sprites['tassel'+color],scale=15/s.neck;
       this.sprite('tassel'+color,x(col)-s.anchor*scale,bottom+5,s.w*scale,s.h*scale);
     }
     // Eyelets sit over the rope starts, with their own painted cord meeting the braid.
@@ -119,3 +94,4 @@ class EvolvedArt {
   }
 }
 if(typeof module!=='undefined')module.exports={EvolvedArt};
+

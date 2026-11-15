@@ -18,7 +18,7 @@ const {EvolvedArt}=require('../src/evolved-art.js');
 // Exercise the actual renderer against a no-op drawing context. Rendering, themes,
 // pressure display and frame animation may not mutate engine state or use randomness.
 const drawing=new Proxy({createRadialGradient:()=>({addColorStop(){}})}, {get:(o,k)=>k in o?o[k]:(()=>{})});
-const view=Object.create(EvolvedArt.prototype);view.ctx=drawing;view.data=art;view.ready=true;view.image={};view.patterns=Array(5).fill({});
+const view=Object.create(EvolvedArt.prototype);view.ctx=drawing;view.data=art;view.ready=true;view.image={};view.ropePainter={draw:(_ctx,game)=>game.ropes.map(r=>r.color)};
 const rng=Math.random;Math.random=()=>{throw Error('Renderer consumed randomness');};
 try{
  for(const level of [1,4,7,9]){
@@ -33,3 +33,6 @@ try{
  }
 }finally{Math.random=rng;}
 console.log('PASS: all 30 crossing variants, immutable rendering, no visual RNG, original Classic renderer');
+
+
+require('./rope-renderer.test.cjs');

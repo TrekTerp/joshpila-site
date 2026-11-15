@@ -332,6 +332,20 @@ body[data-look=evolved] .board-wrap{border-color:#a58a58;box-shadow:0 18px 60px 
 .special-strip button{padding:7px 16px;margin-top:4px}
 body[data-look=classic] .special-strip{border-radius:0}
 
+
+/* The Evolved canvas must preserve its720:760 drawing proportions at every size. */
+body[data-look=evolved] .board-wrap{
+  height:auto;
+  aspect-ratio:720/760;
+  width:100%;
+  margin-inline:auto;
+}
+@media(min-width:651px){
+  body[data-look=evolved] .board-wrap{
+    width:min(100%,clamp(320px,calc((100svh - 300px) * 720 / 760),644px));
+  }
+}
+
 </style>
 </head>
 <body data-look="evolved">
@@ -581,6 +595,7 @@ class Game {
 root.Fringer={Game,LIMIT,random};
 if(typeof module!=='undefined') module.exports=root.Fringer;
 })(typeof globalThis!=='undefined'?globalThis:this);
+
 
 </script>
 <script>
@@ -950,25 +965,165 @@ const FRINGER_ART = {
   }
 };
 
+
+</script>
+<script>
+/* Controlled Evolved rope geometry. No game-state writes or visual randomness. */
+const RopeGeometry=(()=>{
+  const height=34.65,width=15,radius=10,collar=1.5,period=152*160/1254;
+  const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+  function create(gap){
+    let lo=.01,hi=Math.PI/2;
+    const inner=height-2*collar;
+    for(let i=0;i<50;i++){
+      const a=(lo+hi)/2;
+      const length=(gap-2*radius*(1-Math.cos(a)))/Math.sin(a);
+      if(2*radius*Math.sin(a)+length*Math.cos(a)>inner)lo=a;else hi=a;
+    }
+    const angle=(lo+hi)/2,sin=Math.sin(angle),cos=Math.cos(angle);
+    const diagonal=(gap-2*radius*(1-cos))/sin;
+    const arc=radius*angle,length=2*collar+2*arc+diagonal;
+    const ax=radius*(1-cos),ay=collar+radius*sin;
+    const bx=ax+diagonal*sin,by=ay+diagonal*cos;
+    function at(s){
+      if(s<=collar)return {x:0,y:s,a:0};
+      s-=collar;
+      if(s<=arc){const a=s/radius;return{x:radius*(1-Math.cos(a)),y:collar+radius*Math.sin(a),a};}
+      s-=arc;
+      if(s<=diagonal)return{x:ax+s*sin,y:ay+s*cos,a:angle};
+      s-=diagonal;
+      if(s<=arc){const a=angle-s/radius;return{x:bx+radius*(Math.cos(a)-cos),y:by+radius*(sin-Math.sin(a)),a};}
+      return{x:gap,y:height-collar+s-arc,a:0};
+    }
+    function nearest(x,y){
+      let best={distance:Infinity,n:0,s:0};
+      function test(s){const p=at(s),dx=x-p.x,dy=y-p.y,d=Math.hypot(dx,dy);
+        if(d<best.distance)best={distance:d,n:dx*Math.cos(p.a)-dy*Math.sin(p.a),s};}
+      // Extend endpoint collars through the one-unit sampling gutter.
+      test(clamp(y,-2,collar));
+      test(collar+radius*clamp(Math.atan2(y-collar,radius-x),0,angle));
+      test(collar+arc+clamp((x-ax)*sin+(y-ay)*cos,0,diagonal));
+      const a=clamp(Math.atan2(height-collar-y,x-(gap-radius)),0,angle);
+      test(collar+arc+diagonal+radius*(angle-a));
+      test(length+clamp(y-height,-collar,2));
+      return best;
+    }
+    return {gap,height,width,length,angle,at,nearest};
+  }
+  return {create,height,width,period};
+})();
+
+class RopePainter {
+  constructor(material){
+    this.material=material;this.maps=new Map();this.tiles=new Map();this.key=null;
+    this.layer=document.createElement('canvas');this.layer.width=1440;this.layer.height=1520;
+    this.ctx=this.layer.getContext('2d');this.ctx.scale(2,2);this.builds=0;
+    const read=document.createElement('canvas');read.width=material.width;read.height=material.height;
+    const r=read.getContext('2d',{willReadFrequently:true});r.drawImage(material,0,0);
+    this.pixels=r.getImageData(0,0,read.width,read.height).data;
+  }
+  map(gap,direction){
+    const key=gap.toFixed(6)+':'+direction;
+    if(this.maps.has(key))return this.maps.get(key);
+    const geometry=RopeGeometry.create(gap),w=gap+24,h=geometry.height+2;
+    const nx=Math.ceil(w*3),ny=Math.ceil(h*3),s=new Float32Array(nx*ny),u=new Float32Array(nx*ny),alpha=new Uint8ClampedArray(nx*ny);
+    for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){
+      const xx=(x+.5)*w/nx-12,yy=(y+.5)*h/ny-1;
+      const p=geometry.nearest(direction===1?xx:gap-xx,yy),i=y*nx+x;
+      s[i]=p.s;u[i]=Math.max(0,Math.min(119,((direction===1?p.n:-p.n)/15+.5)*119));
+      alpha[i]=Math.max(0,Math.min(255,(7.5-p.distance)*3*255+127.5));
+    }
+    const result={geometry,w,h,nx,ny,s,u,alpha};this.maps.set(key,result);return result;
+  }
+  curve(gap,direction,color,phase){
+    phase=((phase%RopeGeometry.period)+RopeGeometry.period)%RopeGeometry.period;
+    const key=[gap.toFixed(6),direction,color,phase.toFixed(6)].join(':');
+    if(this.tiles.has(key))return this.tiles.get(key);
+    const m=this.map(gap,direction),out=document.createElement('canvas');out.width=m.nx;out.height=m.ny;
+    const ctx=out.getContext('2d'),image=ctx.createImageData(m.nx,m.ny),dst=image.data,src=this.pixels;
+    const tw=600,th=152;
+    for(let i=0;i<m.s.length;i++){
+      if(!m.alpha[i])continue;
+      const u=m.u[i],v=((m.s[i]+phase)/RopeGeometry.period*th%th+th)%th;
+      const x0=Math.floor(u),x1=Math.min(119,x0+1),y0=Math.floor(v),y1=(y0+1)%th,fx=u-x0,fy=v-y0;
+      const a=(y0*tw+color*120+x0)*4,b=(y0*tw+color*120+x1)*4;
+      const c=(y1*tw+color*120+x0)*4,d=(y1*tw+color*120+x1)*4;
+      for(let k=0;k<3;k++)dst[i*4+k]=(src[a+k]*(1-fx)+src[b+k]*fx)*(1-fy)+(src[c+k]*(1-fx)+src[d+k]*fx)*fy;
+      dst[i*4+3]=m.alpha[i];
+    }
+    ctx.putImageData(image,0,0);
+    const result={image:out,w:m.w,h:m.h,length:m.geometry.length};
+    if(this.tiles.size>=128)this.tiles.delete(this.tiles.keys().next().value);
+    this.tiles.set(key,result);return result;
+  }
+  straight(color,x,from,to,phase){
+    if(to<=from)return;
+    const c=this.ctx,p=RopeGeometry.period;
+    c.save();c.beginPath();c.rect(x-7.5,from,15,to-from);c.clip();
+    const offset=((phase%p)+p)%p;
+    for(let y=from-offset;y<to;y+=p)c.drawImage(this.material,color*120,0,120,152,x-7.5,y,15,p+.002);
+    c.restore();
+  }
+  shadow(gap,direction,x,y){
+    const c=this.ctx,g=this.map(gap,direction).geometry;
+    c.save();c.beginPath();c.rect(x-12,y+4,gap+24,g.height-8);c.clip();
+    c.beginPath();
+    for(let s=0;s<g.length+.5;s+=.5){const p=g.at(Math.min(s,g.length));
+      const px=x+(direction===1?p.x:gap-p.x);if(s===0)c.moveTo(px,y+p.y);else c.lineTo(px,y+p.y);}
+    c.strokeStyle='#07171ee6';c.lineWidth=18;c.lineCap='butt';c.stroke();c.restore();
+  }
+  draw(ctx,game){
+    const key=JSON.stringify([game.ropes,game.knots.map(k=>[k.row,k.col,k.dir])]);
+    if(this.key!==key){
+      const c=this.ctx,n=game.ropes.length,gap=Math.min(76,570/Math.max(1,n-1));
+      const x=i=>360+(i-(n-1)/2)*gap;
+      const lanes=game.ropes.map(r=>r.id),ends=Array(n).fill(64);
+      const colors=new Map(game.ropes.map(r=>[r.id,r.color]));
+      const distances=new Map(game.ropes.map(r=>[r.id,0]));
+      c.clearRect(0,0,720,760);
+      for(const k of [...game.knots].sort((a,b)=>a.row-b.row||a.col-b.col)){
+        const l=k.col,r=l+1,cy=70+k.row*39.375,start=cy-RopeGeometry.height/2;
+        for(const col of [l,r]){
+          const id=lanes[col],phase=distances.get(id);
+          this.straight(colors.get(id),x(col),ends[col],start+.25,phase);
+          distances.set(id,phase+Math.max(0,start-ends[col]));
+        }
+        const draw=(direction,col,over)=>{
+          const id=lanes[col],tile=this.curve(gap,direction,colors.get(id),distances.get(id));
+          if(over)this.shadow(gap,direction,x(l),start);
+          c.drawImage(tile.image,x(l)-12,start-1,tile.w,tile.h);
+          distances.set(id,distances.get(id)+tile.length);
+        };
+        if(k.dir===1){draw(-1,r,false);draw(1,l,true);}else{draw(1,l,false);draw(-1,r,true);}
+        [lanes[l],lanes[r]]=[lanes[r],lanes[l]];ends[l]=ends[r]=start+RopeGeometry.height;
+      }
+      for(let col=0;col<n;col++){
+        const id=lanes[col];this.straight(colors.get(id),x(col),ends[col]-.25,706,distances.get(id)-.25);
+      }
+      this.endColors=lanes.map(id=>colors.get(id));this.distances=distances;this.key=key;this.builds++;
+    }
+    ctx.drawImage(this.layer,0,0,720,760);return this.endColors;
+  }
+}
+if(typeof module!=='undefined')module.exports={RopeGeometry,RopePainter};
+
 </script>
 <script>
 /* Painted Evolved view. This module only reads game state; Classic uses its original renderer. */
 class EvolvedArt {
   constructor(ctx, data) {
-    this.ctx=ctx;this.data=data;this.ready=false;this.patterns=[];
-    this.image=new Image();
+    this.ctx=ctx;this.data=data;this.ready=false;
+    this.image=new Image();this.material=new Image();
     document.documentElement.dataset.fringerArt='loading';
-    this.image.onload=()=>{
-      for(let i=0;i<5;i++){
-        const s=data.sprites[`straight${i}`],c=document.createElement('canvas');
-        c.width=19;c.height=122;
-        c.getContext('2d').drawImage(this.image,s.x,s.y,s.w,s.h,0,0,c.width,c.height);
-        this.patterns.push(ctx.createPattern(c,'repeat'));
-      }
+    const finish=()=>{
+      if(!this.image.complete||!this.image.naturalWidth||!this.material.complete||!this.material.naturalWidth)return;
+      this.ropePainter=new RopePainter(this.material);
       this.ready=true;document.documentElement.dataset.fringerArt='ready';
     };
-    this.image.onerror=()=>{document.documentElement.dataset.fringerArt='fallback';};
-    this.image.src=data.image;
+    this.image.onload=finish;this.material.onload=finish;
+    const failed=()=>{document.documentElement.dataset.fringerArt='fallback';};
+    this.image.onerror=failed;this.material.onerror=failed;
+    this.image.src=data.image;this.material.src='assets/rope-material-v2.png';
   }
   sprite(name,x,y,w,h){
     const s=this.data.sprites[name];if(!s)return;
@@ -984,11 +1139,6 @@ class EvolvedArt {
     c.save();c.beginPath();c.rect(start,top-M.joinTop*scale,end-start,M.h*scale);c.clip();
     for(let x=start;x<end;x+=M.w*scale-0.5)this.sprite(prefix+'M',x,top-M.joinTop*scale,M.w*scale,M.h*scale);
     c.restore();
-  }
-  straight(color,x,from,to){
-    if(to<=from)return;
-    const c=this.ctx;c.save();c.translate(x-9.5,58);c.fillStyle=this.patterns[color];
-    c.fillRect(0,from-58,19,to-from);c.restore();
   }
   render(game,time,flash,reduce){
     if(!this.ready)return false;
@@ -1012,33 +1162,15 @@ class EvolvedArt {
       c.save();c.shadowColor='#fce1a866';c.shadowBlur=6;
       this.sprite('cursor'+game.direction,cx-(gap+29)/2,cy-27,gap+29,54);c.restore();
     }
-    const lanes=game.ropes.map(r=>r.id),ends=Array(n).fill(64);
-    const colors=new Map(game.ropes.map(r=>[r.id,r.color]));
-    const knots=[...game.knots].sort((a,b)=>a.row-b.row||a.col-b.col);
-    for(const k of knots){
-      const l=k.col,r=l+1,cy=y(k.row),half=dy*.44;
-      for(const col of [l,r])this.straight(colors.get(lanes[col]),x(col),ends[col]-0.5,cy-half+0.6);
-      const draw=(direction,color,over)=>{
-        if(over){
-          // A narrow occlusion edge separates even two identical-colored ropes.
-          c.save();c.strokeStyle='#09191f';c.lineWidth=18;c.lineCap='butt';
-          const from=direction===1?l:r,to=direction===1?r:l;
-          c.beginPath();c.moveTo(x(from),cy-half);
-          c.bezierCurveTo(x(from),cy-half*.25,x(to),cy+half*.25,x(to),cy+half);c.stroke();c.restore();
-        }
-        this.sprite(`curve${direction}_${color}_${gap.toFixed(2)}`,x(l)-12,cy-half,gap+24,half*2);
-      };
-      if(k.dir===1){draw(-1,colors.get(lanes[r]),false);draw(1,colors.get(lanes[l]),true);}
-      else{draw(1,colors.get(lanes[l]),false);draw(-1,colors.get(lanes[r]),true);}
-      [lanes[l],lanes[r]]=[lanes[r],lanes[l]];ends[l]=ends[r]=cy+half;
+    const endColors=this.ropePainter.draw(c,game);
+    for(const k of game.knots){
       if(k.spark){
         const p=reduce?1:.94+Math.sin(time/350+k.id)*.06;
-        this.sprite('spark',(x(l)+x(r))/2+13,cy-29,25*p,25*p);
+        this.sprite('spark',(x(k.col)+x(k.col+1))/2+13,y(k.row)-29,25*p,25*p);
       }
     }
     for(let col=0;col<n;col++){
-      const color=colors.get(lanes[col]);this.straight(color,x(col),ends[col]-0.6,bottom+6);
-      const s=this.data.sprites['tassel'+color],scale=15/s.neck;
+      const color=endColors[col],s=this.data.sprites['tassel'+color],scale=15/s.neck;
       this.sprite('tassel'+color,x(col)-s.anchor*scale,bottom+5,s.w*scale,s.h*scale);
     }
     // Eyelets sit over the rope starts, with their own painted cord meeting the braid.
@@ -1073,6 +1205,7 @@ class EvolvedArt {
   }
 }
 if(typeof module!=='undefined')module.exports={EvolvedArt};
+
 
 </script>
 <script>
@@ -1366,6 +1499,8 @@ function frame(now){const dt=last?Math.min(.25,(now-last)/1000):0;last=now;
 setLook(look);menu();fit();requestAnimationFrame(frame);
 })();
 
+
 </script>
 </body>
 </html>
+

@@ -40,8 +40,14 @@ Engine tests cover solvability, angle/color rules, blocked access, score farming
 
 ## Evolved art pack
 
-The approved second sprite sheet is preserved at `art-source/evolved-pack-v1.png`. Run `python3 games/fringer/prepare-art.py` (Pillow + NumPy), then the normal build, to reproduce the sliced atlas, registration metadata, and turn icon. Preparation removes near-transparent color-key residue, normalizes rope ports, and reprojects the painted curved strands onto the engine’s cubic paths at all three supported lane spacings. Hardware uses cap/middle/cap drawing with repeating centers.
+Hardware, tassels, sockets, selection frames, and effects still use `assets/evolved-atlas-v1.webp`. The legacy curved rope sprites remain in that atlas for provenance but are no longer drawn by Evolved.
 
-`src/evolved-art.js` reads the same engine state as Classic. It paints braided ropes, sockets, tassels, walnut supports, the brass moving comb, both selection frames, sparkles and release bursts. Selection frames sit behind the ropes; the over-strand gets a narrow occlusion edge so same-color crossings stay legible. The cached atlas is WebP; all pieces are static and motion honors reduced-motion preferences.
+`src/rope-renderer.js` builds constant-width rope paths with radius-10 bends, vertical end collars, and the original 76, 71.25, and 63.33 lane spacings. Crossing height stays 34.65 units. Painted texture follows cumulative distance along each rope through successive knots. Same-color over-strands receive an occlusion edge matching the new geometry. Color changes and topology changes invalidate the cached rope layer; cursor movement, pressure animation, sparkles, and ordinary frames reuse it. The phase-specific crossing cache is bounded to 128 entries.
 
-Run `node games/fringer/tests/art.test.cjs` to check art coverage, rendering invariance, and the retained Classic renderer hash.
+The shared painted texture source is `art-source/rope-material-v2.png`. Run `python3 games/fringer/prepare-rope.py` (Pillow + NumPy) to reproduce the five-color periodic material, then `python3 games/fringer/build.py`. The source texture is normalized to a 15-unit rope width, blended at the repeat boundary, and recolored without changing its twist pattern. All artwork remains in external asset files, never long encoded HTML lines.
+
+Evolved uses a 720:760 canvas aspect ratio at desktop, tablet, and phone sizes. Classic rendering and gameplay code are unchanged. If either art image cannot load, the procedural fallback remains available.
+
+Run `node games/fringer/tests/art.test.cjs` for the retained Classic renderer hash, rendering invariance, controlled-path endpoints and widths at all three gaps, cache invalidation, and texture phase through consecutive same-color crossings. Engine tests remain separate and unchanged.
+
+Integration QA: actual keyboard and button actions, mobile controls, Classic/Evolved switching, 390/768-pixel responsive layouts, and dense 8/9/10-lane boards were checked in Chromium. The dense stress scenes had 42/48/54 knots; cached frame submission averaged 0.18-0.21ms, with 162-221ms initial uncached construction in the test browser. These timings are environment-specific, not a guarantee on every device. Browser measurements confirmed no horizontal overflow in the tested layouts and aspect-ratio error below 0.0003.

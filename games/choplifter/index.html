@@ -140,7 +140,8 @@
     <div class="card controls">
       <div class="btnrow"><button id="newBtn" class="painted-only">New game</button><button id="pauseBtn" class="painted-only">Pause</button><button id="helpBtn">How to play</button><button id="sound"></button><button id="aboutBtn">About</button></div>
       <label>Look <span class="chips" id="looks"></span></label>
-      <label>Speed <span><input id="fps" type="range" min="10" max="40" step="1"> <span id="fpsVal"></span></span></label>
+      <label>Speed <select id="pace"><option value="apple">Like the Apple II (varies)</option><option value="fixed">Fixed</option></select></label>
+      <label>Frames/s <span><input id="fps" type="range" min="8" max="40" step="1"> <span id="fpsVal"></span></span></label>
       <label>Stick released <select id="release"><option value="hover">hovers</option><option value="sink">sinks slowly</option></select></label>
       <label class="painted-only">Facing <select id="autoFace"><option value="auto">follows the stick</option><option value="button">Turn button only (original)</option></select></label>
       <label class="painted-only">Sky <select id="sky"><option value="auto">day to dusk</option><option value="day">day</option><option value="dusk">dusk</option></select></label>
@@ -2770,13 +2771,31 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     get(k, d) { try { const v = localStorage.getItem(KEY + k); if (v != null) return JSON.parse(v); } catch (e) { } return k in this.mem ? this.mem[k] : d; },
     set(k, v) { this.mem[k] = v; try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { } }
   };
-  const settings = Object.assign({ fps: 15, release: 'hover', sound: true, mono: false, scan: true, look: 'classic', sky: 'auto', autoFace: true }, store.get('settings', {}));
+  const settings = Object.assign({ fps: 15, release: 'hover', sound: true, mono: false, scan: true, look: 'classic', sky: 'auto', autoFace: true, pace: 'apple' }, store.get('settings', {}));
   const ART = (typeof CL_PAINT !== 'undefined') ? CL_PAINT : null;
   const LOOKS = ['classic'].concat(ART ? Object.keys(ART.looks) : []);
   if (!LOOKS.includes(settings.look)) settings.look = 'classic';
   const saveSettings = () => store.set('settings', settings);
   // v0.8: default speed lowered from 20 to 15 frames/s; move anyone still on the old default
   if (!settings.speedV) { if (settings.fps === 20) settings.fps = 15; settings.speedV = 2; saveSettings(); }
+  // v0.9: Apple II pacing measured from a recording of the original becomes the default
+  if (settings.speedV < 3) { settings.pace = 'apple'; settings.speedV = 3; saveSettings(); }
+
+  // The original has no frame timer: it runs as fast as the Apple can draw, so it slows down when there
+  // is more on screen. Measured from a recording (Sortie_2, 2026-11-20): ~16-17 frames/s flying over open
+  // ground, ~12 at the base with few people, ~9-10 unloading at the base or loading at a barracks.
+  // Frame time = 58 ms + 36 ms with the base in view + 6 ms per barracks and per hostage in view + 4 ms per other object.
+  function appleFrameMs(g) {
+    if (g.mode !== 'play' && g.mode !== 'banner' && g.mode !== 'end') return 75;
+    const sc = g.scroll, on = x => ((x - sc + 16) & 0xFFFF) < 312;
+    let ms = 58;
+    if (on(0x1274) || on(0x12D5)) ms += 36;
+    for (let i = 0; i < 4; i++) if (on(0x0380 + (i << 8) + 0x10)) ms += 6;
+    for (const h of g.H) if (!(h.frame & 0x80) && on(h.x)) ms += 6;
+    for (const e of g.list()) if (e.id !== g.chopEnt && on(e.x)) ms += 4;
+    return ms;
+  }
+  window.__appleFrameMs = appleFrameMs;
   let best = store.get('best', { rescued: 0, lost: 0 });
 
   const canvas = $('screen'), ctx = canvas.getContext('2d');
@@ -2891,7 +2910,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   function showPause() { $('state').textContent = 'Paused'; }
   function hidePause() { $('state').textContent = ''; }
   function setSound(v) { settings.sound = v; snd.setOn(v); psnd.setOn(v); saveSettings(); syncUI(); }
-  function setFps(v) { settings.fps = Math.max(10, Math.min(40, v)); saveSettings(); syncUI(); }
+  function setFps(v) { settings.fps = Math.max(8, Math.min(40, v)); settings.pace = 'fixed'; saveSettings(); syncUI(); }
 
   function flushEvents() {
     for (const e of g.events) {
@@ -3039,7 +3058,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   let last = performance.now(), acc = 0;
   function frame(now) {
     const dt = Math.min(250, now - last); last = now;
-    const step = 1000 / settings.fps;
+    const step = settings.pace === 'apple' ? appleFrameMs(g) : 1000 / settings.fps;
     acc += dt;
     let n = 0;
     while (acc >= step && n < 4) {
@@ -3059,7 +3078,8 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
 
   // ---------------------------------------------------------------- settings UI
   function syncUI() {
-    $('fps').value = settings.fps; $('fpsVal').textContent = settings.fps + ' frames/s';
+    $('fps').value = settings.fps; $('fpsVal').textContent = settings.fps + ' frames/s'; $('pace').value = settings.pace;
+    $('fps').closest('label').style.display = settings.pace === 'apple' ? 'none' : '';
     $('release').value = settings.release; $('sky').value = settings.sky; $('autoFace').value = settings.autoFace ? 'auto' : 'button';
     $('sound').textContent = settings.sound ? 'Sound: on' : 'Sound: off';
     $('mono').value = settings.mono ? 'mono' : 'colour';
@@ -3072,6 +3092,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     $('scan').checked = !!settings.scan;
   }
   $('fps').addEventListener('input', e => setFps(+e.target.value));
+  $('pace').addEventListener('change', e => { settings.pace = e.target.value; saveSettings(); syncUI(); });
   $('newBtn').addEventListener('click', () => start());
   $('pauseBtn').addEventListener('click', () => { if (g.mode === 'play' || g.mode === 'banner') togglePause(); });
   $('release').addEventListener('change', e => { settings.release = e.target.value; saveSettings(); });

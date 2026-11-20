@@ -2784,7 +2784,9 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   // The original has no frame timer: it runs as fast as the Apple can draw, so it slows down when there
   // is more on screen. Measured from a recording (Sortie_2, 2026-11-20): ~16-17 frames/s flying over open
   // ground, ~12 at the base with few people, ~9-10 unloading at the base or loading at a barracks.
-  // Frame time = 58 ms + 36 ms with the base in view + 6 ms per barracks and per hostage in view + 4 ms per other object.
+  // Frame time = 58 ms + 36 ms with the base in view + 6 ms per barracks and per hostage in view + a cost per enemy/effect in view (ENT_MS).
+  // per object type: jets are big sprites and cost the most (the recording drops to ~10-12 frames/s with a jet up)
+  const ENT_MS = { 9: 27, 10: 10, 3: 5, 1: 6, 2: 6, 4: 3, 5: 3, 6: 2, 8: 3 };
   function appleFrameMs(g) {
     if (g.mode !== 'play' && g.mode !== 'banner' && g.mode !== 'end') return 75;
     const sc = g.scroll, on = x => ((x - sc + 16) & 0xFFFF) < 312;
@@ -2792,7 +2794,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     if (on(0x1274) || on(0x12D5)) ms += 36;
     for (let i = 0; i < 4; i++) if (on(0x0380 + (i << 8) + 0x10)) ms += 6;
     for (const h of g.H) if (!(h.frame & 0x80) && on(h.x)) ms += 6;
-    for (const e of g.list()) if (e.id !== g.chopEnt && on(e.x)) ms += 4;
+    for (const e of g.list()) if (e.id !== g.chopEnt && on(e.x)) ms += ENT_MS[e.type] || 3;
     return ms;
   }
   window.__appleFrameMs = appleFrameMs;

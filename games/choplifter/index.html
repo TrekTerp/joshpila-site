@@ -2770,11 +2770,13 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     get(k, d) { try { const v = localStorage.getItem(KEY + k); if (v != null) return JSON.parse(v); } catch (e) { } return k in this.mem ? this.mem[k] : d; },
     set(k, v) { this.mem[k] = v; try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { } }
   };
-  const settings = Object.assign({ fps: 20, release: 'hover', sound: true, mono: false, scan: true, look: 'classic', sky: 'auto', autoFace: true }, store.get('settings', {}));
+  const settings = Object.assign({ fps: 15, release: 'hover', sound: true, mono: false, scan: true, look: 'classic', sky: 'auto', autoFace: true }, store.get('settings', {}));
   const ART = (typeof CL_PAINT !== 'undefined') ? CL_PAINT : null;
   const LOOKS = ['classic'].concat(ART ? Object.keys(ART.looks) : []);
   if (!LOOKS.includes(settings.look)) settings.look = 'classic';
   const saveSettings = () => store.set('settings', settings);
+  // v0.8: default speed lowered from 20 to 15 frames/s; move anyone still on the old default
+  if (!settings.speedV) { if (settings.fps === 20) settings.fps = 15; settings.speedV = 2; saveSettings(); }
   let best = store.get('best', { rescued: 0, lost: 0 });
 
   const canvas = $('screen'), ctx = canvas.getContext('2d');
@@ -2807,8 +2809,8 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     resumeSound();
     if (c === 'Escape' || c === 'KeyP') { if (g.mode === 'play' || g.mode === 'banner') togglePause(); return; }
     if (c === 'KeyM') { setSound(!settings.sound); return; }
-    if (c === 'Minus' || c === 'NumpadSubtract') { setFps(settings.fps - 2); return; }
-    if (c === 'Equal' || c === 'NumpadAdd') { setFps(settings.fps + 2); return; }
+    if (c === 'Minus' || c === 'NumpadSubtract') { setFps(settings.fps - 1); return; }
+    if (c === 'Equal' || c === 'NumpadAdd') { setFps(settings.fps + 1); return; }
     if (paused && (FIRE.includes(c) || c === 'Enter')) { togglePause(); return; }
     if ((g.mode === 'title' || g.mode === 'over') && (c === 'Space' || c === 'Enter')) start();
   });

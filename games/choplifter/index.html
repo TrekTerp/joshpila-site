@@ -142,6 +142,7 @@
       <label>Look <span class="chips" id="looks"></span></label>
       <label>Speed <span><input id="fps" type="range" min="10" max="40" step="1"> <span id="fpsVal"></span></span></label>
       <label>Stick released <select id="release"><option value="hover">hovers</option><option value="sink">sinks slowly</option></select></label>
+      <label class="painted-only">Facing <select id="autoFace"><option value="auto">follows the stick</option><option value="button">Turn button only (original)</option></select></label>
       <label class="painted-only">Sky <select id="sky"><option value="auto">day to dusk</option><option value="day">day</option><option value="dusk">dusk</option></select></label>
       <label class="classic-only">Monitor <select id="mono"><option value="colour">colour</option><option value="mono">monochrome</option></select></label>
       <label class="classic-only"><span><input type="checkbox" id="scan"> scanlines</span></label>
@@ -164,7 +165,8 @@
     <ul>
       <li><kbd>Space</kbd> or <kbd>Z</kbd> fires (in the air only, five shots at a time).</li>
       <li>Facing sideways, the gun fires ahead: use it on jets and to blow open a barracks.</li>
-      <li><kbd>X</kbd> turns. A quick tap swings the helicopter to face you; from there your shots drop as bombs onto tanks. Hold <kbd>X</kbd> to swing all the way round, or press it while facing you with <kbd>←</kbd> or <kbd>→</kbd> to face that way.</li>
+      <li class="painted-only">In the painted looks the helicopter turns to face the way you push the stick. <kbd>X</kbd> swings it round to face you, so your shots drop as bombs onto tanks; press <kbd>X</kbd> again to face sideways. Set Facing to "Turn button only" for the original controls below.</li>
+      <li><span class="painted-only">Original controls: </span><kbd>X</kbd> turns. A quick tap swings the helicopter to face you; from there your shots drop as bombs onto tanks. Hold <kbd>X</kbd> to swing all the way round, or press it while facing you with <kbd>←</kbd> or <kbd>→</kbd> to face that way.</li>
     </ul>
     <h3>The enemy</h3>
     <ul>
@@ -924,7 +926,8 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
         if (N(this.deathTimer)) { this.beginSortie(); return; }
       }
       this.readJoyY(input.jy == null ? 88 : input.jy);
-      this.checkButton1(!!input.turn, input.jx == null ? 128 : input.jx);
+      if (this.autoFace) this.autoFaceTurn(!!input.turn, input.jx == null ? 128 : input.jx);
+      else this.checkButton1(!!input.turn, input.jx == null ? 128 : input.jx);
       this.checkButton0(!!input.fire);
       this.twinkle();
       this.scrollTerrain();
@@ -981,6 +984,19 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
       if (t === 0 || t === 1 || t === 0xFF) this.face = 0;
       else if (this.turnReq !== 0 && !N(this.turnReq ^ t)) this.face = 0;
       else this.face = N(t) ? 0xFF : 0x01;
+      this.processTurn();
+    }
+    // Evolved looks only (not in the original): the helicopter faces the way the stick pushes, and
+    // the turn button toggles between facing the camera (for bombing) and facing sideways.
+    // Like the original, new turns only start in the air; a turn under way always finishes.
+    autoFaceTurn(down, rawX) {
+      const press = down && !this.btn1Held; this.btn1Held = down ? 1 : 0;
+      if (this.airborne && !this.dying) {
+        const side = rawX < 104 ? 0xFF : rawX > 152 ? 0x01 : 0;
+        if (press) this.face = this.face === 0 ? (side || (N(this.turn) ? 0xFF : 0x01)) : 0;
+        else if (this.face !== 0 && side) this.face = side;
+        this.turnReq = 0;
+      }
       this.processTurn();
     }
     processTurn() {
@@ -2754,7 +2770,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     get(k, d) { try { const v = localStorage.getItem(KEY + k); if (v != null) return JSON.parse(v); } catch (e) { } return k in this.mem ? this.mem[k] : d; },
     set(k, v) { this.mem[k] = v; try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { } }
   };
-  const settings = Object.assign({ fps: 20, release: 'hover', sound: true, mono: false, scan: true, look: 'classic', sky: 'auto' }, store.get('settings', {}));
+  const settings = Object.assign({ fps: 20, release: 'hover', sound: true, mono: false, scan: true, look: 'classic', sky: 'auto', autoFace: true }, store.get('settings', {}));
   const ART = (typeof CL_PAINT !== 'undefined') ? CL_PAINT : null;
   const LOOKS = ['classic'].concat(ART ? Object.keys(ART.looks) : []);
   if (!LOOKS.includes(settings.look)) settings.look = 'classic';
@@ -2779,12 +2795,15 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   let pad = null;
   const FIRE = ['Space', 'KeyZ', 'KeyJ', 'ControlLeft', 'ControlRight'];
   const TURN = ['KeyX', 'KeyK', 'KeyC'];
+  // a press shorter than one game frame still counts: latch it until the next frame reads it
+  const tapped = { fire: false, turn: false };
   addEventListener('keydown', e => {
     if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
     const c = e.code;
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(c)) e.preventDefault();
     if (e.repeat && keys.has(c)) return;
     keys.add(c);
+    if (TURN.includes(c)) tapped.turn = true; if (FIRE.includes(c)) tapped.fire = true;
     resumeSound();
     if (c === 'Escape' || c === 'KeyP') { if (g.mode === 'play' || g.mode === 'banner') togglePause(); return; }
     if (c === 'KeyM') { setSound(!settings.sound); return; }
@@ -2804,7 +2823,8 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
     const L = k('ArrowLeft') || k('KeyA'), R = k('ArrowRight') || k('KeyD'), U = k('ArrowUp') || k('KeyW'), D = k('ArrowDown') || k('KeyS');
     if (L && !R) jx = gentle ? 88 : 0; else if (R && !L) jx = gentle ? 168 : 255;
     if (U && !D) jy = gentle ? 40 : 0; else if (D && !U) jy = gentle ? 168 : 255;
-    let fire = FIRE.some(k), turn = TURN.some(k);
+    let fire = FIRE.some(k) || tapped.fire, turn = TURN.some(k) || tapped.turn;
+    tapped.fire = tapped.turn = false;
     if (touch.active) { jx = touch.x; jy = touch.y; }
     if (touch.fire) fire = true;
     if (touch.turn) turn = true;
@@ -2847,7 +2867,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   stickEl.addEventListener('touchend', endStick); stickEl.addEventListener('touchcancel', endStick);
   for (const [id, prop] of [['btnFire', 'fire'], ['btnTurn', 'turn']]) {
     const el = $(id);
-    el.addEventListener('touchstart', e => { e.preventDefault(); resumeSound(); touch[prop] = true; el.classList.add('down'); if (g.mode === 'title' || g.mode === 'over') start(); }, { passive: false });
+    el.addEventListener('touchstart', e => { e.preventDefault(); resumeSound(); touch[prop] = true; tapped[prop] = true; el.classList.add('down'); if (g.mode === 'title' || g.mode === 'over') start(); }, { passive: false });
     const up = e => { e.preventDefault(); touch[prop] = false; el.classList.remove('down'); };
     el.addEventListener('touchend', up); el.addEventListener('touchcancel', up);
   }
@@ -3026,7 +3046,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
       if (g.mode === 'over') { overTimer++; g.twinkle(); continue; }
       if (paused) continue;
       prev = snapshot(g);
-      g.step(readInput());
+      g.autoFace = settings.autoFace && painted(); g.step(readInput());
       flushEvents();
     }
     if (acc > step * 4) acc = 0;
@@ -3038,7 +3058,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   // ---------------------------------------------------------------- settings UI
   function syncUI() {
     $('fps').value = settings.fps; $('fpsVal').textContent = settings.fps + ' frames/s';
-    $('release').value = settings.release; $('sky').value = settings.sky;
+    $('release').value = settings.release; $('sky').value = settings.sky; $('autoFace').value = settings.autoFace ? 'auto' : 'button';
     $('sound').textContent = settings.sound ? 'Sound: on' : 'Sound: off';
     $('mono').value = settings.mono ? 'mono' : 'colour';
     document.body.classList.toggle('scan', !!settings.scan);
@@ -3054,6 +3074,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   $('pauseBtn').addEventListener('click', () => { if (g.mode === 'play' || g.mode === 'banner') togglePause(); });
   $('release').addEventListener('change', e => { settings.release = e.target.value; saveSettings(); });
   $('sky').addEventListener('change', e => { settings.sky = e.target.value; saveSettings(); });
+  $('autoFace').addEventListener('change', e => { settings.autoFace = e.target.value === 'auto'; saveSettings(); });
   $('sound').addEventListener('click', () => setSound(!settings.sound));
   $('mono').addEventListener('change', e => { settings.mono = e.target.value === 'mono'; saveSettings(); syncUI(); });
   $('scan').addEventListener('change', e => { settings.scan = e.target.checked; saveSettings(); syncUI(); });
@@ -3075,7 +3096,7 @@ const CL_TABLES={"jetY":{"0":[0,8,0,0],"1":[0,6,1,255,0,6,0,255,0,6,0,255,0,7,0,
   requestAnimationFrame(frame);
 
   // test hooks
-  window.__chop = { get g() { return g; }, start, view, settings, step(n, inp) { for (let i = 0; i < n; i++) { prev = snapshot(g); g.step(inp || {}); flushEvents(); } accA = 1; render(0.05); } };
+  window.__chop = { get g() { return g; }, start, view, settings, step(n, inp) { for (let i = 0; i < n; i++) { prev = snapshot(g); g.autoFace = settings.autoFace && painted(); g.step(inp || {}); flushEvents(); } accA = 1; render(0.05); } };
 })();
 
 </script>

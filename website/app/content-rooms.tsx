@@ -76,6 +76,23 @@ export function PatternsArticle({ returnLink }: { returnLink: ReactNode }) {
     <div className="patterns-entries">
       <section aria-labelledby="magic-squares"><PatternMark kind="square" /><div><h2 id="magic-squares">Magic squares</h2><p>How to construct them, test them, and follow the patterns hidden in their rows, columns, and diagonals.</p><a className="life-lab-launch" href="/patterns/magic-squares/">Open Magic Squares Lab <RouteArrow /></a></div></section>
       <section aria-labelledby="life-lab"><PatternMark kind="life" /><div><h2 id="life-lab">Conway&apos;s Life Lab</h2><p>A playable Game of Life lab with Immigration, QuadLife, and rock-paper-scissors competition modes; drawing and stamp tools; 25 rule sets; rewind; and detection of still lifes, oscillators, and spaceships.</p><a className="life-lab-launch" href="/patterns/life/">Open Life Lab <RouteArrow /></a></div></section>
+      <section aria-labelledby="flux-chamber">
+        <svg className="pattern-mark" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <rect x="2" y="2" width="96" height="96" rx="4" stroke="#c2b195" />
+          <g strokeWidth="2.5" strokeLinecap="round">
+            <path d="M4 32C35 32 32 65 55 57" stroke="#398a79" />
+            <path d="M69 4C69 29 44 40 52 53" stroke="#8867a8" />
+            <path d="M96 69C75 69 67 48 59 54" stroke="#b76951" />
+            <path d="M32 96C32 65 63 74 56 60" stroke="#b79238" />
+          </g>
+          <circle cx="55" cy="56" r="4" fill="#785522" />
+        </svg>
+        <div>
+          <h2 id="flux-chamber">Flux Chamber</h2>
+          <p>Four colored jets stream into a chamber. Move the jets, place a sink, or turn up a wall’s gravity to see where the particles go.</p>
+          <a className="life-lab-launch" href="/patterns/flux-chamber/">Open Flux Chamber <RouteArrow /></a>
+        </div>
+      </section>
       <section aria-labelledby="kaprekar"><PatternMark kind="number" /><div><h2 id="kaprekar">The road to 6174</h2><p>Rearrange four digits. Subtract. Repeat. A number curiosity with a remarkably persistent destination.</p><span className="pattern-status">In preparation</span></div></section>
     </div>
     <div className="room-return-bottom">{returnLink}</div>

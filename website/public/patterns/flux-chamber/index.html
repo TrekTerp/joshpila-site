@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101410"><title>Flux Chamber | Particle sandbox</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%23c8fb75'/%3E%3Cg fill='none' stroke='%23141a11' stroke-width='3'%3E%3Cpath d='M6 28C18 28 15 12 30 12M7 21C18 21 14 7 27 7M12 33C25 33 21 17 34 17'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#101310;--panel:#191d19;--line:#343a33;--text:#edf1e7;--muted:#a3aca0;--acid:#c5f984;--mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;--sans:"Space Grotesk","Instrument Sans",Inter,Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.4 var(--sans);-webkit-font-smoothing:antialiased}main{width:min(1600px,100%);margin:auto;padding:0 clamp(16px,3.1vw,52px) 28px}.mast{display:flex;align-items:center;justify-content:space-between;padding:clamp(22px,3vw,44px) 0 clamp(23px,2.2vw,34px);gap:14px}.identity,.mast-actions,.panelhead,.panelhead h2,.liveinfo,.toolbar,.tools,.viewtools,.hint,.telemetry span,.preset label,button,.statlabel,.walltop,.value{display:flex;align-items:center}.identity{gap:14px}.brandmark{width:51px;height:51px;border-radius:13px;background:var(--acid);display:grid;place-items:center}.brandmark svg{width:37px;height:37px;fill:none;stroke:#172010;stroke-width:3.3;stroke-linecap:round}.identity h1{font-size:clamp(1.7rem,2.55vw,2.65rem);letter-spacing:-.058em;line-height:1.08;margin:0;font-weight:660}.identity p{margin:5px 0 0;font-size:.91rem;color:var(--muted)}.mast-actions{gap:9px}button,select{font:inherit;color:inherit}button{justify-content:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:9px 13px;background:transparent;cursor:pointer;font-size:.9rem;font-weight:560;min-height:37px}button:hover{background:#2a3028}button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--acid);outline-offset:3px}button.primary{background:var(--acid);border-color:var(--acid);color:#1b2512;min-width:101px}button.primary:hover{background:#d4ff9b}.quiet{background:var(--panel)}i[data-icon]{width:18px;height:18px;display:inline-flex;flex-shrink:0}i svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.layout{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,23vw,335px);gap:18px;align-items:start}.left,aside{min-width:0}.panel,.telemetry,.preset{border:1px solid var(--line);border-radius:13px;background:var(--panel);overflow:hidden}.panelhead{justify-content:space-between;padding:0 19px;height:53px;gap:8px;border-bottom:1px solid var(--line)}h2{gap:9px;font-size:1.04rem;letter-spacing:-.026em;font-weight:620;margin:0}.panelhead h2 i{color:var(--muted)}.liveinfo{font:.79rem var(--mono);gap:12px;color:var(--muted);font-variant-numeric:tabular-nums}.liveinfo #live{display:flex;align-items:center;gap:7px;color:var(--acid)}#live b{height:6px;width:6px;border-radius:50%;background:currentColor}.liveinfo #live.stopped{color:#e4bb71}.liveinfo #clock{padding-left:12px;border-left:1px solid var(--line)}.viewport{background:#0b0f0d;position:relative;padding:0}.viewport canvas{display:block;width:100%;aspect-ratio:1.62;max-height:68vh;min-height:270px;touch-action:none;cursor:default}.toolbar{justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:11px 14px}.tools{background:#101410;border:1px solid #333932;padding:3px;border-radius:8px;gap:2px}.tools button,.viewtools button{border:0;font-size:.86rem;min-height:31px;padding:5px 10px;gap:6px;color:var(--muted);border-radius:5px}.tools button[aria-pressed=true]{background:#34422c;color:#d5f6b0}.viewtools{gap:3px}.viewtools button[aria-pressed=true]{color:#d4e7c3}.viewtools button[aria-pressed=false]{color:#7f887f;text-decoration:line-through}.viewtools i,.tools i,.hint i,.telemetry i{width:16px;height:16px}.hint{gap:8px;margin:11px 3px 17px;color:var(--muted);font-size:.83rem;line-height:1.45}.telemetry{display:grid;grid-template-columns:repeat(3,1fr);padding:16px 0}.telemetry>div{padding:0 clamp(12px,2vw,29px);border-left:1px solid var(--line)}.telemetry>div:first-child{border:0}.telemetry span{color:var(--muted);font-size:.82rem;gap:7px}.telemetry strong{font:500 clamp(1.25rem,1.8vw,1.8rem)/1.35 var(--mono);font-variant-numeric:tabular-nums;display:block;margin-top:5px;color:#e3e9df;letter-spacing:-.045em}.telemetry small{font-size:.8rem;color:var(--muted);letter-spacing:0}aside{display:grid;gap:14px}.help{border-radius:50%;width:19px;min-height:19px;height:19px;font:600 .76rem var(--sans);padding:0;color:#aeb9ab;border-color:#566052}#helptext{font-size:.86rem;padding:12px 17px;background:#242a21;color:#d4ddcf}.wall{padding:13px 18px 10px;border-bottom:1px solid #2e342c}.wall:last-child{border:0}.walltop{gap:9px}.dot{width:8px;height:8px;border-radius:50%;background:var(--wall);flex-shrink:0}.wallname{font-size:.9rem;font-weight:550}.switch{margin-left:auto;width:30px;height:17px;min-height:17px;padding:0;position:relative;border-radius:22px;background:#2d332c;border-color:#485044}.switch::after{content:'';display:block;position:absolute;width:11px;height:11px;border-radius:50%;background:#a7afa2;left:2px;transition:transform .15s}.switch[aria-checked=true]{background:var(--acid);border-color:var(--acid)}.switch[aria-checked=true]::after{background:#243219;transform:translateX(12px)}.value{margin-top:6px;gap:13px;justify-content:space-between}.value output,.statlabel output,.chip{font:.78rem var(--mono);color:#bfc9b9;white-space:nowrap}.value output{min-width:48px;text-align:right}input[type=range]{accent-color:var(--acid);height:20px;width:100%;min-width:0;cursor:pointer;margin:0;appearance:none;background:transparent;--fill:var(--acid)}input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:4px;background:linear-gradient(to right,var(--fill) 0 var(--pct),#394036 var(--pct) 100%)}input[type=range]::-moz-range-track{height:3px;background:#394036}input[type=range]::-moz-range-progress{height:3px;background:var(--fill)}input[type=range]::-webkit-slider-thumb{appearance:none;width:11px;height:11px;background:var(--fill);border-radius:50%;margin-top:-4px}input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-radius:50%;background:var(--fill)}.wall input{--fill:var(--wall)}.wall.off input{--fill:#879084}.wall.off .value output{color:#8e978a}.chip{font-size:.73rem;color:var(--acid);border:1px solid #425138;background:#263020;padding:2px 6px;border-radius:4px}.inspectBody{padding:16px 18px}.statlabel{justify-content:space-between;gap:8px;font-size:.9rem;margin-bottom:5px}.statlabel output{color:var(--acid)}.inspectActions{display:flex;align-items:center;justify-content:space-between;gap:6px;border-top:1px solid var(--line);padding-top:11px;margin-top:9px}.inspectActions button{font-size:.83rem;min-height:29px;padding:3px 6px;border-color:transparent;color:var(--muted)}.inspectActions button:hover{color:var(--text)}.inspectActions .power[aria-pressed=true]{color:var(--acid)}.inspectActions i{width:15px;height:15px}.preset{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:6px}.preset label{gap:7px;font-size:.85rem;color:var(--muted)}.selectbox{position:relative}.selectbox>i{position:absolute;right:7px;top:50%;transform:translateY(-50%);pointer-events:none;width:13px;height:13px}select{appearance:none;background:#20261f;border:1px solid #3d443a;border-radius:6px;padding:6px 24px 6px 8px;font-size:.83rem;cursor:pointer}.empty{margin:0;padding:17px;color:var(--muted);font-size:.9rem}.extraRange{margin-top:12px}
+@media(min-width:1550px){.viewport canvas{max-height:72vh}}
+@media(max-width:900px){main{padding-inline:15px}.layout{gap:12px;grid-template-columns:minmax(0,1fr) 245px}.panelhead{padding-inline:13px}.wall{padding:11px 13px 8px}.toolbar{padding:9px 7px}.tools button,.viewtools button{padding-inline:7px}.telemetry span{font-size:.76rem;gap:4px}.telemetry>div{padding-inline:11px}}
+@media(max-width:720px){.layout{display:flex;flex-direction:column;gap:15px}.left,aside{width:100%}.viewport canvas{min-height:0;aspect-ratio:1.4;max-height:none}.mast{padding:19px 0}.mast-actions{gap:5px}.mast-actions button{font-size:.82rem;padding:7px 9px;min-height:35px}.mast-actions .primary{min-width:75px}.identity{gap:9px}.identity p{font-size:.78rem;margin-top:2px}.brandmark{width:38px;height:38px;border-radius:9px}.brandmark svg{width:29px;height:29px}.identity h1{font-size:1.59rem}.panelhead{height:45px}.hint{margin-bottom:11px}.telemetry{padding:11px 0}aside{grid-template-columns:1fr 1fr;align-items:start}.gravity{grid-row:span 2}.preset{flex-wrap:wrap;gap:8px}.inspectBody{padding:13px}.inspectActions{flex-wrap:wrap}}
+@media(max-width:475px){main{padding:0 10px 18px}.mast-actions .quiet i{display:none}aside{grid-template-columns:1fr}.gravity{grid-row:auto}#walls{display:grid;grid-template-columns:1fr 1fr}.wall:nth-child(odd){border-right:1px solid var(--line)}.wall:nth-child(3){border-bottom:0}.telemetry span{font-size:.72rem}.telemetry i{display:none}.panel,.telemetry,.preset{border-radius:10px}.hint{font-size:.76rem}.viewtools button,.tools button{font-size:.78rem}.preset{flex-wrap:nowrap}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+</style>
+<link rel="canonical" href="https://www.joshpila.com/patterns/flux-chamber/">
+<style>.site-return{display:flex;flex-wrap:wrap;gap:8px 22px;margin:18px 0 0;font-size:.86rem}.site-return a{color:var(--muted);text-underline-offset:3px}.site-return a:hover,.site-return a:focus-visible{color:var(--acid)}</style>
+</head>
+<body>
+<main>
+<header class="mast">
+<div class="identity"><div class="brandmark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M3 24C17 24 13 7 29 7M5 30C21 30 16 13 33 13M11 35C26 35 21 19 37 19"/></svg></div><div><h1>Flux Chamber</h1><p>Interactive particle sandbox</p></div></div>
+<div class="mast-actions"><button id="reset" class="quiet"><i data-icon="reset"></i>Reset</button><button id="play" class="primary"><i data-icon="pause"></i><span>Pause</span></button></div>
+</header>
+<div class="layout">
+<div class="left">
+<section class="panel chamber">
+<div class="panelhead"><h2><i data-icon="frame"></i>Chamber</h2><div class="liveinfo"><span id="live"><b></b>Live</span><span id="clock">00:00</span></div></div>
+<div class="viewport"><canvas id="view" tabindex="0" aria-label="Particle chamber. Drag a colored jet along its wall. Select a sink to adjust suction, or select Add sink and click an empty grid point. Arrow keys move the selected object."></canvas></div>
+<div class="toolbar"><div class="tools" aria-label="Chamber tools"><button id="move" aria-pressed="true"><i data-icon="pointer"></i>Move</button><button id="add" aria-pressed="false"><i data-icon="add"></i>Add sink</button></div><div class="viewtools"><button id="snap" aria-pressed="true"><i data-icon="grid"></i><span>Snap</span></button><button id="trails" aria-pressed="true"><i data-icon="trails"></i><span>Trails</span></button></div></div>
+</section>
+<div class="hint"><i data-icon="mouse"></i><span id="hint" role="status">Drag jets along their walls. Click a sink to tune its pull.</span></div>
+<section class="telemetry" aria-label="Simulation measurements"><div><span><i data-icon="particles"></i>Active particles</span><strong id="active">0</strong></div><div><span><i data-icon="flow"></i>Emission rate</span><strong id="rate">0<small> / s</small></strong></div><div><span><i data-icon="sink"></i>Absorbed</span><strong id="caught">0</strong></div></section>
+</div>
+<aside>
+<section class="panel gravity"><div class="panelhead"><h2><i data-icon="gravity"></i>Wall gravity</h2><button id="gravhelp" class="help" aria-label="About wall gravity" aria-expanded="false">?</button></div>
+<div id="helptext" hidden>Each enabled wall pulls every particle toward it. Opposing pulls cancel when their strengths match.</div><div id="walls"></div></section>
+<section class="panel inspect"><div class="panelhead"><h2><i data-icon="sink"></i><span id="inspector-title">Sink inspector</span></h2><span class="chip" id="selected-id">S01</span></div><div id="inspector"></div></section>
+<section class="preset"><label for="preset"><i data-icon="layers"></i>Experiment</label><div class="selectbox"><select id="preset"><option value="confluence">Confluence</option><option value="cross">Crossfire</option><option value="fall">Gravity well</option></select><i data-icon="chevron"></i></div></section>
+</aside></div>
+<nav class="site-return" aria-label="Site navigation"><a href="/patterns/">Patterns</a><a href="/?selected=patterns">Return to Orrery</a></nav>
+</main>
+<script>
+'use strict';
+const FIELD = (() => {
+  const grid = 24, width = 36 * grid, height = 24 * grid, step = 1 / 90;
+  const walls = [
+    {name:'North', color:'#b89bff', dx:0, dy:1},
+    {name:'East',  color:'#ff866f', dx:-1, dy:0},
+    {name:'South', color:'#f5ca64', dx:0, dy:-1},
+    {name:'West',  color:'#5ee6c9', dx:1, dy:0}
+  ];
+  const presets = {
+    confluence:{jet:[22,15,13,8], sink:[[18,12,1.40]], gravity:[.10,.35,.25,.35], enabled:[true,false,true,false]},
+    cross:{jet:[18,12,18,12], sink:[], gravity:[.5,.5,.5,.5], enabled:[false,false,false,false]},
+    fall:{jet:[8,6,27,4], sink:[[14,17,.85],[27,18,1.5]], gravity:[.35,.35,1.1,.15], enabled:[false,false,true,true]}
+  };
+  const clamp = (n, a, b) => Math.min(b,Math.max(a,n));
+  function jetPoint(j) {
+    return [{x:j.pos,y:0},{x:width,y:j.pos},{x:j.pos,y:height},{x:0,y:j.pos}][j.wall];
+  }
+  class Simulation {
+    constructor(name='confluence'){this.reset(name);}
+    reset(name) {
+      const p=presets[name];
+      this.name=name;this.particles=[];this.time=0;this.absorbed=0;this.tick=0;this.nextId=1;
+      this.jets=p.jet.map((v,i)=>({wall:i,pos:v*grid,rate:64,speed:205,on:true,carry:0}));
+      this.gravity=p.gravity.map((v,i)=>({value:v,on:p.enabled[i]}));
+      this.sinks=[];p.sink.forEach(([x,y,pull])=>this.addSink(x*grid,y*grid,pull));
+    }
+    addSink(x,y,pull=1){const sink={id:this.nextId++,x,y,pull,on:true};this.sinks.push(sink);return sink;}
+    move(obj,x,y,snap) {
+      const pos=(v,max)=>clamp(snap?Math.round(v/grid)*grid:v,grid,max-grid);
+      if ('wall' in obj) obj.pos=obj.wall%2?pos(y,height):pos(x,width);
+      else {obj.x=pos(x,width);obj.y=pos(y,height);}
+    }
+    emit(j) {
+      const head=jetPoint(j), w=walls[j.wall], r=Math.random;
+      const lateral=(r()-.5)*9, angle=(r()-.5)*.15+.03*Math.sin(this.time*1.8+j.wall);
+      const speed=j.speed*(.90+r()*.20), normal=Math.cos(angle)*speed, side=Math.sin(angle)*speed;
+      const x=head.x+w.dx*8-w.dy*lateral, y=head.y+w.dy*8+w.dx*lateral;
+      const p={x,y,vx:w.dx*normal-w.dy*side,vy:w.dy*normal+w.dx*side,
+        c:j.wall,age:0,life:7+r()*3,size:.9+r()*.9,history:new Float32Array(2*16),last:0,len:1};
+      p.history[0]=x;p.history[1]=y;this.particles.push(p);
+    }
+    advance() {
+      this.tick++;this.time+=step;
+      const g=this.gravity.map(w=>w.on?w.value*115:0),gx=g[1]-g[3],gy=g[2]-g[0];
+      for(const j of this.jets){if(!j.on)continue;j.carry+=j.rate*step;while(j.carry>=1){this.emit(j);j.carry--;}}
+      let keep=0;
+      for(const p of this.particles) {
+        let ax=gx,ay=gy,captured=false;p.age+=step;
+        for(const s of this.sinks) {
+          if(!s.on||s.pull<=0)continue;
+          const dx=s.x-p.x,dy=s.y-p.y,r2=dx*dx+dy*dy;
+          if(r2<144){captured=true;break;}
+          const softened=r2+35*35, k=s.pull*3600000/(softened*Math.sqrt(softened));
+          ax+=k*dx;ay+=k*dy;
+        }
+        if(captured){this.absorbed++;continue;}if(p.age>p.life)continue;
+        p.vx=(p.vx+ax*step)*.9981;p.vy=(p.vy+ay*step)*.9981;
+        p.x+=p.vx*step;p.y+=p.vy*step;
+        if(p.x<0||p.x>width){p.x=clamp(p.x,0,width);p.vx*=-.70;}
+        if(p.y<0||p.y>height){p.y=clamp(p.y,0,height);p.vy*=-.70;}
+        if(this.tick%2===0){p.last=(p.last+1)%16;p.len=Math.min(16,p.len+1);p.history[2*p.last]=p.x;p.history[2*p.last+1]=p.y;}
+        this.particles[keep++]=p;
+      }
+      this.particles.length=keep;
+    }
+  }
+  return {Simulation,walls,width,height,grid,step,jetPoint,clamp};
+})();
+
+</script>
+<script>
+'use strict';
+const icons={
+  pause:'<path d="M8 5v14M16 5v14" stroke-width="3.5"/>',play:'<path d="m8 5 10 7-10 7z" fill="currentColor"/>',
+  reset:'<path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/>', frame:'<path d="M4 9V4h5m6 0h5v5m0 6v5h-5M9 20H4v-5"/>',
+  grid:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m6-18v18M3 9h18M3 15h18"/>',
+  pointer:'<path d="m5 3 13 10-7 1-3 6z"/>',add:'<circle cx="12" cy="12" r="8.5"/><path d="M12 8v8m-4-4h8"/>',
+  trails:'<path d="M3 8h8m-7 4h12m-9 4h5"/><circle cx="18" cy="8" r="2"/>',
+  particles:'<circle cx="7" cy="7" r="2"/><circle cx="17" cy="10" r="2.3"/><circle cx="9" cy="17" r="2.5"/>',
+  flow:'<path d="M3 7h11c4 0 4-5 1-5M3 12h16c3 0 3 5-1 5M3 17h7c3 0 3 4 1 4"/>',
+  sink:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>',
+  gravity:'<path d="M6 3v12l-3-3m3 3 3-3m6-9v9l-3-3m3 3 3-3M3 20h18"/>',
+  mouse:'<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 5v4"/>',
+  power:'<path d="M12 2v9M7 5a8 8 0 1 0 10 0"/>',trash:'<path d="M4 6h16m-14 0 1 14h10l1-14M9 6V3h6v3m-5 3v8m4-8v8"/>',
+  layers:'<path d="m3 8 9-5 9 5-9 5zM3 12l9 5 9-5M3 16l9 5 9-5"/>',chevron:'<path d="m6 9 6 6 6-6"/>',
+  jet:'<path d="M3 6h6l5 4v4l-5 4H3zM16 9l4-2m-4 5h5m-5 3 4 2"/>'
+};
+const $=id=>document.getElementById(id);
+const glyph=k=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+icons[k]+'</svg>';
+function drawIcons(el=document){el.querySelectorAll('i[data-icon]').forEach(i=>i.innerHTML=glyph(i.dataset.icon));}
+const {Simulation,walls,width:W,height:H,grid:G,clamp,jetPoint,step}=FIELD;
+const sim=new Simulation(),canvas=$('view'),ctx=canvas.getContext('2d');
+let playing=!matchMedia('(prefers-reduced-motion: reduce)').matches, snapping=true,trails=true,mode='move',selection=null,pointer=null;
+let screen={w:0,h:0,s:1,left:0,top:0,ratio:1},gridLayer,shownTime=0,lastStamp=null,acc=0,lastRead=0;
+const shortId=s=>'S'+String(s.id).padStart(2,'0');
+function sliderFill(el){el.style.setProperty('--pct',((el.value-el.min)/(el.max-el.min)*100)+'%');}
+function gravityUI() {
+  $('walls').innerHTML='';
+  sim.gravity.forEach((g,i)=>{
+    const name=walls[i].name,row=document.createElement('div');
+    row.className='wall';row.style.setProperty('--wall',walls[i].color);
+    row.innerHTML='<div class="walltop"><span class="dot"></span><span class="wallname">'+name+' wall</span><button role="switch" class="switch" aria-label="'+name+' wall gravity"></button></div><div class="value"><input type="range" min="0" max="2" step=".05" aria-label="'+name+' gravity strength"><output></output></div>';
+    const toggle=row.querySelector('button'),input=row.querySelector('input'),output=row.querySelector('output');
+    function update(){row.classList.toggle('off',!g.on);toggle.setAttribute('aria-checked',g.on);output.textContent=g.value.toFixed(2)+' g';input.value=g.value;input.setAttribute('aria-valuetext',output.textContent);sliderFill(input);}
+    toggle.onclick=()=>{g.on=!g.on;update();};
+    input.oninput=()=>{g.value=Number(input.value);g.on=true;update();};
+    update();$('walls').append(row);
+  });
+}
+function choose(obj){selection=obj;inspector();}
+function inspector(){
+  const host=$('inspector'),s=selection,isJet=s&&'wall' in s;
+  $('inspector-title').textContent=isJet?'Jet inspector':'Sink inspector';
+  $('inspector-title').previousElementSibling.innerHTML=glyph(isJet?'jet':'sink');
+  $('selected-id').textContent=s?(isJet?walls[s.wall].name.toUpperCase():shortId(s)):'';
+  $('selected-id').hidden=!s;
+  if(!s){host.innerHTML='<p class="empty">Select a jet or add a sink to adjust it here.</p>';return;}
+  host.innerHTML='<div class="inspectBody"><div id="fields"></div><div class="inspectActions"><button class="power"></button>'+(isJet?'':'<button class="remove"><i data-icon="trash"></i>Remove</button>')+'</div></div>';
+  function range(label,key,min,max,increment,fmt){
+    const a=document.createElement('div'),id='inspect-'+key;
+    a.innerHTML='<div class="statlabel"><label for="'+id+'">'+label+'</label><output></output></div><input id="'+id+'" type="range">';
+    if($('fields').children.length)a.className='extraRange';
+    const bar=a.querySelector('input'),output=a.querySelector('output');
+    Object.assign(bar,{min,max,step:increment,value:s[key]});
+    if(isJet)bar.style.setProperty('--fill',walls[s.wall].color);
+    function update(){s[key]=+bar.value;output.textContent=fmt(s[key]);bar.setAttribute('aria-valuetext',output.textContent);sliderFill(bar);}
+    bar.oninput=update;update();$('fields').append(a);
+  }
+  if(isJet){range('Emission rate','rate',0,120,1,v=>v+' / s');range('Jet speed','speed',60,360,5,v=>v+' u/s');}
+  else range('Suction strength','pull',0,3,.05,v=>v.toFixed(2)+'×');
+  const toggle=host.querySelector('.power');
+  function power(){toggle.setAttribute('aria-pressed',s.on);toggle.setAttribute('aria-label',(s.on?'Disable ':'Enable ')+(isJet?'jet':'sink'));toggle.innerHTML='<i>'+glyph('power')+'</i>'+(s.on?'Enabled':'Disabled');toggle.firstChild.setAttribute('data-icon','power');}
+  toggle.onclick=()=>{s.on=!s.on;power();};
+  if(!isJet)host.querySelector('.remove').onclick=()=>{sim.sinks.splice(sim.sinks.indexOf(s),1);choose(sim.sinks[0]||null);};
+  power();drawIcons(host);
+}
+function setMode(m){mode=m;$('move').setAttribute('aria-pressed',m==='move');$('add').setAttribute('aria-pressed',m==='add');canvas.style.cursor=m==='add'?'crosshair':'default';$('hint').textContent=m==='add'?'Click an empty grid point to place a sink. Esc cancels.':'Drag jets along their walls. Click a sink to tune its pull.';}
+function syncPlay(){const b=$('play');b.innerHTML='<i data-icon="'+(playing?'pause':'play')+'"></i><span>'+(playing?'Pause':'Resume')+'</span>';drawIcons(b);$('live').innerHTML='<b></b>'+(playing?'Live':'Paused');$('live').classList.toggle('stopped',!playing);b.setAttribute('aria-label',playing?'Pause simulation':'Resume simulation');}
+function reset(name){
+  sim.reset(name);for(let i=0;i<290;i++)sim.advance();sim.absorbed=0;shownTime=0;acc=0;lastStamp=null;
+  setMode('move');choose(sim.sinks[0]||null);gravityUI();readouts();syncPlay();
+}
+$('reset').onclick=()=>reset($('preset').value);
+$('preset').onchange=e=>reset(e.target.value);
+$('play').onclick=()=>{playing=!playing;lastStamp=null;acc=0;syncPlay();};
+$('move').onclick=()=>setMode('move');$('add').onclick=()=>setMode(mode==='add'?'move':'add');
+$('snap').onclick=()=>{snapping=!snapping;$('snap').setAttribute('aria-pressed',snapping);if(snapping){sim.jets.forEach(j=>{const p=jetPoint(j);sim.move(j,p.x,p.y,true);});sim.sinks.forEach(s=>sim.move(s,s.x,s.y,true));}};
+$('trails').onclick=()=>{trails=!trails;$('trails').setAttribute('aria-pressed',trails);};
+$('gravhelp').onclick=()=>{const box=$('helptext');box.hidden=!box.hidden;$('gravhelp').setAttribute('aria-expanded',!box.hidden);};
+function readouts(){
+  $('active').textContent=sim.particles.length.toLocaleString();
+  $('caught').textContent=sim.absorbed.toLocaleString();
+  $('rate').innerHTML=sim.jets.reduce((n,j)=>n+(j.on?j.rate:0),0)+'<small> / s</small>';
+  const sec=Math.floor(shownTime);$('clock').textContent=[Math.floor(sec/60),sec%60].map(t=>String(t).padStart(2,'0')).join(':');
+}
+function resize(){
+  const {width:w,height:h}=canvas.getBoundingClientRect();if(!w||!h)return;
+  const padX=w<500?18:29,padY=w<500?18:26;
+  const s=Math.min((w-padX*2)/W,(h-padY*2)/H),ratio=Math.min(devicePixelRatio||1,2);
+  screen={w,h,s,left:(w-W*s)/2,top:(h-H*s)/2,ratio};
+  canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);
+  gridLayer=document.createElement('canvas');gridLayer.width=canvas.width;gridLayer.height=canvas.height;
+  const c=gridLayer.getContext('2d');c.scale(ratio,ratio);c.fillStyle='#0d110e';c.fillRect(0,0,w,h);
+  c.translate(screen.left,screen.top);c.scale(s,s);
+  const grad=c.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,W*.58);
+  grad.addColorStop(0,'#19201b');grad.addColorStop(.8,'#121813');grad.addColorStop(1,'#101511');c.fillStyle=grad;c.fillRect(0,0,W,H);
+  for(let heavy=0;heavy<2;heavy++){c.beginPath();
+    for(let x=G;x<W;x+=G)if((x/G%4===0)===Boolean(heavy)){c.moveTo(x,0);c.lineTo(x,H);}
+    for(let y=G;y<H;y+=G)if((y/G%4===0)===Boolean(heavy)){c.moveTo(0,y);c.lineTo(W,y);}
+    c.strokeStyle=heavy?'#303b32':'#242d26';c.lineWidth=(heavy?.85:.60)/s;c.stroke();
+  }
+  c.fillStyle='#485248';for(let x=G*4;x<W;x+=G*4)for(let y=G*4;y<H;y+=G*4)c.fillRect(x-1,y-1,2,2);
+  c.strokeStyle='#40493e';c.lineWidth=1/s;c.strokeRect(0,0,W,H);
+  c.beginPath();for(let x=0;x<=W;x+=G){let tick=x%(G*4)===0?5:2;c.moveTo(x,-2);c.lineTo(x,-2-tick);c.moveTo(x,H+2);c.lineTo(x,H+2+tick);}
+  for(let y=0;y<=H;y+=G){let tick=y%(G*4)===0?5:2;c.moveTo(-2,y);c.lineTo(-2-tick,y);c.moveTo(W+2,y);c.lineTo(W+2+tick,y);}c.stroke();
+  for(const [x,y,sx,sy] of [[0,0,1,1],[W,0,-1,1],[0,H,1,-1],[W,H,-1,-1]]){
+    c.beginPath();c.moveTo(x+sx*12,y);c.lineTo(x,y);c.lineTo(x,y+sy*12);c.strokeStyle='#91a08a';c.lineWidth=1.5/s;c.stroke();}
+  render();
+}
+function particleLayer(c){
+  c.save();c.beginPath();c.rect(0,0,W,H);c.clip();c.globalCompositeOperation='lighter';c.lineCap='round';
+  const groups=[[],[],[],[]];for(const p of sim.particles)groups[p.c].push(p);
+  for(let k=0;k<4;k++){
+    const group=groups[k];c.strokeStyle=walls[k].color;c.fillStyle=walls[k].color;
+    if(trails){
+      for(const [begin,end,alpha,lw] of [[0,6,.15,1.5],[6,11,.085,1.2],[11,15,.04,1]]){
+        c.beginPath();
+        for(const p of group){if(p.len<=begin)continue;
+          const start=(p.last-begin+16)%16;c.moveTo(begin?p.history[2*start]:p.x,begin?p.history[2*start+1]:p.y);
+          for(let i=begin;i<=Math.min(end,p.len-1);i+=2){const n=(p.last-i+16)%16;c.lineTo(p.history[2*n],p.history[2*n+1]);}
+        }c.globalAlpha=alpha;c.lineWidth=lw;c.stroke();
+      }
+    }
+    c.globalAlpha=.075;c.beginPath();for(const p of group){c.moveTo(p.x+3.7,p.y);c.arc(p.x,p.y,3.7,0,Math.PI*2);}c.fill();
+    c.globalAlpha=.86;c.beginPath();for(const p of group){c.moveTo(p.x+p.size,p.y);c.arc(p.x,p.y,p.size,0,Math.PI*2);}c.fill();
+  }c.restore();
+}
+function nozzle(c,j){
+  const p=jetPoint(j),w=walls[j.wall],selected=selection===j;
+  c.save();c.translate(p.x,p.y);c.rotate([Math.PI/2,Math.PI,-Math.PI/2,0][j.wall]);
+  if(!j.on)c.globalAlpha=.45;
+  const glow=c.createRadialGradient(7,0,0,7,0,30);glow.addColorStop(0,w.color+'39');glow.addColorStop(1,w.color+'00');c.fillStyle=glow;c.fillRect(-24,-30,65,60);
+  c.fillStyle='#212a22';c.strokeStyle=w.color;c.lineWidth=1.4;
+  c.beginPath();c.moveTo(-14,-14);c.lineTo(-6,-14);c.lineTo(6,-8);c.lineTo(9,-8);c.lineTo(9,8);c.lineTo(6,8);c.lineTo(-6,14);c.lineTo(-14,14);c.closePath();c.fill();c.stroke();
+  c.fillStyle=w.color;c.fillRect(6,-7,4,14);c.globalAlpha=.65;c.fillRect(-11,-8,2,16);c.fillRect(-7,-7,2,14);
+  if(selected){c.strokeStyle='#edf5e8';c.lineWidth=1;c.setLineDash([3,3]);c.strokeRect(-18,-18,33,36);}c.restore();
+}
+function sink(c,s){
+  const selected=selection===s,col=s.on?'#b9ed83':'#9ba39a';
+  c.save();c.translate(s.x,s.y);const glow=c.createRadialGradient(0,0,2,0,0,44);glow.addColorStop(0,s.on?'#9acd6b38':'#88938320');glow.addColorStop(1,'#a2d87300');c.fillStyle=glow;c.fillRect(-44,-44,88,88);
+  c.lineWidth=1;c.strokeStyle=col+'45';c.beginPath();c.arc(0,0,21,0,Math.PI*2);c.stroke();
+  c.beginPath();c.arc(0,0,14,0,Math.PI*2);c.fillStyle='#10170e';c.fill();c.strokeStyle=col;c.lineWidth=1.5;c.stroke();
+  c.strokeStyle=col;c.lineWidth=1.5;
+  for(let i=0;i<3;i++){const a=i*Math.PI*2/3+(s.on?sim.time*.6:0);c.beginPath();c.moveTo(Math.cos(a)*8,Math.sin(a)*8);c.quadraticCurveTo(Math.cos(a+1.0)*11,Math.sin(a+1.0)*11,Math.cos(a+1.55)*3,Math.sin(a+1.55)*3);c.stroke();}
+  if(selected){c.strokeStyle=col;c.lineWidth=1.8;for(let i=0;i<4;i++){const a=Math.PI/4+i*Math.PI/2;c.beginPath();c.arc(0,0,22,a-.20,a+.20);c.stroke();}}
+  c.font='10px monospace';c.textAlign='center';c.fillStyle=col;c.fillText(shortId(s),0,36);c.restore();
+}
+function render(){if(!gridLayer)return;const c=ctx,t=screen;c.setTransform(1,0,0,1,0,0);c.drawImage(gridLayer,0,0);
+  c.setTransform(t.ratio*t.s,0,0,t.ratio*t.s,t.left*t.ratio,t.top*t.ratio);
+  particleLayer(c);for(const j of sim.jets)nozzle(c,j);for(const s of sim.sinks)sink(c,s);
+}
+function position(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left-screen.left)/screen.s,y:(e.clientY-r.top-screen.top)/screen.s};}
+function hit(p){let best=null,dist=Infinity;const objects=[...sim.sinks,...sim.jets];
+  for(const o of objects){const v='wall' in o?jetPoint(o):o,d=Math.hypot(p.x-v.x,p.y-v.y);
+    if(d<Math.max(21,14/screen.s)&&d<dist){dist=d;best=o;}}return best;}
+canvas.onpointerdown=e=>{
+  if(pointer||e.button!==0)return;
+  const p=position(e),obj=hit(p);canvas.focus({preventScroll:true});
+  if(mode==='add'&&!obj){
+    if(p.x<0||p.y<0||p.x>W||p.y>H)return;
+    const candidate={x:p.x,y:p.y};sim.move(candidate,p.x,p.y,snapping);
+    if(hit(candidate)){ $('hint').textContent='That grid point is occupied. Choose a nearby point.';return;}
+    choose(sim.addSink(candidate.x,candidate.y));setMode('move');return;
+  }
+  if(obj){setMode('move');choose(obj);pointer={id:e.pointerId,obj,origin:p,dragging:false};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';}
+};
+canvas.onpointermove=e=>{
+  const p=position(e);if(!pointer){canvas.style.cursor=hit(p)?'grab':mode==='add'?'crosshair':'default';return;}
+  if(e.pointerId!==pointer.id)return;
+  if(!pointer.dragging&&Math.hypot(p.x-pointer.origin.x,p.y-pointer.origin.y)*screen.s<3)return;
+  pointer.dragging=true;sim.move(pointer.obj,p.x,p.y,snapping);
+};
+function endDrag(e){if(pointer?.id===e.pointerId){pointer=null;canvas.style.cursor=mode==='add'?'crosshair':'default';}}
+canvas.onpointerup=endDrag;canvas.onpointercancel=endDrag;canvas.onlostpointercapture=endDrag;
+canvas.onkeydown=e=>{
+  if(e.key==='Escape'){setMode('move');return;}
+  if(e.key===' '){e.preventDefault();$('play').click();return;}
+  const objs=[...sim.jets,...sim.sinks];
+  if(e.key==='Enter'){e.preventDefault();choose(objs[(objs.indexOf(selection)+1)%objs.length]);return;}
+  if(!selection||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
+  e.preventDefault();const delta=snapping?G:4;const p='wall' in selection?jetPoint(selection):selection;
+  sim.move(selection,p.x+delta*((e.key==='ArrowRight')-(e.key==='ArrowLeft')),p.y+delta*((e.key==='ArrowDown')-(e.key==='ArrowUp')),snapping);
+};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mode==='add')setMode('move');});
+document.addEventListener('visibilitychange',()=>{lastStamp=null;acc=0;});
+function animate(now){
+  if(playing&&!document.hidden){if(lastStamp!==null)acc+=Math.min((now-lastStamp)/1000,.08);
+    while(acc>=step){sim.advance();shownTime+=step;acc-=step;}
+  }
+  lastStamp=now;render();if(now-lastRead>160){lastRead=now;readouts();}requestAnimationFrame(animate);
+}
+drawIcons();reset('confluence');new ResizeObserver(resize).observe(canvas);resize();requestAnimationFrame(animate);
+
+</script>
+</body></html>

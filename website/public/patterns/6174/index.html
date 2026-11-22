@@ -48,7 +48,7 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
     <label class="slot slot-c"><span><i></i>Path C</span><input type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="0000" value="9832" autocomplete="off" data-start aria-label="Path C starting number"></label>
     <label class="form-check"><input type="checkbox" data-zoom> Magnify selected hundreds</label>
   </div>
-  <p class="guide">Hover or tap a ribbon to inspect it. Select a path field, then tap the top number line to set its start.</p>
+  <p class="guide">Drag any highlighted path left or right to change its starting number. Hover or tap a ribbon to inspect it. Where paths overlap, select the field for the one you want to drag.</p>
   <div class="road-stage">
   <svg class="road-plot" role="img" aria-label="Kaprekar paths. The top row is in numerical order. Each following row shows distinct values after one more subtraction. Ribbon width is proportional to the number of starting values at that step." style="display:block;width:100%"></svg>
   <button type="button" class="road-surface cursor-interaction" data-surface aria-label="Inspect the convergence map. Use up and down to change step, left and right to select a number, and Escape to dismiss details."></button>
@@ -97,7 +97,7 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
   const numberAt=i=>/^[0-9]{1,4}$/.test(inputs[i].value)?Number(inputs[i].value):null;
   const current=()=>numberAt(activeSlot)??inputs.map((_,i)=>numberAt(i)).find(v=>v!==null)??1983;
   const selectedHundreds=()=>[...new Set(inputs.map((_,i)=>numberAt(i)).filter(v=>v!==null).map(n=>Math.floor(n/100)))].sort((a,b)=>a-b);
-  let layout,selection,accent,active=null,pinned=false,dragStart=false;
+  let layout,selection,accent,active=null,pinned=false,drag=null,traceTargets=[];
   const at=(n,i)=>paths[n][Math.min(i,paths[n].length-1)];
   function build(){
     const w=Math.max(250,Math.floor(root.getBoundingClientRect().width)),compact=w<490;
@@ -258,9 +258,9 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
     }
     return {d,points};
   }
-  function details(step,value,feed=null){
-    if(active&&active.step===step&&active.value===value&&active.feed===feed)return;
-    active={step,value,feed};const l=layout,path=paths[value],remaining=path?path.length-1:0;
+  function details(step,value,feed=null,slot=null){
+    if(active&&active.step===step&&active.value===value&&active.feed===feed&&active.slot===slot)return;
+    active={step,value,feed,slot};const l=layout,path=paths[value],remaining=path?path.length-1:0;
     const x=step?l.xs[step].get(value):l.xTop(value),y=step?l.y(step):l.top+l.band;
     const digits=[...four(value)].sort();
     heading.textContent=(step?'Step '+step:'Start')+' · '+four(value);
@@ -272,10 +272,12 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
     counts.textContent=step?(feed?'From '+four(feed.value)+' · ':'')+
       weight.toLocaleString()+' of '+total+' starts ('+share(weight)+') at step '+step:'';
     accent.replaceChildren();
-    const {d}=routeLine(step,value);
-    if(d){node('path',{d,fill:'none',stroke:'var(--background)','stroke-width':3.6},null,accent);
-      node('path',{d,fill:'none',stroke:'var(--foreground)','stroke-width':1.5},null,accent);}
-    node('circle',{cx:x,cy:y,r:5,fill:'var(--background)',stroke:'var(--foreground)','stroke-width':2},null,accent);
+    if(slot===null){
+      const {d}=routeLine(step,value);
+      if(d){node('path',{d,fill:'none',stroke:'var(--background)','stroke-width':3.6},null,accent);
+        node('path',{d,fill:'none',stroke:'var(--foreground)','stroke-width':1.5},null,accent);}
+      node('circle',{cx:x,cy:y,r:5,fill:'var(--background)',stroke:'var(--foreground)','stroke-width':2},null,accent);
+    }
     tip.hidden=false;surface.setAttribute('aria-describedby',tip.id);
     const scale=svg.getBoundingClientRect().width/l.w,tipW=tip.offsetWidth,tipH=tip.offsetHeight;
     const px=x*scale,py=y*scale,width=svg.getBoundingClientRect().width;
@@ -287,10 +289,12 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
     let a=0,b=1;for(let k=0;k<12;k++){const t=(a+b)/2;if(1.5*t-1.5*t*t+t*t*t<f)a=t;else b=t;}
     const t=(a+b)/2;return t*t*(3-2*t);
   }
-  function locate(e){
+  function plotPoint(e){
     const l=layout,box=svg.getBoundingClientRect(),scale=l.w/box.width;
-    const x=(e.clientX-box.left)*scale,y=(e.clientY-box.top)*scale;
-    const touch=e.pointerType==='touch',margin=touch?18:12;
+    return {x:(e.clientX-box.left)*scale,y:(e.clientY-box.top)*scale};
+  }
+  function locate(e){
+    const l=layout,{x,y}=plotPoint(e),margin=e.pointerType==='touch'?18:12;
     if(Math.abs(y-l.y(6))<=10){
       const label=l.labels.find(item=>x>=item.x-2&&x<=item.x+item.width+2);
       if(label)return {step:6,value:label.value};
@@ -317,23 +321,80 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
     }
     return best;
   }
+  // Sample the same cubic used for painting, including the gaps in dashed or dotted paths.
+  function traceSpine(startX,points){
+    let x=startX,y=layout.top+layout.band;
+    const spine=[[x,layout.top-3,0],[x,y,0]];
+    points.forEach(([nx,ny],i)=>{
+      for(let j=1;j<=24;j++){
+        const t=j/24,fx=t*t*(3-2*t),fy=t*(1.5-1.5*t+t*t);
+        spine.push([x+(nx-x)*fx,y+(ny-y)*fy,i+1]);
+      }
+      x=nx;y=ny;
+    });
+    return spine;
+  }
+  function traceAt(point,radius){
+    let hit=null,best=radius*radius;
+    for(const {i,spine} of traceTargets){
+      for(let j=1;j<spine.length;j++){
+        const [x,y]=spine[j-1],[nx,ny,endStep]=spine[j];
+        if(point.y<y-radius||point.y>ny+radius)continue;
+        const dx=nx-x,dy=ny-y;
+        const t=Math.max(0,Math.min(1,((point.x-x)*dx+(point.y-y)*dy)/(dx*dx+dy*dy)));
+        const distance=(point.x-x-t*dx)**2+(point.y-y-t*dy)**2;
+        if(distance>best || (distance===best && hit && i!==activeSlot))continue;
+        const step=endStep>1 && point.y<layout.y(endStep)-5?endStep-1:endStep;
+        best=distance;hit={slot:i,step,value:step?paths[numberAt(i)][step]:numberAt(i)};
+      }
+    }
+    return hit;
+  }
+  function setStart(slot,n){
+    inputs[slot].value=four(n);highlight();
+  }
+  function inspect(h){
+    if(h)details(h.step,h.value,h.feed,h.slot);else clearDetail();
+  }
   tip.id='kaprekar-label-detail';
   surface.addEventListener('pointermove',e=>{
-    if(pinned&&!dragStart)return;
-    const h=locate(e);
-    if(dragStart){if(h&&h.step===0){inputs[activeSlot].value=four(h.value);inputs[activeSlot].removeAttribute('aria-invalid');highlight();details(0,current());}return;}
+    const point=plotPoint(e);
+    if(drag){
+      if(e.pointerId!==drag.id)return;
+      const dx=point.x-drag.pointerX;
+      if(!drag.moved && Math.abs(dx)<3)return;
+      drag.moved=true;
+      const x=Math.max(layout.left,Math.min(layout.right,drag.originX+dx)),n=layout.startAt(x);
+      if(n!==null && n!==numberAt(drag.slot))setStart(drag.slot,n);
+      details(0,numberAt(drag.slot),null,drag.slot);
+      return;
+    }
     if(e.pointerType==='touch')return;
-    if(h)details(h.step,h.value,h.feed);else clearDetail();
+    const hit=traceAt(point,8);
+    surface.style.cursor=hit?'grab':'';
+    if(!pinned)inspect(hit||locate(e));
   });
-  surface.addEventListener('pointerleave',()=>{if(!pinned&&!dragStart)clearDetail();});
+  surface.addEventListener('pointerleave',()=>{if(!drag){surface.style.cursor='';if(!pinned)clearDetail();}});
   surface.addEventListener('pointerdown',e=>{
-    if(e.button!==0)return;
-    const h=locate(e);if(!h){clearDetail();return;}
-    if(pinned&&active?.step===h.step&&active?.value===h.value){clearDetail();return;}
-    if(h.step===0){inputs[activeSlot].value=four(h.value);inputs[activeSlot].removeAttribute('aria-invalid');highlight();dragStart=true;surface.setPointerCapture(e.pointerId);}
-    details(h.step,h.value,h.feed);pinned=true;
+    if(e.button!==0||drag)return;
+    const point=plotPoint(e),hit=traceAt(point,e.pointerType==='touch'?16:8),h=hit||locate(e);
+    if(!h){clearDetail();return;}
+    const dismiss=pinned&&active?.step===h.step&&active?.value===h.value&&active?.slot===(h.slot??null);
+    if(hit||h.step===0){
+      if(hit)activeSlot=hit.slot;
+      else setStart(activeSlot,h.value);
+      drag={id:e.pointerId,slot:activeSlot,pointerX:point.x,originX:layout.xTop(numberAt(activeSlot)),moved:false};
+      surface.setPointerCapture(e.pointerId);surface.style.cursor='grabbing';
+    }
+    if(dismiss)clearDetail();else{inspect(h);pinned=true;}
   });
-  for(const event of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener(event,()=>{if(dragStart){dragStart=false;refresh();}});
+  for(const event of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener(event,e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    const moved=drag.moved;drag=null;
+    if(moved)clearDetail();
+    refresh();
+    surface.style.cursor=event==='pointerup' && e.pointerType!=='touch' && traceAt(plotPoint(e),8)?'grab':'';
+  });
   surface.addEventListener('focus',()=>{if(surface.matches(':focus-visible'))details(0,current());});
   surface.addEventListener('blur',clearDetail);
   surface.addEventListener('keydown',e=>{
@@ -380,6 +441,7 @@ footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-
       lines.push({i,x,d,points});
     }
     // Draw all halos first so a later trace cannot erase an earlier overlapping trace.
+    traceTargets=lines.map(({i,x,points})=>({i,spine:traceSpine(x,points)}));
     for(const {d} of lines)if(d)node('path',{d,fill:'none',stroke:'var(--background)','stroke-width':4.4},null,selection);
     for(const {i,x,d,points} of lines){
       const group=node('g',{'data-traced-path':names[i],fill:inks[i]},null,selection);

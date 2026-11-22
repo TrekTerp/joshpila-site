@@ -93,7 +93,7 @@ export function PatternsArticle({ returnLink }: { returnLink: ReactNode }) {
           <a className="life-lab-launch" href="/patterns/flux-chamber/">Open Flux Chamber <RouteArrow /></a>
         </div>
       </section>
-      <section aria-labelledby="kaprekar"><PatternMark kind="number" /><div><h2 id="kaprekar">The road to 6174</h2><p>Rearrange four digits. Subtract. Repeat. A number curiosity with a remarkably persistent destination.</p><span className="pattern-status">In preparation</span></div></section>
+      <section aria-labelledby="kaprekar"><PatternMark kind="number" /><div><h2 id="kaprekar">The road to 6174</h2><p>Rearrange four digits. Subtract. Repeat. A number curiosity with a remarkably persistent destination.</p><a className="life-lab-launch" href="/patterns/6174/">Explore the road to 6174 <RouteArrow /></a></div></section>
     </div>
     <div className="room-return-bottom">{returnLink}</div>
   </article>;

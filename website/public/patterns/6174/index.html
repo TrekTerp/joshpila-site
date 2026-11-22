@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The road to 6174 · Josh Pila</title>
+<meta name="description" content="Follow 9,990 four-digit starting numbers to Kaprekar’s constant. Trace up to three paths and inspect the branches where they merge.">
+<link rel="canonical" href="https://www.joshpila.com/patterns/6174/">
+<link rel="icon" href="/icons/patterns.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/patterns-180.png">
+<style>
+:root{color-scheme:light;--background:#fbf7ef;--foreground:#2d291f;--muted-foreground:#756d5e;--border:#cbbfaa;--popover:#fffdf8;--popover-foreground:#302b22;--viz-series-1:#7099cb;--viz-series-2:#ce8b53;--viz-series-3:#68a87e;--path-a:#253583;--path-b:#992755;--path-c:#006056;--accent:#665020}
+*{box-sizing:border-box}
+body{margin:0;background:var(--background);color:var(--foreground);font:1rem/1.5 "IBM Plex Sans",system-ui,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:22px clamp(15px,4vw,54px) 46px}
+nav{display:flex;align-items:center;gap:11px;font-size:.9rem}
+a{color:var(--accent);text-underline-offset:3px}
+header h1{margin:22px 0 5px;font:normal clamp(2.1rem,4.9vw,3.9rem)/1.07 "IM Fell English",Georgia,serif;letter-spacing:-.045em}
+header p{max-width:72ch;color:#555046;margin:10px 0 24px}
+.viz-controls{display:flex;flex-wrap:wrap;gap:13px 18px;align-items:end;border-block:1px solid var(--border);padding:12px 0 15px}
+.slot{display:grid;gap:5px}.slot-a{--ink:var(--path-a)}.slot-b{--ink:var(--path-b)}.slot-c{--ink:var(--path-c)}
+.slot span{display:flex;align-items:center;gap:8px;font-weight:650;font-size:.85rem;color:var(--ink)}
+.slot i{width:20px;border-top:3px solid currentColor}.slot-b i{border-top-style:dashed}.slot-c i{border-top-style:dotted}
+.slot input{width:6.3rem;max-width:100%;padding:6px 9px;background:#fffcf6;border:1px solid #b9ad97;border-radius:5px;color:var(--foreground);font:500 1.04rem/1.4 ui-monospace,monospace}
+.slot input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}.slot input[aria-invalid=true]{border-color:#a53832}
+.form-check{display:flex;align-items:center;gap:6px;font-size:.9rem;margin:0 0 8px;color:#565041}
+.form-check input{accent-color:#4a6852;width:16px;height:16px;margin:0;cursor:pointer}
+.guide,.text-small{font-size:.85rem;color:#655e51}.guide{margin:12px 0 0}
+.road-stage button:focus-visible{outline:2px solid #7d6947;outline-offset:1px}
+.road-surface{cursor:crosshair}.road-tip{font-size:.9rem;box-shadow:0 5px 18px #30250d20}
+.viz-row{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}
+[data-scale]{margin-top:8px}[data-key]{margin:5px 0 17px}
+.trace-list{border-top:1px solid var(--border);padding-top:7px}
+.trace-row{display:flex;gap:11px;align-items:baseline;flex-wrap:wrap;padding:5px 0}
+.trace-id{color:var(--ink);width:1.4em;flex:none;text-align:center}
+.trace-row span{font-family:ui-monospace,Consolas,monospace;font-size:.93rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.trace-row small{font-size:.79rem;color:var(--muted-foreground)}
+footer{border-top:1px solid var(--border);margin-top:24px;padding-top:14px;font-size:.9rem}
+@media(max-width:520px){main{padding-top:15px}.viz-controls{gap:9px 13px}.slot input{width:4.8rem}.form-check{margin:2px 0 0}.guide{font-size:.79rem}.trace-row{display:grid;grid-template-columns:20px minmax(0,1fr);gap:0 8px}.trace-row small{grid-column:2}}
+</style>
+</head><body><main>
+<div id="kaprekar-atlas">
+  <header>
+    <nav aria-label="Site navigation"><a href="/?selected=patterns">Orrery</a><span aria-hidden="true">/</span><a href="/patterns/">Patterns</a></nav>
+    <h1>The road to 6174</h1>
+    <p>Arrange four digits from largest to smallest, reverse them, and subtract. Repeat, keeping leading zeros. All 9,990 starts with at least two different digits reach 6174 within seven steps.</p>
+  </header>
+  <div class="viz-controls">
+    <label class="slot slot-a"><span><i></i>Path A</span><input type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="0000" value="1983" autocomplete="off" data-start aria-label="Path A starting number"></label>
+    <label class="slot slot-b"><span><i></i>Path B</span><input type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="0000" value="3524" autocomplete="off" data-start aria-label="Path B starting number"></label>
+    <label class="slot slot-c"><span><i></i>Path C</span><input type="text" inputmode="numeric" pattern="[0-9]{1,4}" maxlength="4" placeholder="0000" value="9832" autocomplete="off" data-start aria-label="Path C starting number"></label>
+    <label class="form-check"><input type="checkbox" data-zoom> Magnify selected hundreds</label>
+  </div>
+  <p class="guide">Hover or tap a ribbon to inspect it. Select a path field, then tap the top number line to set its start.</p>
+  <div class="road-stage">
+  <svg class="road-plot" role="img" aria-label="Kaprekar paths. The top row is in numerical order. Each following row shows distinct values after one more subtraction. Ribbon width is proportional to the number of starting values at that step." style="display:block;width:100%"></svg>
+  <button type="button" class="road-surface cursor-interaction" data-surface aria-label="Inspect the convergence map. Use up and down to change step, left and right to select a number, and Escape to dismiss details."></button>
+  <div class="road-tip tabular-nums" data-detail role="tooltip" hidden>
+    <strong data-heading></strong><div data-math></div><div data-route></div><div class="text-small" data-count></div>
+  </div>
+  </div>
+  <div class="viz-row text-small" data-scale aria-label="Ribbon width scale"></div>
+  <div class="viz-row text-small" data-key aria-label="Last stop before 6174"></div>
+  <div class="trace-list" data-trace aria-live="polite" aria-label="Selected routes"></div>
+</div>
+<style>
+#kaprekar-atlas [data-start]{max-width:9em}
+#kaprekar-atlas [data-key] span{display:inline-flex;align-items:center;gap:.35em}
+#kaprekar-atlas [data-key] i{width:.75em;height:.75em;border-radius:50%;display:inline-block}
+#kaprekar-atlas .road-plot text{fill:var(--foreground);font-size:12px;font-variant-numeric:tabular-nums}
+#kaprekar-atlas [data-trace]{margin:.5em 0 0;overflow-wrap:anywhere}
+#kaprekar-atlas .road-stage{position:relative}
+#kaprekar-atlas .road-surface{position:absolute;inset:0;width:100%;height:100%;background:transparent;border:0;padding:0;touch-action:pan-y}
+#kaprekar-atlas .road-tip{position:absolute;z-index:2;box-sizing:border-box;width:max-content;max-width:min(22em,calc(100% - 8px));background:var(--popover);color:var(--popover-foreground);border:1px solid var(--border);border-radius:.5em;padding:.55em .8em;pointer-events:none;overflow-wrap:anywhere}
+#kaprekar-atlas .road-tip[hidden]{display:none}
+#kaprekar-atlas .road-tip strong{font-weight:500}
+#kaprekar-atlas [data-route]{margin:.25em 0}
+</style>
+<script>
+(()=>{
+  const root=document.getElementById('kaprekar-atlas'),svg=root.querySelector('svg'),inputs=[...root.querySelectorAll('[data-start]')],zoom=root.querySelector('[data-zoom]'),readout=root.querySelector('[data-trace]');
+  const surface=root.querySelector('[data-surface]'),tip=root.querySelector('[data-detail]');
+  const heading=root.querySelector('[data-heading]'),math=root.querySelector('[data-math]'),route=root.querySelector('[data-route]'),counts=root.querySelector('[data-count]');
+  const branches=[4176,8352,8532],end=6174,colors=['var(--viz-series-1)','var(--viz-series-2)','var(--viz-series-3)','var(--muted-foreground)'],ns='http://www.w3.org/2000/svg';
+  const four=n=>String(n).padStart(4,'0'),paths=[],next=new Int32Array(10000),branch=new Uint8Array(10000);
+  for(let n=0;n<10000;n++){const digits=[...four(n)].sort();next[n]=Number(digits.slice().reverse().join(''))-Number(digits.join(''));}
+  for(let n=0;n<10000;n++){
+    if(!next[n])continue;
+    const p=[n];while(p.at(-1)!==end)p.push(next[p.at(-1)]);
+    paths[n]=p;const g=branches.indexOf(p.at(-2));branch[n]=g<0?3:g;
+  }
+  const key=root.querySelector('[data-key]');
+  key.append('Last stop: ');
+  [...branches,'Direct / at 6174'].forEach((label,i)=>{const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=colors[i];item.append(dot,String(label));key.append(item);});
+  const node=(name,attrs={},label=null,parent=svg)=>{
+    const e=document.createElementNS(ns,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(label!==null)e.textContent=label;parent.append(e);return e;
+  };
+  const inks=['var(--path-a)','var(--path-b)','var(--path-c)'],dash=['','8 4','1 5'],names=['A','B','C'];
+  let activeSlot=0;
+  const numberAt=i=>/^[0-9]{1,4}$/.test(inputs[i].value)?Number(inputs[i].value):null;
+  const current=()=>numberAt(activeSlot)??inputs.map((_,i)=>numberAt(i)).find(v=>v!==null)??1983;
+  const selectedHundreds=()=>[...new Set(inputs.map((_,i)=>numberAt(i)).filter(v=>v!==null).map(n=>Math.floor(n/100)))].sort((a,b)=>a-b);
+  let layout,selection,accent,active=null,pinned=false,dragStart=false;
+  const at=(n,i)=>paths[n][Math.min(i,paths[n].length-1)];
+  function build(){
+    const w=Math.max(250,Math.floor(root.getBoundingClientRect().width)),compact=w<490;
+    const left=compact?55:75,right=w-10,span=right-left,top=40,band=17,first=121,dy=compact?40:43,y=i=>first+(i-1)*dy;
+    const hundreds=selectedHundreds();
+    if(!hundreds.length)hundreds.push(Math.floor(current()/100));
+    const groups=zoom.checked?hundreds.map(h=>({lo:h*100,hi:h*100+99})):[{lo:0,hi:9999}];
+    const windowKey=groups.map(g=>g.lo+'-'+g.hi).join(',');
+    const gutter=compact?9:15,windowWidth=(span-gutter*(groups.length-1))/groups.length;
+    groups.forEach((g,j)=>{g.left=left+j*(windowWidth+gutter);g.size=g.hi-g.lo+1;});
+    const xTop=n=>{const g=groups.find(g=>n>=g.lo&&n<=g.hi);return g.left+windowWidth*(n-g.lo+.5)/g.size;};
+    const startAt=x=>{const g=groups.find(g=>x>=g.left&&x<=g.left+windowWidth);
+      return g?Math.min(g.hi,g.lo+Math.floor((x-g.left)*g.size/windowWidth)):null;};
+    const svgHeight=y(7)+27;
+    svg.setAttribute('viewBox','0 0 '+w+' '+svgHeight);svg.replaceChildren();
+    const rows=Array.from({length:8},()=>new Map()),samples=[];
+    for(const g of groups)for(let n=g.lo;n<=g.hi;n++){if(!paths[n])continue;samples.push(n);
+      for(let i=1;i<=7;i++){const v=at(n,i),map=rows[i];map.set(v,(map.get(v)||0)+1);}}
+    // Keep the total occupied width constant at every row. The remaining space separates values.
+    const unit=Math.min(120,span*.21)/samples.length;
+    const xs=Array.from({length:8},()=>new Map()),bounds=Array.from({length:8},()=>new Map());
+    const blank=span-unit*samples.length;
+    const sideSpace=[.32,.30,.27,.11];
+    function compare(a,b){
+      const pa=paths[a],pb=paths[b];
+      for(let i=1;i<=Math.min(pa.length,pb.length);i++){const d=pa.at(-i)-pb.at(-i);if(d)return d;}
+      return pa.length-pb.length;
+    }
+    for(let i=1;i<=7;i++){
+      let cursor=left;
+      for(let g=0;g<4;g++){
+        const values=[...rows[i].keys()].filter(v=>branch[v]===g).sort(compare);
+        const slack=blank*sideSpace[g];
+        if(!values.length){cursor+=slack;continue;}
+        const gap=slack/values.length;cursor+=gap/2;
+        for(const v of values){
+          const width=rows[i].get(v)*unit;
+          bounds[i].set(v,{left:cursor,width});
+          xs[i].set(v,cursor+width/2);cursor+=width+gap;
+        }
+        cursor-=gap/2;
+      }
+    }
+    function curve(x1,y1,x2,y2){const m=(y1+y2)/2;return 'M'+x1+' '+y1+'C'+x1+' '+m+' '+x2+' '+m+' '+x2+' '+y2;}
+    node('text',{x:0,y:top+12},'Start');
+    node('text',{x:0,y:top+28,opacity:'.68'},samples.length.toLocaleString());
+    const strip=node('g',{'shape-rendering':'crispEdges'});
+    for(const g of groups){
+      if(groups.length>1){
+        node('text',{x:g.left+windowWidth/2,y:top-8,'text-anchor':'middle'},four(g.lo)+'–'+four(g.hi));
+      }else{
+        const ticks=compact?[g.lo,g.hi]:[g.lo,g.lo+Math.floor(g.size/2),g.hi];
+        ticks.forEach((n,j)=>node('text',{x:xTop(n),y:top-8,'text-anchor':j===0?'start':j===ticks.length-1?'end':'middle'},four(n)));
+      }
+      const columns=Math.min(Math.max(1,Math.floor(windowWidth)),g.size);
+      const bins=Array.from({length:columns},()=>[0,0,0,0]);
+      for(let n=g.lo;n<=g.hi;n++)if(paths[n])bins[Math.floor((n-g.lo)*columns/g.size)][branch[n]]++;
+      bins.forEach((counts,j)=>{
+        const size=Math.ceil((j+1)*g.size/columns)-Math.ceil(j*g.size/columns);let y0=top;
+        counts.forEach((count,k)=>{if(!count)return;const h=band*count/size;
+          node('rect',{x:g.left+windowWidth*j/columns,y:y0,width:windowWidth/columns,height:h,fill:colors[k]},null,strip);y0+=h;});
+      });
+    }
+    // Allocate a slice of each destination to each incoming flow, in left-to-right order.
+    const edges=Array.from({length:7},()=>[]);
+    const jumps=Array.from({length:7},()=>new Map());
+    const firstEntry=new Map();
+    for(const n of samples){
+      const edge={from:xTop(n),width:unit,count:1,value:n,target:next[n]};
+      edges[0].push(edge);
+      firstEntry.set(n,edge);
+    }
+    for(let i=1;i<7;i++)for(const [value,count] of rows[i]){
+      const edge={from:xs[i].get(value),width:count*unit,count,value,target:next[value]};
+      edges[i].push(edge);jumps[i].set(value,edge);
+    }
+    for(let i=0;i<7;i++){
+      const incoming=new Map();
+      for(const edge of edges[i]){
+        if(!incoming.has(edge.target))incoming.set(edge.target,[]);
+        incoming.get(edge.target).push(edge);
+      }
+      const layer=node('g',{},null,svg),ya=i===0?top+band:y(i),yb=y(i+1);
+      for(const [target,list] of incoming){
+        let dest=bounds[i+1].get(target).left;
+        const fibers=[];
+        for(const e of list.sort((a,b)=>a.from-b.from)){
+          const h=e.width/2;e.to=dest+h;dest+=e.width;
+          // Round only the painted coordinates. Keep full precision for weighting and interaction.
+          const fmt=x=>Math.round(x*10000)/10000;
+          const x0=fmt(e.from-h),x1=fmt(e.to-h),x2=fmt(e.to+h),x3=fmt(e.from+h),mid=(ya+yb)/2;
+          const shape=curve(x0,ya,x1,yb)+'L'+x2+' '+yb+'C'+x2+' '+mid+' '+x3+' '+mid+' '+x3+' '+ya+'Z';
+          if(i===0)fibers.push(shape);
+          else node('path',{d:shape,fill:colors[branch[e.value]],opacity:e.value===end?.27:.71},null,layer);
+        }
+        // Batch fibers only at paint time. Each subpath still starts at its own exact number.
+        if(fibers.length)node('path',{d:fibers.join(''),fill:colors[branch[target]],opacity:zoom.checked?.45:.35},null,layer);
+      }
+    }
+    const scale=root.querySelector('[data-scale]'),ex=zoom.checked?10:1000;
+    scale.replaceChildren();
+    const swatch=document.createElement('i');
+    swatch.style.cssText='display:inline-block;height:.8em;background:var(--muted-foreground);width:'+ex*unit+'px';
+    scale.append('Ribbon width',swatch,ex.toLocaleString()+' starts');
+    for(let i=1;i<=7;i++){
+      node('text',{x:0,y:y(i)-1},'Step '+i);
+      node('text',{x:0,y:y(i)+13,opacity:'.68'},String(rows[i].size));
+      for(const v of rows[i].keys()){
+        const slot=bounds[i].get(v),width=Math.max(1.4,slot.width);
+        node('rect',{x:xs[i].get(v)-width/2,y:y(i)-1.5,width,height:3,fill:colors[branch[v]]});
+      }
+    }
+    node('text',{x:xs[7].get(end),y:y(7)+21,'text-anchor':'middle'},'6174');
+    selection=node('g',{'pointer-events':'none'});
+    accent=node('g',{'pointer-events':'none'});
+    const labels=[];
+    const clearance=6,halfHeight=8,sweep=blend(halfHeight/dy);
+    const blocked=[];
+    for(const row of [5,6])for(const edge of edges[row]){
+      const near=row===5?edge.to:edge.from,far=row===5?edge.from:edge.to;
+      const outer=near+(far-near)*sweep;
+      blocked.push([Math.min(outer,near)-edge.width/2,Math.max(outer,near)+edge.width/2]);
+    }
+    for(const v of branches){
+      if(!xs[6].has(v))continue;
+      const mark=node('text',{y:y(6),'dominant-baseline':'central','font-weight':700,'data-branch-label':v},String(v));
+      const size=mark.getComputedTextLength?.()||33,anchor=xs[6].get(v);
+      // Fit each label in the nearest clear horizontal gap alongside its node.
+      let cursor=compact?40:48,best=null,bestDistance=Infinity;
+      for(const [start,finish] of [...blocked,[right+clearance,right+clearance]].sort((a,b)=>a[0]-b[0])){
+        const last=start-clearance-size;
+        if(last>=cursor){
+          const x=Math.max(cursor,Math.min(last,anchor-size/2)),distance=Math.abs(x+size/2-anchor);
+          if(distance<bestDistance){best=x;bestDistance=distance;}
+        }
+        cursor=Math.max(cursor,finish+clearance);
+      }
+      if(best===null){mark.remove();continue;}
+      mark.setAttribute('x',best);
+      labels.push({value:v,x:best,width:size});
+      blocked.push([best,best+size]);
+    }
+    layout={groups,windowKey,startAt,left,right,span,top,band,xTop,curve,xs,y,w,rows,samples,bounds,edges,jumps,firstEntry,unit,labels};
+    clearDetail();highlight();
+  }
+  function clearDetail(){active=null;pinned=false;tip.hidden=true;if(accent)accent.replaceChildren();surface.removeAttribute('aria-describedby');}
+  // Track a point inside each ribbon as its traffic merges into a larger ribbon.
+  function routeLine(step,value){
+    const l=layout,path=paths[value],points=[];let d='';
+    let x=step?l.xs[step].get(value):l.xTop(value),y=step?l.y(step):l.top+l.band;
+    if(!path)return {d,points};
+    for(let k=1;k<path.length;k++){
+      const i=step+k-1,previous=path[k-1];
+      let nx;
+      if(i===0)nx=l.firstEntry.get(previous).to;
+      else{const edge=l.jumps[i].get(previous);nx=edge.to+(x-edge.from);}
+      const ny=l.y(i+1);d+=l.curve(x,y,nx,ny);x=nx;y=ny;points.push([x,y]);
+    }
+    return {d,points};
+  }
+  function details(step,value,feed=null){
+    if(active&&active.step===step&&active.value===value&&active.feed===feed)return;
+    active={step,value,feed};const l=layout,path=paths[value],remaining=path?path.length-1:0;
+    const x=step?l.xs[step].get(value):l.xTop(value),y=step?l.y(step):l.top+l.band;
+    const digits=[...four(value)].sort();
+    heading.textContent=(step?'Step '+step:'Start')+' · '+four(value);
+    math.textContent=digits.slice().reverse().join('')+' − '+digits.join('')+' = '+four(next[value]);
+    route.textContent=!path?'Identical digits lead to 0000.':remaining?remaining+' more '+(remaining===1?'step':'steps')+' · '+path.slice(1).map(four).join(' → '):'Fixed point · 0 steps remaining';
+    const weight=step?l.rows[step].get(value):0;
+    const share=n=>(100*n/l.samples.length).toLocaleString(undefined,{maximumFractionDigits:1})+'%';
+    const total=l.samples.length.toLocaleString();
+    counts.textContent=step?(feed?'From '+four(feed.value)+' · ':'')+
+      weight.toLocaleString()+' of '+total+' starts ('+share(weight)+') at step '+step:'';
+    accent.replaceChildren();
+    const {d}=routeLine(step,value);
+    if(d){node('path',{d,fill:'none',stroke:'var(--background)','stroke-width':3.6},null,accent);
+      node('path',{d,fill:'none',stroke:'var(--foreground)','stroke-width':1.5},null,accent);}
+    node('circle',{cx:x,cy:y,r:5,fill:'var(--background)',stroke:'var(--foreground)','stroke-width':2},null,accent);
+    tip.hidden=false;surface.setAttribute('aria-describedby',tip.id);
+    const scale=svg.getBoundingClientRect().width/l.w,tipW=tip.offsetWidth,tipH=tip.offsetHeight;
+    const px=x*scale,py=y*scale,width=svg.getBoundingClientRect().width;
+    tip.style.left=Math.max(3,Math.min(width-tipW-3,px-tipW/2))+'px';
+    tip.style.top=(py>=tipH+14?py-tipH-12:py+12)+'px';
+  }
+  // Invert the height of the rendered cubic to test its actual horizontal position.
+  function blend(f){
+    let a=0,b=1;for(let k=0;k<12;k++){const t=(a+b)/2;if(1.5*t-1.5*t*t+t*t*t<f)a=t;else b=t;}
+    const t=(a+b)/2;return t*t*(3-2*t);
+  }
+  function locate(e){
+    const l=layout,box=svg.getBoundingClientRect(),scale=l.w/box.width;
+    const x=(e.clientX-box.left)*scale,y=(e.clientY-box.top)*scale;
+    const touch=e.pointerType==='touch',margin=touch?18:12;
+    if(Math.abs(y-l.y(6))<=10){
+      const label=l.labels.find(item=>x>=item.x-2&&x<=item.x+item.width+2);
+      if(label)return {step:6,value:label.value};
+    }
+    if(x<l.left-margin||x>l.right+margin)return null;
+    const startValue=l.startAt(x);
+    if(y>=l.top-9&&y<=l.top+l.band+9)return startValue===null?null:{step:0,value:startValue};
+    const row=Math.round(1+(y-l.y(1))/(l.y(2)-l.y(1)));
+    let best=null,dist=Infinity;
+    function offer(step,value,d,feed=null){if(d<dist&&d<=margin){best={step,value,feed};dist=d;}}
+    if(row>=1&&row<=7&&Math.abs(y-l.y(row))<=margin){
+      for(const [value,slot] of l.bounds[row]){const dx=Math.max(slot.left-x,x-slot.left-slot.width,0);offer(row,value,Math.hypot(dx,y-l.y(row)));}
+      if(best)return best;
+    }
+    if(y>l.top+l.band&&y<l.y(7)){
+      const i=y<l.y(1)?0:Math.min(6,Math.floor(1+(y-l.y(1))/(l.y(2)-l.y(1))));
+      const ya=i?l.y(i):l.top+l.band,f=blend((y-ya)/(l.y(i+1)-ya));
+      for(const edge of l.edges[i]){
+        const dx=Math.abs(x-edge.from-(edge.to-edge.from)*f);
+        // Inside a ribbon, prefer the closest centerline when flows cross.
+        const delta=dx<=edge.width/2?-1+dx/Math.max(edge.width,1):dx-edge.width/2;
+        offer(i||1,i?edge.value:edge.target,delta,i?null:edge);
+      }
+    }
+    return best;
+  }
+  tip.id='kaprekar-label-detail';
+  surface.addEventListener('pointermove',e=>{
+    if(pinned&&!dragStart)return;
+    const h=locate(e);
+    if(dragStart){if(h&&h.step===0){inputs[activeSlot].value=four(h.value);inputs[activeSlot].removeAttribute('aria-invalid');highlight();details(0,current());}return;}
+    if(e.pointerType==='touch')return;
+    if(h)details(h.step,h.value,h.feed);else clearDetail();
+  });
+  surface.addEventListener('pointerleave',()=>{if(!pinned&&!dragStart)clearDetail();});
+  surface.addEventListener('pointerdown',e=>{
+    if(e.button!==0)return;
+    const h=locate(e);if(!h){clearDetail();return;}
+    if(pinned&&active?.step===h.step&&active?.value===h.value){clearDetail();return;}
+    if(h.step===0){inputs[activeSlot].value=four(h.value);inputs[activeSlot].removeAttribute('aria-invalid');highlight();dragStart=true;surface.setPointerCapture(e.pointerId);}
+    details(h.step,h.value,h.feed);pinned=true;
+  });
+  for(const event of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener(event,()=>{if(dragStart){dragStart=false;refresh();}});
+  surface.addEventListener('focus',()=>{if(surface.matches(':focus-visible'))details(0,current());});
+  surface.addEventListener('blur',clearDetail);
+  surface.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){clearDetail();return;}
+    if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key))return;
+    e.preventDefault();
+    const {step,value}=active||{step:0,value:current()};let s=step,v=value;
+    if(e.key==='ArrowDown'&&step<7){if(!paths[value])return;s++;v=next[value];}
+    if(e.key==='ArrowUp'&&step>0){s--;
+      const prev=s?[...layout.xs[s].keys()]:layout.samples;
+      const choice=current(),preferred=paths[choice]?at(choice,s):null;
+      v=(prev.includes(preferred)&&next[preferred]===value)?preferred:prev.find(n=>next[n]===value);
+    }
+    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+      const dx=e.key==='ArrowLeft'?-1:1;
+      if(!s){
+        const group=layout.groups.find(g=>value>=g.lo&&value<=g.hi),index=layout.groups.indexOf(group);
+        if(value+dx<group.lo)v=layout.groups[index-1]?.hi??group.lo;
+        else if(value+dx>group.hi)v=layout.groups[index+1]?.lo??group.hi;
+        else v=value+dx;
+      }
+      else{const ordered=[...layout.xs[s].keys()].sort((a,b)=>layout.xs[s].get(a)-layout.xs[s].get(b));
+        v=ordered[Math.max(0,Math.min(ordered.length-1,ordered.indexOf(value)+dx))];}
+    }
+    if(v!==undefined){details(s,v);pinned=true;}
+  });
+  function highlight(){
+    selection.replaceChildren();readout.replaceChildren();
+    const l=layout,lines=[];
+    for(let i=0;i<inputs.length;i++){
+      const input=inputs[i],choice=numberAt(i),p=paths[choice];
+      const row=document.createElement('div');row.className='trace-row slot-'+names[i].toLowerCase();
+      const badge=document.createElement('b');badge.className='trace-id';badge.textContent=names[i];
+      const summary=document.createElement('span'),total=document.createElement('small');
+      const invalid=choice===null&&input.value!=='';
+      input.setAttribute('aria-invalid',String(invalid));
+      if(choice===null)summary.textContent=invalid?'Enter one to four digits.':'No start selected';
+      else if(!p){summary.textContent=four(choice)+' → 0000';total.textContent='identical digits';}
+      else{const count=p.length-1;summary.textContent=p.map(four).join(' → ');total.textContent=count+' '+(count===1?'step':'steps');}
+      row.append(badge,summary,total);readout.append(row);
+      if(choice===null)continue;
+      const x=l.xTop(choice);
+      const {d,points}=routeLine(0,choice);
+      lines.push({i,x,d,points});
+    }
+    // Draw all halos first so a later trace cannot erase an earlier overlapping trace.
+    for(const {d} of lines)if(d)node('path',{d,fill:'none',stroke:'var(--background)','stroke-width':4.4},null,selection);
+    for(const {i,x,d,points} of lines){
+      const group=node('g',{'data-traced-path':names[i],fill:inks[i]},null,selection);
+      if(d)node('path',{d,fill:'none',stroke:inks[i],'stroke-width':2.5,'stroke-linecap':'round','stroke-dasharray':dash[i]||'none'},null,group);
+      node('line',{x1:x,x2:x,y1:l.top,y2:l.top+l.band,stroke:inks[i],'stroke-width':2.4,'stroke-dasharray':dash[i]||'none'},null,group);
+      for(const [cx,cy] of [[x,l.top-3],...points]){
+        if(i===0)node('circle',{cx,cy,r:3.4},null,group);
+        if(i===1)node('rect',{x:cx-3,y:cy-3,width:6,height:6,fill:'none',stroke:inks[i],'stroke-width':1.6},null,group);
+        if(i===2)node('path',{d:'M'+cx+' '+(cy-4)+'l3.8 7h-7.6z',fill:'none',stroke:inks[i],'stroke-width':1.6},null,group);
+      }
+    }
+  }
+  function refresh(){
+    if(zoom.checked){
+      const hundreds=selectedHundreds();if(!hundreds.length)hundreds.push(Math.floor(current()/100));
+      const key=hundreds.map(h=>h*100+'-'+(h*100+99)).join(',');
+      if(key!==layout.windowKey){build();return;}
+    }
+    highlight();
+  }
+  inputs.forEach((input,i)=>{
+    input.addEventListener('focus',()=>{activeSlot=i;clearDetail();});
+    input.addEventListener('input',()=>{activeSlot=i;clearDetail();refresh();});
+    input.addEventListener('change',()=>{const n=numberAt(i);if(n!==null)input.value=four(n);});
+  });
+  zoom.addEventListener('change',build);build();
+  let width=root.clientWidth;new ResizeObserver(()=>{if(root.clientWidth!==width){width=root.clientWidth;build();}}).observe(root);
+})();
+</script>
+
+<footer><a href="/patterns/">Back to Patterns</a></footer>
+</main></body></html>

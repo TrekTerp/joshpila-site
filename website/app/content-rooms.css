@@ -10,7 +10,7 @@
 .room-return-top .artifact-return { margin: 0; font-size: .7rem; text-transform: none; letter-spacing: .02em; font-weight: 400; color: var(--room-muted); border: 0; padding: 12px 0; gap: 18px; }
 .room-return-top .artifact-return:hover { color: #815023; text-decoration: underline; text-underline-offset: 5px; }
 .origin-title { display: flex; justify-content: space-between; align-items: center; gap: 40px; padding: 45px 0 58px; border-bottom: 1px solid var(--room-rule); }
-.origin-title h1, .patterns-title h1 { margin: 0; font: 400 clamp(4rem, 7.4vw, 6.8rem)/1 Georgia, "Times New Roman", serif; letter-spacing: -.065em; }
+.origin-title h1 { margin: 0; font: 400 clamp(4rem, 7.4vw, 6.8rem)/1 Georgia, "Times New Roman", serif; letter-spacing: -.065em; }
 .origin-title p { margin: 22px 0 0; font: 400 1.12rem/1.6 Georgia, serif; color: var(--room-muted); }
 .origin-sun-study { width: 220px; height: 220px; color: #a77538; flex-shrink: 0; }
 .origin-section { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 36rem); gap: 50px; padding: 44px 0; border-bottom: 1px solid var(--room-rule); }
@@ -36,20 +36,6 @@
 .contact-tbd { font-size: .72rem; padding: 3px 5px; border: 1px solid var(--room-rule); border-radius: 2px; white-space: nowrap; }
 .room-return-bottom { margin-top: 40px; padding-top: 8px; }
 .room-return-bottom .artifact-return { color: #815023; text-transform: none; font-size: .85rem; letter-spacing: .01em; font-weight: 400; }
-.patterns-room { max-width: 960px; }
-.patterns-title { padding: 48px 0 46px; }
-.patterns-title p { max-width: 34rem; margin: 25px 0 0; font: 400 1.2rem/1.65 Georgia, serif; color: var(--room-muted); }
-.patterns-entries { border-top: 1px solid var(--room-rule); }
-.patterns-entries > section { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 45px; align-items: start; padding: 38px 0; border-bottom: 1px solid var(--room-rule); }
-.patterns-entries h2 { margin: 0 0 12px; font: 400 1.75rem/1.2 Georgia, serif; letter-spacing: -.025em; }
-.patterns-entries p { max-width: 36rem; margin: 0 0 15px; font: 400 1.025rem/1.75 Georgia, serif; color: var(--room-muted); }
-.pattern-status { display: inline-block; font-size: .75rem; color: #786449; padding-left: 13px; position: relative; }
-.pattern-status::before { content: ""; width: 5px; height: 5px; border: 1px solid #9c8058; border-radius: 50%; position: absolute; left: 0; top: 5px; }
-.pattern-mark { width: 104px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; color: #785522; }
-.pattern-mark span { aspect-ratio: 1; display: grid; place-items: center; border: 1px solid #c2b195; font: 400 1.2rem Georgia, serif; }
-.pattern-mark-life span { border-color: #d7cbb6; }
-.pattern-mark-life .filled { background: #827e50; border-color: #827e50; }
-.pattern-number { font: 400 2.3rem/1 Georgia, serif; letter-spacing: -.06em; color: #785522; padding-top: 7px; }
 @media (max-width: 900px) {
   .artifact-origin > .artifact-header, .artifact-patterns > .artifact-header { align-items: center !important; gap: 20px; }
   .artifact-origin .artifact-world-nav, .artifact-patterns .artifact-world-nav { flex-wrap: wrap; justify-content: flex-start; gap: 6px 18px !important; overflow: visible; }
@@ -77,16 +63,4 @@
   .origin-index-description { font-size: .94rem; }
   .origin-colophon { margin: 28px 0 0; }
   .room-return-bottom { margin-top: 20px; }
-  .patterns-title { padding: 30px 0 35px; }
-  .patterns-title h1 { font-size: 3.8rem; }
-  .patterns-title p { font-size: 1.08rem; }
-  .patterns-entries > section { grid-template-columns: 58px minmax(0, 1fr); gap: 20px; padding: 30px 0; }
-  .patterns-entries h2 { font-size: 1.4rem; }
-  .patterns-entries p { font-size: 1rem; }
-  .pattern-mark { width: 58px; gap: 2px; }
-  .pattern-mark span { font-size: .8rem; }
-  .pattern-number { font-size: 1.5rem; }
 }
-
-.life-lab-launch { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; padding: 9px 16px; background: #815023; color: #fff8ea; border-radius: 3px; font-size: .85rem; }
-.life-lab-launch:hover { background: #623b18; }

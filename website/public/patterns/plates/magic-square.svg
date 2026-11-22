@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 164">
+<title>The Lo Shu square</title><desc>The highlighted row adds to 15, as do all rows, columns, and both diagonals.</desc>
+<defs><pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="6" cy="6" r=".72" fill="#66421f" opacity=".28"/></pattern></defs>
+<rect width="480" height="164" fill="#f3e4bc"/>
+<rect width="480" height="164" fill="url(#dots)"/>
+<rect x="68" y="16" width="132" height="132" fill="#fbf1d4"/>
+<rect x="68" y="16" width="132" height="44" fill="#e7b65c"/>
+<path d="M68 16v132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M68 16h132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M112 16v132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M68 60h132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M156 16v132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M68 104h132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M200 16v132" fill="none" stroke="#66421f" stroke-width="1" />
+<path d="M68 148h132" fill="none" stroke="#66421f" stroke-width="1" />
+<text x="90.0" y="47.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >8</text>
+<text x="134.0" y="47.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >1</text>
+<text x="178.0" y="47.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >6</text>
+<text x="90.0" y="91.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >3</text>
+<text x="134.0" y="91.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >5</text>
+<text x="178.0" y="91.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >7</text>
+<text x="90.0" y="135.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >4</text>
+<text x="134.0" y="135.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >9</text>
+<text x="178.0" y="135.0" fill="#66421f" font-family="Georgia,serif" font-size="27" text-anchor="middle" >2</text>
+<path d="M201 38H223Q231 38 231 46V75Q231 82 240 82H261" fill="none" stroke="#66421f" stroke-width="0.95" />
+ <circle cx="261" cy="82" r="2" fill="#865620"/>
+<text x="347" y="60" fill="#66421f" font-family="Georgia,serif" font-size="19" text-anchor="middle" >8 + 1 + 6</text>
+<text x="347" y="112" fill="#66421f" font-family="Georgia,serif" font-size="46" text-anchor="middle" >= 15</text>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 164">
+<title>Two paths to 6174</title><desc>3524 and 5432 both become 3087, then 8352, then 6174.</desc>
+<defs><pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="6" cy="6" r=".72" fill="#243e65" opacity=".28"/></pattern></defs>
+<rect width="480" height="164" fill="#dce5f0"/>
+<rect width="480" height="164" fill="url(#dots)"/>
+<path d="M78 47C123 47 129 80 174 80" fill="none" stroke="#cc7d59" stroke-width="3" />
+<path d="M78 113C123 113 129 80 174 80" fill="none" stroke="#478687" stroke-width="3" />
+<path d="M174 80H306" fill="none" stroke="#243e65" stroke-width="3" />
+<path d="M306 80H411" fill="none" stroke="#243e65" stroke-width="3" />
+<circle cx="78" cy="47" r="4.5" fill="#dce5f0" stroke="#cc7d59" stroke-width="2"/>
+<circle cx="78" cy="113" r="4.5" fill="#dce5f0" stroke="#478687" stroke-width="2"/>
+<circle cx="174" cy="80" r="4.5" fill="#dce5f0" stroke="#243e65" stroke-width="2"/>
+<circle cx="306" cy="80" r="4.5" fill="#dce5f0" stroke="#243e65" stroke-width="2"/>
+<text x="67" y="36" fill="#243e65" font-family="Georgia,serif" font-size="20" text-anchor="middle" >3524</text>
+<text x="67" y="141" fill="#243e65" font-family="Georgia,serif" font-size="20" text-anchor="middle" >5432</text>
+<text x="174" y="66" fill="#243e65" font-family="Georgia,serif" font-size="20" text-anchor="middle" >3087</text>
+<text x="302" y="109" fill="#243e65" font-family="Georgia,serif" font-size="20" text-anchor="middle" >8352</text>
+<rect x="383" y="57" width="79" height="45" rx="2" fill="#264469"/>
+<text x="422" y="87" fill="#fbefd6" font-family="Georgia,serif" font-size="26" text-anchor="middle" >6174</text>
+</svg>

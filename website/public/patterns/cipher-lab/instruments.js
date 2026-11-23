@@ -37,7 +37,7 @@ window.CipherInstruments = (() => {
       label(svg,...inner,ABC[mod(i+s.shift,26)],15,plain===i?dark:cream,700);
     }
     label(svg,270,129,s.decode?"DECIPHER":"ENCIPHER",10,mint);
-    label(svg,270,161,step?step.input.toUpperCase()+" → "+step.output.toUpperCase():"A–Z",29,cream,600,true);
+    label(svg,270,161,step?step.input.toUpperCase()+" → "+step.output.toUpperCase():"A–Z",29,cream,600,"middle",true);
     label(svg,270,193,"SHIFT "+(s.decode?"−":"+")+s.shift,12,gold);
     label(svg,17,57,"OUTER",11,gold,700,"start");label(svg,17,73,"Plaintext",12,cream,400,"start");
     rule(svg,17,87,75,87);rule(svg,75,87,126,121);
@@ -84,7 +84,7 @@ window.CipherInstruments = (() => {
     label(svg,270,24,"PUBLIC CHANNEL",12,gold,700);
     for(const [x,name,priv,pub] of [[96,"Alice",s.alice,A],[444,"Bob",s.bob,B]]){
       circle(svg,x,104,49,"#294d43","#a99869",2);circle(svg,x,104,43,"none",line);
-      label(svg,x,95,name,25,cream,600,true);label(svg,x,122,"PRIVATE "+priv,12,mint);
+      label(svg,x,95,name,25,cream,600,"middle",true);label(svg,x,122,"PRIVATE "+priv,12,mint);
       box(svg,x-48,174,96,45,"#294d43",line);
       label(svg,x,188,"PUBLISHES",10,mint);label(svg,x,207,s.phase?pub:"?",17,gold,700);
       rule(svg,x,153,x,173,line);

@@ -62,6 +62,7 @@ function buildTexture( pixels, width, height, palette, transparent ) {
 	}
 
 	const texture = new THREE.DataTexture( rgba, width, height );
+	texture.userData.hasCutouts = transparent && pixels.includes( 255 );
 	texture.colorSpace = THREE.SRGBColorSpace;
 	applyTextureFiltering( texture );
 	texture.wrapS = THREE.RepeatWrapping;
@@ -1021,9 +1022,13 @@ function buildVisibleSegments( startSegnum, camera ) {
 
 	if ( startSegnum < 0 || startSegnum >= Num_segments ) return;
 
-	// Build frustum from camera matrices
+	// Flight updates the pose before the renderer updates its matrix cache.
+	camera.updateWorldMatrix( true, false );
 	_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 	_frustum.setFromProjectionMatrix( _projScreenMatrix );
+	// Test portal openings all the way to the eye. A doorway can be closer
+	// than the drawing near plane while the room beyond it is still visible.
+	_frustum.planes[ 5 ].constant += camera.near;
 
 	_visibleSegments.add( startSegnum );
 	_bfsQueue[ 0 ] = startSegnum;
@@ -1043,7 +1048,14 @@ function buildVisibleSegments( startSegnum, camera ) {
 
 			// Check if we can see through this side
 			const wid = wall_is_doorway( segnum, side );
-			if ( ( wid & WID_RENDPAST_FLAG ) === 0 ) continue;
+			if ( ( wid & WID_RENDPAST_FLAG ) === 0 ) {
+
+				// A transparent base can show through a door overlay even when
+				// the wall flags describe it as solid. Draw the room in those pixels.
+				const material = doorMeshes.get( segnum * 6 + side )?.material;
+				if ( ! material?.map?.userData.hasCutouts || material.alphaTest === 0 ) continue;
+
+			}
 
 			// Check if portal opening is in the camera frustum
 			const sv = Side_to_verts[ side ];
@@ -1155,10 +1167,8 @@ export function updateDoorMesh( segnum, sidenum ) {
 	const result = getSideTexture( side, _pigFile, _palette );
 	if ( result.texture === null ) return;
 
-	// Reuse existing material — just swap texture properties (avoids shader recompilation)
-	mesh.material.map = result.texture;
-	mesh.material.alphaTest = result.isTransparent ? 0.5 : 0;
-	mesh.material.needsUpdate = true;
+	// Materials are shared by texture. Only this face should change frames.
+	mesh.material = getMaterial( result.texture, result.isTransparent );
 	refreshSideLightingRecord( segnum, sidenum, mesh, result.noLighting );
 
 }
@@ -1222,9 +1232,7 @@ export function rebuildSideOverlay( segnum, sidenum ) {
 		const result = getSideTexture( side, _pigFile, _palette );
 		if ( result.texture !== null ) {
 
-			existing.material.map = result.texture;
-			existing.material.alphaTest = result.isTransparent ? 0.5 : 0;
-			existing.material.needsUpdate = true;
+			existing.material = getMaterial( result.texture, result.isTransparent );
 			refreshSideLightingRecord( segnum, sidenum, existing, result.noLighting );
 
 		}
@@ -1307,6 +1315,7 @@ export function updateEclipTexture( tmapNum, newBitmapIndex ) {
 
 					}
 
+					dataTexture.userData.hasCutouts = isTransparent && pixels.includes( 255 );
 					dataTexture.needsUpdate = true;
 
 				}
@@ -1383,6 +1392,7 @@ export function updateEclipTexture( tmapNum, newBitmapIndex ) {
 
 			}
 
+			entry.dataTexture.userData.hasCutouts = false;
 			entry.dataTexture.needsUpdate = true;
 
 		}
@@ -1517,7 +1527,6 @@ export function clearRenderCaches() {
 	for ( const [ key, mesh ] of doorMeshes ) {
 
 		if ( mesh.geometry !== null ) mesh.geometry.dispose();
-		if ( mesh.material !== null ) mesh.material.dispose();
 
 	}
 
@@ -1542,7 +1551,6 @@ export function clearRenderCaches() {
 	for ( const [ key, mesh ] of destroyedSideMeshes ) {
 
 		if ( mesh.geometry !== null ) mesh.geometry.dispose();
-		if ( mesh.material !== null ) mesh.material.dispose();
 
 	}
 

@@ -49,14 +49,14 @@ import { config_get_auto_level, config_set_auto_level, config_get_invert_mouse_y
 	CONFIG_VOLUME_MAX, CONFIG_SOUND_CHANNEL_COUNTS } from './config.js';
 import { obj_relink } from './object.js';
 
-const GAME_ASPECT = 320 / 200;
-const COCKPIT_WINDOW_ASPECT = 320 / 140;
-const STATUSBAR_WINDOW_ASPECT = 320 / 160;
-const STATUSBAR_HEIGHT_FRAC = 40 / 200;
+const GAME_WIDTH = 320;
+const GAME_HEIGHT = 200;
+const GAME_ASPECT = GAME_WIDTH / GAME_HEIGHT;
 
 let renderer = null;
 let scene = null;
 let camera = null;
+let rearCamera = null;
 let mineGroup = null;
 
 let lastTime = 0;
@@ -296,6 +296,8 @@ export function game_init() {
 		10000
 	);
 
+	rearCamera = camera.clone( false );
+
 	// Load player ship gun points from POF model (ported from BMREAD.C)
 	const playerModelNum = Player_ship.loaded === true ? Player_ship.model_num : PLAYER_SHIP_MODEL_NUM;
 	const playerModel = Polygon_models[ playerModelNum ];
@@ -458,10 +460,7 @@ export function game_loop( time ) {
 	if ( transitionSuspended === true || isPaused === true ) {
 
 		lastTime = time;
-		updateMineVisibility(
-			viewerSegnumOverride >= 0 ? viewerSegnumOverride : playerSegnum,
-			camera
-		);
+		game_update_mine_visibility( viewerSegnumOverride >= 0 ? viewerSegnumOverride : playerSegnum );
 		renderFrame();
 		return;
 
@@ -485,10 +484,7 @@ export function game_loop( time ) {
 	// its teardown has already stopped every sound owner.
 	if ( transitionSuspended === true ) {
 
-		updateMineVisibility(
-			viewerSegnumOverride >= 0 ? viewerSegnumOverride : playerSegnum,
-			camera
-		);
+		game_update_mine_visibility( viewerSegnumOverride >= 0 ? viewerSegnumOverride : playerSegnum );
 		renderFrame();
 		return;
 
@@ -540,10 +536,7 @@ export function game_loop( time ) {
 	fireball_process( dt );
 
 	// Update portal visibility before frame callback (needed by dynamic lighting)
-	updateMineVisibility(
-		viewerSegnumOverride >= 0 ? viewerSegnumOverride : playerSegnum,
-		camera
-	);
+	game_update_mine_visibility( viewerSegnumOverride >= 0 ? viewerSegnumOverride : playerSegnum );
 
 	// Frame callback (powerup collection, reactor check, dynamic lighting, etc.)
 	if ( _frameCallback !== null ) {
@@ -578,7 +571,46 @@ const _up = new THREE.Vector3();
 // Pre-allocated quaternion for rear view 180° Y rotation (Golden Rule #5)
 const _rearViewQuat = new THREE.Quaternion();
 _rearViewQuat.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
-const _savedRenderQuat = new THREE.Quaternion();
+
+function flightWindowHeight() {
+
+	if ( getIsAutomap() ) return GAME_HEIGHT;
+	if ( Cockpit_mode === CM_FULL_COCKPIT || Cockpit_mode === CM_REAR_VIEW ) return 140;
+	if ( Cockpit_mode === CM_STATUS_BAR ) return 160;
+	return GAME_HEIGHT;
+
+}
+
+// Culling, weapon lighting and the world draw must use the same view.
+function getFlightViewCamera( windowHeight ) {
+
+	if ( camera === null ) return null;
+
+	const view = Rear_view ? rearCamera : camera;
+	if ( Rear_view ) {
+
+		view.position.copy( camera.position );
+		view.quaternion.copy( camera.quaternion ).multiply( _rearViewQuat );
+
+	}
+
+	const aspect = GAME_WIDTH / windowHeight;
+	if ( view.aspect !== aspect ) {
+
+		view.aspect = aspect;
+		view.updateProjectionMatrix();
+
+	}
+
+	return view;
+
+}
+
+export function game_update_mine_visibility( segnum ) {
+
+	updateMineVisibility( segnum, getFlightViewCamera( flightWindowHeight() ) );
+
+}
 
 // Pre-allocated for renderer size queries (Golden Rule #5)
 const _rendererSize = new THREE.Vector2();
@@ -590,22 +622,13 @@ function renderFrame() {
 	const hudScene = gauges_get_hud_scene();
 	const hudCamera = gauges_get_hud_camera();
 
-	const isRear = ( Rear_view === true && camera !== null );
-	const isAutomap = ( getIsAutomap() === true );
-	const useCockpitViewport = ( ( Cockpit_mode === CM_FULL_COCKPIT || Cockpit_mode === CM_REAR_VIEW ) && isAutomap !== true );
-	const useStatusbarViewport = ( Cockpit_mode === CM_STATUS_BAR && isAutomap !== true );
+	const windowHeight = flightWindowHeight();
+	const viewCamera = getFlightViewCamera( windowHeight );
+	const isAutomap = getIsAutomap();
 
-	// Rear view: rotate camera 180°
-	if ( isRear ) {
+	lightWeapons( scene, viewCamera, laser_get_active_weapons(), isAutomap );
 
-		_savedRenderQuat.copy( camera.quaternion );
-		camera.quaternion.multiply( _rearViewQuat );
-
-	}
-
-	lightWeapons( scene, camera, laser_get_active_weapons(), isAutomap );
-
-	if ( useCockpitViewport || useStatusbarViewport ) {
+	if ( windowHeight < GAME_HEIGHT ) {
 
 		// Two-pass: 3D in cockpit window, then full-screen HUD overlay
 		renderer.getSize( _rendererSize );
@@ -616,18 +639,14 @@ function renderFrame() {
 		renderer.clear();
 
 		// Scissor to top gameplay viewport area.
-		const scissorY = useStatusbarViewport === true
-			? Math.floor( rh * STATUSBAR_HEIGHT_FRAC )
-			: Math.floor( rh * 0.3 );
+		const scissorY = Math.floor( rh * ( GAME_HEIGHT - windowHeight ) / GAME_HEIGHT );
 		const scissorH = rh - scissorY;
 
 		renderer.setScissorTest( true );
 		renderer.setScissor( 0, scissorY, rw, scissorH );
 		renderer.setViewport( 0, scissorY, rw, scissorH );
-		camera.aspect = useStatusbarViewport === true ? STATUSBAR_WINDOW_ASPECT : COCKPIT_WINDOW_ASPECT;
-		camera.updateProjectionMatrix();
 
-		renderer.render( scene, camera );
+		renderer.render( scene, viewCamera );
 
 		// Full viewport for HUD overlay
 		renderer.setScissorTest( false );
@@ -644,10 +663,7 @@ function renderFrame() {
 	} else {
 
 		// Full screen or automap: standard single-pass render
-		camera.aspect = GAME_ASPECT;
-		camera.updateProjectionMatrix();
-
-		renderer.render( isAutomap ? getAutomapScene() : scene, camera );
+		renderer.render( isAutomap ? getAutomapScene() : scene, viewCamera );
 
 		// HUD overlay (skip during automap)
 		if ( isAutomap !== true && hudScene !== null && hudCamera !== null ) {
@@ -657,13 +673,6 @@ function renderFrame() {
 			renderer.autoClear = true;
 
 		}
-
-	}
-
-	// Restore rear view
-	if ( isRear ) {
-
-		camera.quaternion.copy( _savedRenderQuat );
 
 	}
 

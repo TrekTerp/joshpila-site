@@ -4,8 +4,8 @@
 import * as THREE from 'three';
 import { fitRobotArmor } from './equipment-art.js';
 import { load_mine_data_compiled_old, load_mine_data_compiled_new } from './gamemine.js';
-import { buildMineGeometry, clearRenderCaches, updateDoorMesh, updateEclipTexture, setWallMeshVisible, rebuildSideOverlay, getVisibleSegments, updateMineVisibility, updateDynamicLighting } from './render.js';
-import { game_init, game_set_mine, game_set_mine_visible, game_loop, game_set_player_start, game_set_player_dead, game_set_controls_enabled, game_reset_physics, game_sync_player_object, game_set_external_player_pose, game_set_player_pose_driven, game_set_viewer_segnum, game_update_audio_listener_from_player, game_set_transition_suspended, game_get_player_object, getScene, getCamera, getPlayerPos, getPlayerSegnum, setPlayerSegnum, game_set_frame_callback, game_set_pre_ai_frame_callback, game_set_automap, game_set_fusion_externals, game_set_quit_callback, game_set_cockpit_mode_callback, game_set_save_callback, game_set_load_callback, game_set_palette, Missile_gun } from './game.js';
+import { buildMineGeometry, clearRenderCaches, updateDoorMesh, updateEclipTexture, setWallMeshVisible, rebuildSideOverlay, getVisibleSegments, updateDynamicLighting } from './render.js';
+import { game_init, game_update_mine_visibility, game_set_mine, game_set_mine_visible, game_loop, game_set_player_start, game_set_player_dead, game_set_controls_enabled, game_reset_physics, game_sync_player_object, game_set_external_player_pose, game_set_player_pose_driven, game_set_viewer_segnum, game_update_audio_listener_from_player, game_set_transition_suspended, game_get_player_object, getScene, getCamera, getPlayerPos, getPlayerSegnum, setPlayerSegnum, game_set_frame_callback, game_set_pre_ai_frame_callback, game_set_automap, game_set_fusion_externals, game_set_quit_callback, game_set_cockpit_mode_callback, game_set_save_callback, game_set_load_callback, game_set_palette, Missile_gun } from './game.js';
 import { load_game_data, get_Gamesave_num_org_robots } from './gamesave.js';
 import { Polygon_models, SHAREWARE_MODEL_TABLE, buildModelMesh, buildAnimatedModelMesh,
 	polyobj_set_glow, polyobj_set_object_light, compute_engine_glow,
@@ -1174,7 +1174,7 @@ function setPlayerDeathCamera( camera ) {
 	const cameraSeg = find_point_seg( cameraX, cameraY, cameraZ, deathCameraSegnum );
 	if ( cameraSeg >= 0 ) deathCameraSegnum = cameraSeg;
 	game_set_viewer_segnum( deathCameraSegnum );
-	if ( deathCameraSegnum >= 0 ) updateMineVisibility( deathCameraSegnum, camera );
+	if ( deathCameraSegnum >= 0 ) game_update_mine_visibility( deathCameraSegnum );
 
 }
 
@@ -3688,7 +3688,7 @@ function onFrameCallback( dt ) {
 		updatePlayerCloakTimer( dt );
 		const finished = do_endlevel_frame( dt, getCamera() );
 		const viewerSegnum = endlevel_get_viewer_segnum();
-		if ( viewerSegnum >= 0 ) updateMineVisibility( viewerSegnum, getCamera() );
+		if ( viewerSegnum >= 0 ) game_update_mine_visibility( viewerSegnum );
 		if ( finished === true ) {
 
 			game_set_controls_enabled( true );

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#193735">
+<meta name="description" content="Turn a cipher wheel, trace a repeating key, rearrange a message on rails, and watch two people arrive at one shared secret.">
+<title>Cipher Lab · Patterns · Josh Pilachowski</title>
+<link rel="icon" href="./seal.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./style.css">
+<script defer src="./cipher.js"></script>
+<script defer src="./instruments.js"></script>
+<script defer src="./app.js"></script>
+</head>
+<body>
+<a class="skip" href="#lab">Skip to experiments</a>
+<div class="sheet">
+<nav class="topline" aria-label="Breadcrumb"><a href="/patterns/"><span aria-hidden="true">←</span> Patterns</a><a href="/?selected=patterns">The Orrery <span aria-hidden="true">↗</span></a></nav>
+<header class="mast">
+<div><p class="overline">The Patterns collection</p><h1>Cipher Lab<span aria-hidden="true">.</span></h1><p class="intro">What survives when a message changes shape?</p></div>
+<figure class="specimen" aria-label="A shift of three turns MEET into PHHW."><div class="sliptop"><span>Specimen</span><span>Shift +03</span></div><div class="slipwords" aria-hidden="true"><span>M</span><span>E</span><span>E</span><span>T</span><i>↓</i><i>↓</i><i>↓</i><i>↓</i><b>P</b><b>H</b><b>H</b><b>W</b></div></figure>
+</header>
+<main id="lab">
+<nav id="experiments" aria-label="Choose an experiment">
+<button type="button" data-mode="caesar" aria-pressed="true"><span class="mark" aria-hidden="true">◉</span>Caesar wheel</button>
+<button type="button" data-mode="vigenere" aria-pressed="false"><span class="mark" aria-hidden="true">▦</span>Vigenère</button>
+<button type="button" data-mode="rail" aria-pressed="false"><span class="mark" aria-hidden="true">⋈</span>Rail fence</button>
+<button type="button" data-mode="exchange" aria-pressed="false"><span class="mark" aria-hidden="true">⇄</span>Key exchange</button>
+</nav>
+<section aria-labelledby="experiment-title">
+<div class="heading"><h2 id="experiment-title">Caesar wheel</h2><p id="experiment-desc">Turn the inner alphabet. Every letter moves the same distance, so repeated letters still leave a trail.</p></div>
+<div class="bench">
+<div class="instrument">
+<div class="bracket"><span id="stage-heading">Alphabet dial</span><span class="lamp" aria-hidden="true"></span></div>
+<svg id="instrument" viewBox="0 0 540 322" width="540" height="322" role="img" aria-label="Alphabet dial"></svg>
+<div class="stage-footer" id="stage-footer">Drag the wheel to set the shift.</div>
+</div>
+<div class="controls">
+<div id="message-controls">
+<div class="formline"><label for="message" id="msg-label">Plaintext</label><div class="switch" role="group" aria-label="Direction"><button id="enc" aria-pressed="true" type="button">Encrypt</button><button id="dec" aria-pressed="false" type="button">Decrypt</button></div></div>
+<textarea id="message" rows="2" maxlength="1000" spellcheck="false">MEET ME BY THE OAK</textarea>
+<button class="fox" id="fox" type="button">Try the quick brown fox sentence</button>
+<div id="shift-box" class="setting"><div class="formline"><label for="shift">Alphabet shift</label><output for="shift" id="shift-value">+3</output></div><input id="shift" type="range" min="0" max="25" value="3"></div>
+<div id="key-box" class="setting" hidden><label for="key">Repeating key</label><input id="key" type="text" value="LEMON" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="key-help"><p class="hint" id="key-help">Letters A–Z advance the key. Spaces and punctuation stay in place.</p></div>
+<div id="rails-box" class="setting" hidden><div class="formline"><label for="rails">Number of rails</label><output for="rails" id="rails-value">3</output></div><input id="rails" type="range" min="2" max="5" value="3"></div>
+<div class="output-card"><span class="smallcap" id="result-label">Ciphertext</span><p id="result" dir="auto"></p></div>
+</div>
+<div id="exchange-controls" hidden>
+<p class="smallcap">Public parameters</p><p class="parameters">Base <b>5</b> <span>·</span> Prime <b>23</b></p>
+<div class="setting"><div class="formline"><label for="alice">Alice’s private number</label><output for="alice" id="alice-value">6</output></div><input id="alice" type="range" min="1" max="21" value="6"></div>
+<div class="setting"><div class="formline"><label for="bob">Bob’s private number</label><output for="bob" id="bob-value">15</output></div><input id="bob" type="range" min="1" max="21" value="15"></div>
+<button id="advance" class="action" type="button">Publish numbers <span aria-hidden="true">→</span></button>
+</div>
+</div>
+</div>
+<div id="trace-panel" class="trace-panel">
+<div class="trace-heading"><div><h3>Follow a letter</h3><p id="trace-caption" aria-live="polite"></p></div><div class="step-controls"><button id="prev" type="button" aria-label="Previous letter">←</button><span id="step-count"></span><button id="next" type="button" aria-label="Next letter">→</button></div></div>
+<p id="trace-legend" class="hint"></p><div id="tape" role="group" aria-label="Choose a letter to trace"></div>
+</div>
+<div id="frequencies" class="frequency"><div class="frequency-heading"><div><h3>Letter frequencies</h3><p id="frequency-note"></p></div><div class="legend"><span><i></i>Input</span><span><i></i>Output</span></div></div><div class="chart-scroll" tabindex="0" role="region" aria-label="Letter counts, A through Z"><div id="chart"></div></div><details><summary>Exact letter counts</summary><div id="count-table"></div></details></div>
+<div id="exchange-notes" class="exchange-notes" hidden><h3 id="exchange-step">Choose private numbers</h3><p id="exchange-copy" aria-live="polite"></p><div id="equations"></div></div>
+</section>
+<section class="books" aria-labelledby="books-title"><div class="books-lead"><p class="overline">From my shelf</p><h2 id="books-title">The reference shelf</h2><p>I first explored cryptography as a kid. These three books are on my reference shelf today.</p></div>
+<div class="booklist"><a href="https://simonsingh.net/books/the-code-book/the-book/"><i aria-hidden="true"></i><span><strong>The Code Book</strong><small>Simon Singh</small></span><b aria-hidden="true">↗</b></a>
+<a href="https://www.stevenlevy.com/crypto"><i aria-hidden="true"></i><span><strong>Crypto</strong><small>Steven Levy</small></span><b aria-hidden="true">↗</b></a>
+<a href="https://openlibrary.org/books/OL1561508M/Codes_and_ciphers"><i aria-hidden="true"></i><span><strong>Codes and Ciphers</strong><small>Fred B. Wrixon</small></span><b aria-hidden="true">↗</b></a></div></section>
+</main>
+<footer><a href="/patterns/">← Back to Patterns</a><span>Cipher Lab</span></footer>
+</div></body></html>

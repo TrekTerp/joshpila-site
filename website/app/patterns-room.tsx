@@ -3,6 +3,12 @@ import "./patterns-room.css";
 
 const exhibits = [
   {
+    id: "cipher-lab", title: "Cipher Lab", plate: "cipher", imageSrc: "/patterns/cipher-lab/plate.svg",
+    imageAlt: "An alphabet wheel shifts MEET three places to PHHW.",
+    description: "Turn a cipher wheel, trace letters through a zigzag, and watch Alice and Bob agree on a shared number.",
+    action: "Open Cipher Lab", href: "/patterns/cipher-lab/",
+  },
+  {
     id: "chaos-lab", title: "Chaos Lab", plate: "chaos", imageSrc: "/patterns/chaos-lab/art/chaos-plate.svg",
     imageAlt: "A Sierpiński triangle emerges from 32, 256, and 2,048 random halfway jumps.",
     description: "Grow a fractal from random jumps, survey a vanishing carpet, or race three ways of estimating π.",

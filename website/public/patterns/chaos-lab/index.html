@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f6f2e7">
+<meta name="description" content="Explore how random samples reveal π, fractals, and geometric patterns in five interactive experiments.">
+<meta property="og:title" content="Chaos Lab · Patterns">
+<meta property="og:description" content="Five hands-on experiments with randomness, geometry, and convergence.">
+<title>Chaos Lab · Patterns</title>
+<link rel="canonical" href="https://www.joshpila.com/patterns/chaos-lab/">
+<link rel="icon" href="/icons/patterns.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script defer src="engine.js"></script>
+<script defer src="drawing.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#instrument">Skip to experiment</a>
+<header class="top"><div class="frame topline"><a class="brand" href="/patterns/"><span class="brandmark" aria-hidden="true">∴</span> Patterns</a><a class="back" href="/?selected=patterns"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M9.5 9.5 2.5 2.5m0 5.5V2.5H8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg> Orrery</a></div></header>
+<main class="frame">
+<section class="mast" aria-labelledby="page-title"><div><h1 id="page-title">Chaos Lab<span>.</span></h1><p>What takes shape when you let chance draw?</p></div><img src="art/chaos-plate.svg" alt="" width="480" height="164"></section>
+<nav class="modes" aria-label="Choose an experiment">
+<button type="button" data-mode="darts" aria-pressed="true"><svg viewBox="0 0 96 64" aria-hidden="true"><use href="art/methods.svg#darts"/></svg>Dartboard</button>
+<button type="button" data-mode="needles" aria-pressed="false"><svg viewBox="0 0 96 64" aria-hidden="true"><use href="art/methods.svg#needles"/></svg>Buffon’s Needles</button>
+<button type="button" data-mode="chaos" aria-pressed="false"><svg viewBox="0 0 96 64" aria-hidden="true"><use href="art/methods.svg#triangle"/></svg>Chaos Game</button>
+<button type="button" data-mode="carpet" aria-pressed="false"><svg viewBox="0 0 96 64" aria-hidden="true"><use href="art/methods.svg#carpet"/></svg>Fractal Surveyor</button>
+<button type="button" data-mode="race" aria-pressed="false"><svg viewBox="0 0 96 64" aria-hidden="true"><use href="art/methods.svg#race"/></svg>Race to π</button>
+</nav>
+<section id="instrument" aria-labelledby="mode-title">
+<div class="modehead"><h2 id="mode-title">Dartboard</h2><p id="mode-description">Scatter points across a square and see how many land inside its circle.</p></div>
+<div class="workspace"><figure class="stagecard"><div class="stagebox"><canvas id="stage" role="img" aria-labelledby="mode-title" aria-describedby="stage-caption"></canvas></div><figcaption id="stage-caption">The share of darts inside the circle estimates π/4.</figcaption></figure>
+<aside class="panel settings" aria-labelledby="settings-title"><h3 id="settings-title">Experiment controls</h3><div class="transport"><button type="button" id="run">Run</button><button type="button" id="step">Step</button><button type="button" id="reset">Reset</button></div>
+<div class="setting"><label for="speed">Sampling speed</label><select id="speed"><option value="100">100 / sec</option><option value="1000" selected>1,000 / sec</option><option value="10000">10,000 / sec</option><option value="50000">50,000 / sec</option></select></div>
+<div class="setting"><label for="seed">Random seed</label><input id="seed" type="text" spellcheck="false" value="6174" autocomplete="off"></div><div id="controls"></div></aside></div>
+<div id="stats" aria-label="Experiment measurements"></div>
+<div class="details"><figure class="panel history"><div class="graph-heading"><h3 id="graph-title">Convergence history</h3><label>Plot range <select id="graph-window"><option value="all">Whole run</option><option value="recent">Latest half</option></select></label></div><div class="graphbox"><canvas id="graph" role="img" aria-labelledby="graph-title" aria-describedby="graph-caption"></canvas></div><figcaption id="graph-caption"></figcaption></figure><aside class="notes"><h3>Field notes</h3><div id="facts"></div></aside></div>
+</section></main><footer class="frame"><a href="/patterns/">← Back to Patterns</a></footer>
+</body>
+</html>

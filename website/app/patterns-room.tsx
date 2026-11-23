@@ -3,6 +3,12 @@ import "./patterns-room.css";
 
 const exhibits = [
   {
+    id: "chaos-lab", title: "Chaos Lab", plate: "chaos", imageSrc: "/patterns/chaos-lab/art/chaos-plate.svg",
+    imageAlt: "A Sierpiński triangle emerges from 32, 256, and 2,048 random halfway jumps.",
+    description: "Grow a fractal from random jumps, survey a vanishing carpet, or race three ways of estimating π.",
+    action: "Open Chaos Lab", href: "/patterns/chaos-lab/",
+  },
+  {
     id: "magic-squares", title: "Magic squares", plate: "magic-square",
     imageAlt: "The Lo Shu square with its top row highlighted: 8 + 1 + 6 = 15.",
     description: "Arrange the numbers so every row, column, and main diagonal adds to the same sum.",
@@ -62,7 +68,7 @@ export function PatternsArticle({ returnLink }: { returnLink: ReactNode }) {
       <h2 id="pattern-labs-heading">Explore the labs</h2>
       <div className="pattern-shelves">
         {exhibits.map(exhibit => <section className={`pattern-exhibit exhibit-${exhibit.plate}`} key={exhibit.id} aria-labelledby={exhibit.id}>
-          <img className="pattern-plate" src={`/patterns/plates/${exhibit.plate}.svg`} alt={exhibit.imageAlt} width="480" height="164" />
+          <img className="pattern-plate" src={exhibit.imageSrc ?? `/patterns/plates/${exhibit.plate}.svg`} alt={exhibit.imageAlt} width="480" height="164" />
           <div className="pattern-exhibit-copy">
             <h3 id={exhibit.id}>{exhibit.title}</h3>
             <p>{exhibit.description}</p>

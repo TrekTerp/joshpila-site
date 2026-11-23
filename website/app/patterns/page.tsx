@@ -3,7 +3,7 @@ import { sectionMetadata } from "../section-metadata";
 
 export const metadata = {
   ...sectionMetadata("patterns", "Patterns"),
-  description: "Explore magic squares, Conway’s Game of Life, particle streams in Flux Chamber, and the paths that converge on 6174.",
+  description: "Run Monte Carlo experiments in Chaos Lab, explore magic squares and Conway’s Life, shape particle streams, and trace paths to 6174.",
   alternates: { canonical: "https://www.joshpila.com/patterns/" },
 };
 

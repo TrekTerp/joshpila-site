@@ -2,6 +2,7 @@
 // Game sequencing: level flow, player state, object placement, set_externals wiring
 
 import * as THREE from 'three';
+import { fitRobotArmor } from './equipment-art.js';
 import { load_mine_data_compiled_old, load_mine_data_compiled_new } from './gamemine.js';
 import { buildMineGeometry, clearRenderCaches, updateDoorMesh, updateEclipTexture, setWallMeshVisible, rebuildSideOverlay, getVisibleSegments, updateMineVisibility, updateDynamicLighting } from './render.js';
 import { game_init, game_set_mine, game_set_mine_visible, game_loop, game_set_player_start, game_set_player_dead, game_set_controls_enabled, game_reset_physics, game_sync_player_object, game_set_external_player_pose, game_set_player_pose_driven, game_set_viewer_segnum, game_update_audio_listener_from_player, game_set_transition_suspended, game_get_player_object, getScene, getCamera, getPlayerPos, getPlayerSegnum, setPlayerSegnum, game_set_frame_callback, game_set_pre_ai_frame_callback, game_set_automap, game_set_fusion_externals, game_set_quit_callback, game_set_cockpit_mode_callback, game_set_save_callback, game_set_load_callback, game_set_palette, Missile_gun } from './game.js';
@@ -3962,6 +3963,8 @@ function buildRobotEggMesh( model ) {
 }
 
 function attachRobotSubmodelGroups( robot, submodelGroups ) {
+
+	fitRobotArmor( robot.mesh, _pigFile, robot.obj.id );
 
 	if ( submodelGroups === null ) return;
 

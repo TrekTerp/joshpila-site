@@ -6,7 +6,7 @@ let tileList=[],atlasInfo=new Map();
 function makeAtlas(){
   tileList=[...tileNames,...new Set(["AIRLOCK","EXTRACTION","REACTOR","PRESSURE SEAL","BLUE ACCESS","YELLOW ACCESS",
     "RED ACCESS","ENERGY CENTER","EVACUATION",...MINES.flatMap(m=>m.rooms.map(r=>r[4].toUpperCase()))])];
-  atlasInfo=new Map(tileList.map((s,i)=>[s,i]));
+  atlasInfo=new Map([...tileList,...extraTiles].map((s,i)=>[s,i]));
   const a=document.createElement("canvas");a.width=a.height=2048;
   const g=a.getContext("2d"),sz=256;
   let seed=381921;
@@ -140,7 +140,7 @@ function buildWorld(world){
         if(!floor&&!ceil){
           const label=conn.edge.lock==="breach"?"PRESSURE SEAL":conn.edge.lock?conn.edge.lock.toUpperCase()+" ACCESS":
             conn.other.type==="core"?"REACTOR":conn.other.type==="exit"?"AIRLOCK":conn.other.name.toUpperCase();
-          plane(0,-p-.65,6.2,.94,label,white,.35,.07,[.999,.999]);
+          plane(0,-p-(modern?.74:.65),modern?7.35:6.2,modern?1.28:.94,label,white,.35,.07,[.999,.999]);
         }
       }
       if(!floor&&!ceil){
@@ -156,9 +156,9 @@ function buildWorld(world){
               plane(x*3.8,0,.22,6.9,"lamp",green,1,.14);
               plane(x*.13,0,.16,6.95,"trim",metal,0,.16);
             }
-            plane(0,-2.35,6.65,1.08,"EXTRACTION",green,.85,.20,[.999,.999]);
+            plane(0,-2.35,modern?7.06:6.65,modern?1.28:1.08,"EXTRACTION",modern?white:green,.85,.20,[.999,.999]);
           }else{
-            plane(0,-h*.42,w*.95,.86,r.name.toUpperCase(),[.81,.89,.89],.16,.07,[.999,.999]);
+            plane(0,-h*.42,w*.95,modern?1.24:.86,r.name.toUpperCase(),modern?white:[.81,.89,.89],modern?.32:.16,.07,[.999,.999]);
             for(const x of [-1,1])plane(x*w*.55,h*.18,2.0,1.5,"vent",[.73,.79,.8],0,.04,[1,1]);
           }
         }
@@ -258,9 +258,13 @@ function initRenderer(canvas){
   gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));
   gl.useProgram(prog);
   const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,makeAtlas());
+  const selectAtlas=loadTrainingAtlas(makeAtlas(),atlas=>{
+    gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);
+    gl.generateMipmap(gl.TEXTURE_2D);
+  });
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
   const stat=gl.createBuffer(),dynamic=gl.createBuffer(),halo=gl.createBuffer();
   const loc={};for(const key of ["eye","camR","camU","camF","projection","evolved","alarm","clock","lightAt","lightColor"])
     loc[key]=gl.getUniformLocation(prog,key);
@@ -275,6 +279,7 @@ function initRenderer(canvas){
   }
   function put(buf,data,usage){gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),usage);}
   return {
+    selectAtlas,
     setWorld(w){const data=buildWorld(w);put(stat,data,gl.STATIC_DRAW);count=data.length/13;},
     render(view,objects,glows){
       const {r,u,f,p,modern,time,alert,light,lightCol}=view;

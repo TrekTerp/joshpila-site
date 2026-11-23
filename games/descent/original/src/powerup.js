@@ -2,6 +2,7 @@
 // Powerup placement, animation, pickup detection, sprite texture building
 
 import * as THREE from 'three';
+import { showPickupFrame } from './equipment-art.js';
 import { Vclips, Powerup_info, N_powerup_types } from './bm.js';
 import { OBJ_POWERUP, OBJ_HOSTAGE, CT_POWERUP, MT_PHYSICS, RT_POWERUP, PF_BOUNCE,
 	OF_SHOULD_BE_DEAD, Objects, obj_create, obj_delete } from './object.js';
@@ -292,30 +293,23 @@ export function powerup_do_frame( dt, playerPos ) {
 
 		const pw = livePowerups[ i ];
 		if ( pw.alive !== true || pw.sprite === null ) continue;
-		if ( pw.frameTime <= 0 ) continue;	// No animation
-
 		const vc = Vclips[ pw.vclipNum ];
-		if ( vc === undefined || vc.num_frames <= 1 ) continue;
+		if ( !vc || !vc.frames.length ) continue;
 
-		pw.frameTimer -= dt;
+		if ( pw.frameTime > 0 && vc.num_frames > 1 ) {
 
-		while ( pw.frameTimer < 0 ) {
+			pw.frameTimer -= dt;
+			while ( pw.frameTimer < 0 ) {
 
-			pw.frameTimer += pw.frameTime;
-			pw.frameNum ++;
-			if ( pw.frameNum >= vc.num_frames ) pw.frameNum = 0;
+				pw.frameTimer += pw.frameTime;
+				pw.frameNum ++;
+				if ( pw.frameNum >= vc.num_frames ) pw.frameNum = 0;
 
-		}
-
-		// Update sprite texture to current frame
-		const bitmapIndex = vc.frames[ pw.frameNum ];
-		const newTexture = buildSpriteTexture( bitmapIndex );
-		if ( newTexture !== null && pw.sprite.material.map !== newTexture ) {
-
-			pw.sprite.material.map = newTexture;
-			pw.sprite.material.needsUpdate = true;
+			}
 
 		}
+
+		showPickupFrame( pw, buildSpriteTexture( vc.frames[ pw.frameNum ] ), vc.num_frames || 1 );
 
 	}
 

@@ -30,6 +30,75 @@ function botModel(type){
     }
   });
 }
+function evolvedBot(type){
+  return model("evolved-"+type,o=>{
+    const scout=type==="scout", hunter=type==="hunter";
+    const coat=robotTiles[scout?0:hunter?2:1], steel=robotTiles[4], rubber=robotTiles[3];
+    // Rings along the fuselage give each casting a different cross section and rear profile.
+    function hull(stations,tile){
+      const rings=stations.map(([z,rx,ry,cy])=>[
+        [-rx*.66,cy+ry,z],[rx*.66,cy+ry,z],[rx,cy+ry*.38,z],[rx,cy-ry*.45,z],
+        [rx*.59,cy-ry,z],[-rx*.59,cy-ry,z],[-rx,cy-ry*.45,z],[-rx,cy+ry*.38,z]
+      ]);
+      function quad(a,b,c,d){
+        const n=unit(cross(sub(b,a),sub(d,a))),id=atlasInfo.get(tile);
+        for(const [p,uv] of [[a,[0,0]],[b,[.997,0]],[c,[.997,.997]],[a,[0,0]],[c,[.997,.997]],[d,[0,.997]]])
+          vertex(o,p,n,uv,id,white,.04);
+      }
+      for(let j=0;j<rings.length-1;j++)for(let i=0;i<8;i++){
+        const k=(i+1)%8;quad(rings[j][i],rings[j][k],rings[j+1][k],rings[j+1][i]);
+      }
+      for(const r of [rings[0],rings[rings.length-1]])for(let i=1;i<7;i++)tri(o,r[0],r[i],r[i+1],tile,white,.04);
+    }
+    function block(c,s,tile,tint=white,em=0){
+      for(let i=0;i<3;i++)for(const sg of [-1,1]){
+        const j=(i+1)%3,k=(i+2)%3;
+        centered(o,add(c,axis(i,sg*s[i]/2)),axis(j,s[j]*sg),axis(k,s[k]),tile,tint,em,[.997,.997]);
+      }
+    }
+    function barrel(x,y,back,front,r){
+      const points=Array.from({length:8},(_,i)=>[x+r*Math.cos(i*Math.PI/4),y+r*Math.sin(i*Math.PI/4),back]);
+      for(let i=0;i<8;i++){
+        const p=points[i],q=points[(i+1)%8];
+        face(o,p,sub(q,p),[0,0,front-back],steel,white,0,[.997,.997]);
+        const a=[p[0],p[1],front],b=[q[0],q[1],front];
+        tri(o,a,b,[x,y,front],rubber,[.38,.38,.38]);
+      }
+    }
+    if(scout){
+      hull([[-.8,.29,.30,.06],[-.25,.66,.55,.08],[.40,.51,.39,.04],[.79,.30,.22,.0]],coat);
+      for(const side of [-1,1]){
+        const x=.69*side;
+        block([x,.02,-.06],[.30,.34,.90],steel);
+        tri(o,[x,.12,.37],[1.12*side,.26,-.65],[x,.36,-.48],coat);
+        block([x,.03,-.53],[.21,.22,.06],"lamp",cyan,.62);
+      }
+      block([0,.05,.80],[.48,.22,.095],rubber);
+      block([0,.06,.858],[.34,.13,.035],"lamp",[.37,1,.92],.76);
+    }else if(hunter){
+      hull([[-.98,.22,.17,0],[-.42,.56,.32,.09],[.28,.40,.35,.04],[.94,.15,.10,-.09]],coat);
+      for(const side of [-1,1]){
+        const x=.48*side;
+        tri(o,[x,.08,.52],[1.14*side,.02,-.75],[x,.23,-.44],coat);
+        tri(o,[x,.08,.52],[1.14*side,.02,-.75],[x,-.17,-.44],rubber);
+        tri(o,[x,.22,-.13],[.67*side,.51,-.83],[x,.16,-.79],coat);
+        barrel(x,-.13,-.19,.70,.11);
+        block([.26*side,.16,.49],[.19,.09,.17],"lamp",[1,.22,.06],.73);
+      }
+    }else{
+      hull([[-.70,.56,.48,.10],[-.38,.69,.59,.11],[.32,.63,.52,.11],[.55,.48,.40,.11]],coat);
+      for(const side of [-1,1]){
+        const x=.75*side;
+        block([x,.07,-.07],[.44,.53,.88],coat);
+        barrel(x,-.11,-.06,.95,.185);
+        block([x,.26,-.54],[.26,.19,.07],"lamp",[.39,.64,1],.52);
+      }
+      block([0,.24,.57],[.59,.22,.09],rubber);
+      for(const x of [-.16,0,.16])block([x,.25,.625],[.105,.115,.035],"lamp",[1,.51,.13],.79);
+    }
+  });
+}
+
 function itemModel(type){
   return model(type,o=>{
     if(colors[type]&&["blue","yellow","red"].includes(type)){
@@ -82,9 +151,10 @@ function drawObjects(view){
   }
   for(const b of S.bots){
     if(b.hp<=0||dist(b.p,view.p)>78)continue;
-    instance(obj,botModel(b.type),b.p,b.heading,robotTypes[b.type].size,b.flash*3.3);
+    const painted=view.modern&&flightArtReady;
+    instance(obj,painted?evolvedBot(b.type):botModel(b.type),b.p,b.heading,robotTypes[b.type].size,b.flash*3.3);
     const eye=add(b.p,[Math.sin(b.heading)*.91,.08,Math.cos(b.heading)*.91]);
-    glow(eye,1.13,b.type==="hunter"?red:cyan);
+    glow(eye,painted?.46:1.13,b.type==="hunter"?red:painted&&b.type==="gunner"?amber:cyan);
   }
   const cr=world.rooms.find(r=>r.type==="core").c;
   const complex=model("corebase",o=>{
@@ -103,8 +173,15 @@ function drawObjects(view){
   for(const a of S.pickup){
     if(a.taken||dist(a.p,view.p)>72)continue;
     const p=add(a.p,[0,.18*Math.sin(t*2+a.p[0]),0]);
-    instance(obj,itemModel(a.type),p,t*(a.type==="hostage"?.35:1.15));
-    glow(p,1.9,colors[a.type]||(a.type==="hostage"?green:amber));
+    if(view.modern&&flightArtReady&&a.type in pickupTiles){
+      const span=a.type==="missiles"?2.25:2;
+      const bank=.075*Math.sin(t*1.15+a.p[0]),cs=Math.cos(bank),sn=Math.sin(bank);
+      const across=add(mul(view.r,cs),mul(view.u,sn)),down=add(mul(view.r,sn),mul(view.u,-cs));
+      surface(obj,p,across,down,span,span,"pickup-"+a.type,white,.20,[.999,.999]);
+    }else{
+      instance(obj,itemModel(a.type),p,t*(a.type==="hostage"?.35:1.15));
+      glow(p,1.9,colors[a.type]||(a.type==="hostage"?green:amber));
+    }
   }
   for(const b of bullets){
     const p=b.p,col=b.owner==="bot"?red:b.type==="missile"?amber:b.type==="spread"?[.75,.39,1]:cyan;
@@ -122,8 +199,13 @@ function drawObjects(view){
 function softwareRenderer(canvas){
   // Perspective-correct texture mapping and a depth buffer keep the original
   // silhouettes, portal labels and overlapping decks visible without WebGL.
-  const atlas=makeAtlas(),g=canvas.getContext("2d",{alpha:false});
-  const tex=atlas.getContext("2d").getImageData(0,0,atlas.width,atlas.height).data;
+  const g=canvas.getContext("2d",{alpha:false});
+  let tex;
+  const sheets=new WeakMap();
+  const selectAtlas=loadTrainingAtlas(makeAtlas(),atlas=>{
+    if(!sheets.has(atlas)) sheets.set(atlas,atlas.getContext("2d").getImageData(0,0,atlas.width,atlas.height).data);
+    tex=sheets.get(atlas);
+  });
   let stat=[],image,depth,W,H,pixels;
   const vertex=(data,i,v)=>{
     const x=data[i]-v.p[0],y=data[i+1]-v.p[1],z=data[i+2]-v.p[2];
@@ -154,6 +236,7 @@ function softwareRenderer(canvas){
         const h=offset+((y*2048+x)<<2),j=p*4;
         if(ghost){const alpha=tex[h+3]/255;if(alpha<=.01)continue;
           pixels[j]+=tex[h]*cr*alpha;pixels[j+1]+=tex[h+1]*cg*alpha;pixels[j+2]+=tex[h+2]*cb*alpha;continue;}
+        if(tex[h+3]<96)continue;
         const fog=1/(1+inv*.009);
         pixels[j]=tex[h]*cr*fog+7*(1-fog);pixels[j+1]=tex[h+1]*cg*fog+12*(1-fog);
         pixels[j+2]=tex[h+2]*cb*fog+19*(1-fog);pixels[j+3]=255;depth[p]=z;
@@ -184,7 +267,7 @@ function softwareRenderer(canvas){
       for(let j=1;j<points.length-1;j++)raster(points[0],points[j],points[j+1],m,ghost,v);
     }
   }
-  return {software:true,setWorld(w){stat=new Float32Array(buildWorld(w));},render(v,objects,glows){
+  return {software:true,selectAtlas,setWorld(w){stat=new Float32Array(buildWorld(w));},render(v,objects,glows){
     if(W!==canvas.width||H!==canvas.height){W=canvas.width;H=canvas.height;image=g.createImageData(W,H);pixels=image.data;depth=new Float32Array(W*H);}
     new Uint32Array(pixels.buffer).fill(0xff100c08);depth.fill(0);
     triangles(stat,v,false);triangles(objects,v,false);triangles(glows,v,true);g.putImageData(image,0,0);

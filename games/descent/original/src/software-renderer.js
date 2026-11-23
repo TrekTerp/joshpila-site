@@ -141,7 +141,7 @@ class SoftwareRenderer {
     }
     drawRange(geo,mat,start,count){
         if(!mat || !mat.visible || !geo.attributes.position) return;
-        if(mat.isPolyobjTextureMaterial) mat.onBeforeRender();
+        if(mat.isPolyobjTextureMaterial || mat.robotEmitter) mat.onBeforeRender();
         const p=geo.attributes.position,uv=geo.attributes.uv,colors=mat.vertexColors?geo.attributes.color:null;
         const idx=geo.index?.array,m=mv.elements;
         for(let i=start;i+2<start+count;i+=3){

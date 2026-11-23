@@ -51,7 +51,9 @@ function campaignLinks(){
   opts.set("data","custom");$("registered").href="original/index.html?"+opts;
 }
 function setStyle(value){
+  const changed=modern!==value;
   modern=value;styleDirty=true;
+  if(changed&&renderer){renderer.selectAtlas();if(world)renderer.setWorld(world);}
   document.querySelectorAll("[data-style]").forEach(b=>b.setAttribute("aria-pressed",String((b.dataset.style==="evolved")===modern)));
   $("styleFlight").textContent=modern?"Evolved":"Classic";
   campaignLinks();options();

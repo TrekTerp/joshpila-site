@@ -2,6 +2,7 @@
 // Rendering pipeline - converts segment geometry to Three.js BufferGeometry
 
 import * as THREE from 'three';
+import { registerMineSign, resetMineSigns } from './mine-signs.js';
 import { coatMine } from './flight-display.js';
 import { registerMineMaterial, keepAnimatedMaterial, resetMineMaterials } from './mine-materials.js';
 
@@ -144,6 +145,7 @@ function getTexture( bitmapIndex, pigFile, palette ) {
 
 	const texture = buildTexture( pixels, bm.width, bm.height, palette, isTransparent );
 	registerMineMaterial( texture, bm.name );
+	registerMineSign( texture, bm.name, pixels );
 	textureCache.set( bitmapIndex, texture );
 
 	return texture;
@@ -189,6 +191,7 @@ function getMergedTexture( baseBmIndex, overlayBmIndex, rotation, pigFile, palet
 	const isTransparent = ( baseBm.flags & BM_FLAG_TRANSPARENT ) !== 0 || isSuperTransparent;
 	const texture = buildTexture( mergedPixels, baseBm.width, baseBm.height, palette, isTransparent );
 
+	registerMineSign( texture, overlayBm?.name, overlayPixels, rotation );
 	mergedTextureCache.set( key, texture );
 	return texture;
 
@@ -650,6 +653,7 @@ export function buildMineGeometry( pigFile, palette ) {
 
 	// Clear caches
 	resetMineMaterials();
+	resetMineSigns();
 	textureCache.clear();
 	mergedTextureCache.clear();
 	materialCache.clear();
@@ -1504,6 +1508,7 @@ export function clearRenderCaches() {
 	}
 
 	resetMineMaterials();
+	resetMineSigns();
 	textureCache.clear();
 	mergedTextureCache.clear();
 	materialCache.clear();

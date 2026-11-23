@@ -2,6 +2,7 @@
 // Polygon object (POF) model loading and rendering
 
 import * as THREE from 'three';
+import { selectRobotArmor, selectRobotEmitter } from './equipment-art.js';
 import { config_get_texture_filtering, config_on_texture_filtering_changed } from './config.js';
 import { BM_FLAG_TRANSPARENT, BM_FLAG_NO_LIGHTING } from './piggy.js';
 
@@ -1214,6 +1215,8 @@ class PolyobjTextureMaterial extends THREE.MeshBasicMaterial {
 	onBeforeRender() {
 
 		polyobj_sync_object_texture_material( this );
+		if ( this.robotArmor ) selectRobotArmor( this );
+		if ( this.robotEmitter ) selectRobotEmitter( this );
 		if ( this._cloakModeUniform !== null ) {
 
 			this._cloakModeUniform.value = this.cloakMode;
@@ -1332,6 +1335,7 @@ class PolyobjFlatMaterial extends THREE.MeshBasicMaterial {
 
 	onBeforeRender() {
 
+		if ( this.robotEmitter ) selectRobotEmitter( this );
 		if ( this._cloakModeUniform === null ) return;
 		this._cloakModeUniform.value = this.cloakMode;
 		this._cloakLevelUniform.value = this.cloakLevel;

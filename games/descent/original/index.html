@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Descent • Original campaign</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:#030608;color:#ecf4f3;font:16px system-ui,sans-serif;overflow:hidden}
+[hidden]{display:none!important}
+#status{position:fixed;top:14%;left:50%;transform:translateX(-50%);background:#102026;
+ border:1px solid #435455;padding:10px 16px;text-align:center;z-index:210}
+#status:empty{display:none}
+#flight-tools{position:fixed;top:8px;right:8px;display:flex;gap:6px;z-index:205}
+#flight-tools a,#flight-tools button,#retry{color:#ddeded;font:600 12px system-ui,sans-serif;
+ border:1px solid #435354;border-radius:3px;background:#0c171de8;padding:6px 9px;
+ text-decoration:none;cursor:pointer}
+#flight-tools a:hover,#flight-tools button:hover{background:#283b42}
+body.locked #flight-tools{display:none}
+#notice{position:fixed;left:50%;top:9%;transform:translateX(-50%);z-index:204;
+ font:600 14px system-ui,sans-serif;color:white;background:#0c171ded;padding:8px 16px;border-radius:3px;pointer-events:none}
+#notice{width:max-content;max-width:90vw;text-align:center}
+#notice:empty{display:none}
+#picker{position:absolute;inset:0;display:grid;place-items:center;padding:18px;z-index:215;
+ background:radial-gradient(ellipse at 75% 30%,#153038,#070e13 70%)}
+#picker article{width:min(100%,470px);background:#10191c;border:1px solid #385259;
+ border-top:3px solid #df9d40;padding:clamp(18px,5vw,34px);border-radius:4px}
+#picker h1{font-size:1.6rem;margin:0 0 10px}#picker p{color:#bdccce;line-height:1.45}
+#picker label{display:block;margin:18px 0;color:#e5eeee;font-weight:600}
+#picker input{margin-top:5px;width:100%;font:14px system-ui;color:#cadad9}
+#picker button{padding:9px 15px;border:0;background:#f1b456;border-radius:3px;color:#121311;font-weight:bold;cursor:pointer}
+#picker a{color:#a6dada;margin-left:14px}#picker output{display:block;margin-top:12px;color:#f2bc75}
+#recover{position:absolute;inset:48% 0 auto;text-align:center;z-index:212}
+#recover a{color:white;background:#1b3237;padding:8px 12px;margin:3px;border-radius:3px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+</head>
+<body>
+<nav id="flight-tools" aria-label="Campaign controls">
+<a href="../index.html">Hangar</a><button id="mode" title="Switch graphics, F8">Classic · F8</button>
+</nav>
+<div id="notice" role="status"></div>
+<div id="status" role="status">Loading original campaign…</div>
+<div id="recover" hidden><a href="./?data=custom&amp;start=1">Select game files</a><a href="./?start=1">Play shareware</a></div>
+<section id="picker" hidden>
+<article><h1>Load your Descent campaign</h1>
+<p>Select the matching files from your DOS Descent installation. Registered versions 1.4 and 1.5 are supported. The files stay in this tab.</p>
+<form id="files-form">
+<label>Descent HOG <input type="file" accept=".hog" name="hog" required></label>
+<label>Descent PIG <input type="file" accept=".pig" name="pig" required></label>
+<button>Launch campaign</button><a href="../index.html">Back to hangar</a>
+<output id="file-message" role="status"></output>
+</form></article>
+</section>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

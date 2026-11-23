@@ -1,0 +1,20 @@
+Descent • Original campaign
+
+Original game by Parallax Software Corporation, published by Interplay Productions.
+The included desc14sw.tar.gz is the complete unmodified DOS v1.4 shareware
+archive mirrored at https://icculus.org/d2x/data/desc14sw.tar.gz. See the
+original readme.txt in the archive, also transcribed in SHAREWARE.txt.
+Full commercial campaign data comes from the player's own registered copy.
+
+Browser engine: mrdoob/three-descent, revision e8570178df232cdc8e96d923c2fc2c760e67964a
+https://github.com/mrdoob/three-descent
+License: MIT, in LICENSE. OPL3 emulator attribution and LGPL-2.1-or-later
+license are in src/vendor/opl3/README.md and src/vendor/opl3/COPYING.LESSER.
+
+Three.js r183, MIT license in vendor/three/LICENSE.
+https://github.com/mrdoob/three.js
+
+This adaptation adds offline game-data loading, local registered file selection,
+Classic/Evolved in-flight switching, surface relief and projectile lighting,
+a Canvas 2D software renderer for machines without WebGL 2, keyboard aiming
+and firing, and access to campaign saves from the main menu.

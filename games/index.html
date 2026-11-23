@@ -87,7 +87,8 @@ h2::after{content:"";flex:1;height:1px;background:var(--line)}
   border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 
 .game[data-id="jezzball"] .label img,.game[data-id="rodents"] .label img,.game[data-id="chop"] .label img,
-.game[data-id="simtower"] .label img{image-rendering:auto}
+.game[data-id="simtower"] .label img,
+.game[data-id="descent"] .label img{image-rendering:auto}
 
 /* facts */
 .facts{display:grid;gap:8px;min-width:0}
@@ -4168,6 +4169,7 @@ c0c9YUhfNJbg0UBn8FMTdzQWTJMKSmPZK6OSGECum3DHOLrnkJmCFZwq7FyZ2Q9Evq5Rge/KyJu4B01H
 "};
 /* each game lives in its own folder next to this page */
 LABEL_ART.fringer="labels/fringer.svg";
+LABEL_ART.descent="labels/descent.webp";
 LABEL_ART.simtower="labels/simtower.webp";
 const SITE="https://www.joshpila.com/games/";
 const GAMES = [
@@ -4211,6 +4213,10 @@ const GAMES = [
     orig:"Macintosh · 1994 · Yoot Saito / Maxis", disk:"grey", stripe:"#2B827D", label:"SimTower",
     desc:"Stack offices, condos, and hotel rooms above a busy lobby. Keep the elevators moving through rush hour as you build toward a rooftop cathedral.",
     chips:["Classic & Evolved looks","Elevator management","Local saves"], status:["ok","Playable"] },
+  { id:"descent", name:"Descent: Reactor Run", url:SITE+"descent/",
+    orig:"DOS · 1995 · Parallax Software", disk:"black", stripe:"#DC732E", label:"Descent",
+    desc:"Roll through robot-filled mines, blow the reactor, and find your way back before the countdown hits zero.",
+    chips:["7 original shareware mines","Classic & Evolved","3 optional training mines"], status:["ok","Playable"] },
   { id:"fringer", name:"Fringer", url:SITE+"fringer/",
     orig:"Windows · 1997 · The Puzzle Collection", disk:"beige", stripe:"#6BA99D", label:"Fringer",
     desc:"Unweave the colored ropes before the advancing bar pushes a knot to the bottom. Match your angle and keep a turn bonus in reserve.",

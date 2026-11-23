@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10151a">
+<title>Descent | Reactor Run</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+<canvas id="mine" aria-label="First-person view of the mine"></canvas>
+<canvas id="cockpit" aria-hidden="true"></canvas>
+<header id="mast">
+  <div class="wordmark"><i class="sigil" aria-hidden="true"></i>REACTOR RUN</div>
+  <div class="tools">
+    <button id="sound" aria-label="Toggle audio" title="Audio"><span class="soundicon">◖))</span><span id="soundlabel">Audio on</span></button>
+    <button id="fullscreen" aria-label="Toggle fullscreen" title="Fullscreen">⛶</button>
+  </div>
+</header>
+<section id="home" class="layer">
+  <div class="hero-art"></div>
+  <div class="home-copy">
+    <h1>DESCENT</h1>
+    <div class="subtitle"><i></i>REACTOR RUN<i></i></div>
+    <p class="lede">Six degrees of freedom. Seven original shareware mines. One way out when the reactor blows.</p>
+    <div class="graphics"><span>GRAPHICS</span><div class="seg" aria-label="Graphics mode">
+      <button class="styleClassic" data-style="classic" aria-pressed="false">Classic</button>
+      <button class="styleEvolved" data-style="evolved" aria-pressed="true">Evolved</button>
+    </div></div>
+    <div class="main-actions"><a class="primary" id="original" href="original/">Original campaign</a>
+      <button class="secondary" id="training">Training mines</button></div>
+    <div class="minor-links"><a id="originalMenu" class="text-action" href="original/">1995 title &amp; menus</a>
+    <a class="text-action" id="registered" href="original/index.html?data=custom&amp;start=1">Use registered game files</a>
+    <button id="resumeHome" class="text-action" hidden>Resume training</button></div>
+  </div>
+  <footer><span>Fan remake <b>/</b> Descent by Parallax Software</span><span class="footer-actions"><a href="../">Retro games</a><button id="homeControls">Pilot controls</button><button id="homeCredits">Credits</button></span></footer>
+</section>
+<section id="panelLayer" class="layer veil" hidden><div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle"></div></section>
+<div id="touch" hidden>
+  <div class="pad" id="movePad" aria-label="Touch thrust and strafe"><i></i></div>
+  <div class="pad" id="turnPad" aria-label="Touch aim"><i></i></div>
+  <div class="touch-actions">
+    <button data-hold="Space">Rise</button><button data-hold="ShiftLeft">Sink</button>
+    <button data-hold="KeyQ">Roll L</button><button data-hold="KeyE">Roll R</button>
+    <button data-hold="KeyZ">Fire</button><button data-hold="KeyX">Missile</button>
+  </div>
+</div>
+<div id="flightTools" hidden><button id="styleFlight" title="Switch graphics (F8)">Evolved</button>
+<button id="mapButton" title="Automap (Tab)">Map</button><button id="pauseButton" title="Pause (P)">Ⅱ</button></div>
+<section id="mapLayer" class="layer" hidden>
+  <canvas id="mapCanvas" aria-label="Rotatable three-dimensional map of discovered rooms"></canvas>
+  <div class="mapHead"><div class="eyebrow">NAVIGATION</div><h2>Mine survey</h2><p id="mapInfo"></p></div>
+  <div class="mapFoot"><span><i class="legend ship"></i> Ship &nbsp; <i class="legend visited"></i> Surveyed &nbsp; ··· Unexplored</span>
+    <small>Drag or use arrows to rotate · Scroll or + / − to zoom</small><button id="closeMap">Return to flight</button></div>
+</section>
+</main>
+<script src="missions.js"></script><script src="render.js"></script>
+<script src="game.js"></script><script src="models.js"></script><script src="ui.js"></script>
+</body></html>

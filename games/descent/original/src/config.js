@@ -4,6 +4,7 @@ const SETTINGS_KEY = 'descent_settings';
 
 // Defaults
 let _invertMouseY = false;
+let _autoLevel = false;
 let _textureFiltering = 'nearest'; // 'nearest' or 'linear'
 let _digiVolume = 4;
 let _musicVolume = 4;
@@ -125,6 +126,8 @@ function loadSettings() {
 
 			const data = JSON.parse( json );
 
+			if ( typeof data.autoLevel === 'boolean' ) _autoLevel = data.autoLevel;
+
 			if ( data.invertMouseY === true || data.invertMouseY === false ) {
 
 				_invertMouseY = data.invertMouseY;
@@ -170,6 +173,7 @@ function saveSettings() {
 
 		localStorage.setItem( SETTINGS_KEY, JSON.stringify( {
 			invertMouseY: _invertMouseY,
+			autoLevel: _autoLevel,
 			textureFiltering: _textureFiltering,
 			digiVolume: _digiVolume,
 			musicVolume: _musicVolume,
@@ -190,6 +194,13 @@ function saveSettings() {
 loadSettings();
 
 // --- Public API ---
+
+export function config_get_auto_level() { return _autoLevel; }
+
+export function config_set_auto_level( value ) {
+	_autoLevel = value === true;
+	saveSettings();
+}
 
 export function config_get_invert_mouse_y() {
 

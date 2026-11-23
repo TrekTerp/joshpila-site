@@ -9,7 +9,7 @@ import { credits_show } from './credits.js';
 import { scores_view } from './scores.js';
 import { digi_play_sample_once, SOUND_DROP_BOMB } from './digi.js';
 import { songs_stop_if_silent } from './songs.js';
-import { config_get_invert_mouse_y, config_set_invert_mouse_y,
+import { config_get_auto_level, config_set_auto_level, config_get_invert_mouse_y, config_set_invert_mouse_y,
 	config_get_texture_filtering, config_set_texture_filtering,
 	config_get_digi_volume, config_set_digi_volume,
 	config_get_music_volume, config_set_music_volume,
@@ -192,6 +192,7 @@ export async function do_main_menu( hogFile, defaultDifficulty, gamePalette, res
 				{ label: 'REVERSE STEREO', id: 'reverse_stereo' },
 				{ label: 'SOUND CHANNELS', id: 'sound_channels' },
 				{ label: 'INVERT MOUSE', id: 'invert_mouse' },
+				{ label: 'AUTO-LEVEL', id: 'auto_level' },
 				{ label: 'TEXTURE FILTERING', id: 'texture_filtering' },
 			];
 
@@ -223,6 +224,8 @@ export async function do_main_menu( hogFile, defaultDifficulty, gamePalette, res
 					return config_get_music_volume() + '/' + CONFIG_VOLUME_MAX;
 
 				}
+
+				if ( id === 'auto_level' ) return config_get_auto_level() ? 'ON' : 'OFF';
 
 				if ( id === 'invert_mouse' ) {
 
@@ -267,6 +270,8 @@ export async function do_main_menu( hogFile, defaultDifficulty, gamePalette, res
 						( config_get_music_volume() + 1 ) % ( CONFIG_VOLUME_MAX + 1 )
 					);
 				}
+
+				if ( id === 'auto_level' ) config_set_auto_level( !config_get_auto_level() );
 
 				if ( id === 'invert_mouse' ) {
 

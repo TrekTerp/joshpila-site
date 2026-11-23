@@ -6,9 +6,9 @@ import {
 	find_vector_intersection, HIT_NONE, HIT_WALL, HIT_OBJECT, HIT_BAD_P0,
 	FQ_CHECK_OBJS, FQ_GET_SEGLIST, MAX_FVI_SEGS, fvi_set_ignore_obj_list
 } from './fvi.js';
-import { wall_hit_process as fvi_wall_hit_process } from './wall.js';
+import { wall_hit_process as fvi_wall_hit_process, wall_approach_door } from './wall.js';
 import { check_trigger as fvi_check_trigger } from './switch.js';
-import { GameTime, Segments, Num_segments, Objects } from './mglobal.js';
+import { Segments, Num_segments, Objects } from './mglobal.js';
 import { SIDE_IS_TRI_02, SIDE_IS_TRI_13 } from './segment.js';
 import { OBJ_PLAYER, OF_SHOULD_BE_DEAD, PF_PERSISTENT, obj_relink } from './object.js';
 
@@ -17,7 +17,6 @@ export const PLAYER_MASS = 4.0;
 export const PLAYER_DRAG = 0.033;
 export const PLAYER_MAX_THRUST = 7.8;
 export const PLAYER_MAX_ROTTHRUST = 0.14;
-export const PLAYER_WIGGLE = 0.5;
 export const PHYSICS_FT = 1.0 / 64.0;	// Sub-step time (F1_0/64)
 export const PLAYER_RADIUS = 2.5;	// Fallback radius before a canonical player model is registered
 
@@ -502,20 +501,13 @@ export function do_physics_sim_rot( rotThrust_x, rotThrust_y, rotThrust_z, dt ) 
 // Linear physics sub-stepping
 // Ported from: do_physics_sim() in PHYSICS.C
 // thrust = { x, y, z } linear thrust from controls
-// up_dx/dy/dz = camera up vector in Descent coords (for wiggle)
 // dt = frame time
 // Returns frame displacement { x, y, z }
 //
 // Pre-allocated result object (Golden Rule #5)
 const _frameResult = { x: 0, y: 0, z: 0 };
 
-export function do_physics_sim( thrust_x, thrust_y, thrust_z, up_dx, up_dy, up_dz, dt ) {
-
-	// Ship wiggle: sinusoidal vertical bobbing (ported from read_flying_controls PF_WIGGLE)
-	const swiggle = Math.sin( GameTime * 2.0 * Math.PI );
-	playerVelocity.x += up_dx * swiggle * PLAYER_WIGGLE;
-	playerVelocity.y += up_dy * swiggle * PLAYER_WIGGLE;
-	playerVelocity.z += up_dz * swiggle * PLAYER_WIGGLE;
+export function do_physics_sim( thrust_x, thrust_y, thrust_z, dt ) {
 
 	// Apply drag + thrust to velocity
 	const accel_x = thrust_x / PLAYER_MASS;
@@ -559,6 +551,18 @@ export function do_physics_sim( thrust_x, thrust_y, thrust_z, up_dx, up_dy, up_d
 
 	return _frameResult;
 
+}
+
+// Trace the pilot's path, including sideways or reverse flight. Only the first
+// solid surface can receive the approach request. No collision or trigger fires here.
+export function request_approaching_door( x, y, z, frame, segnum, dt ) {
+	const distance = Math.hypot( frame.x, frame.y, frame.z );
+	if ( segnum < 0 || dt <= 0 || distance < dt ) return;
+	const speed = distance / dt;
+	const ahead = Math.min( 40, 6 + speed * 0.65 ) / distance;
+	const hit = find_vector_intersection( x, y, z, x + frame.x * ahead,
+		y + frame.y * ahead, z + frame.z * ahead, segnum, 0, -1, 0 );
+	if ( hit.hit_type === HIT_WALL ) wall_approach_door( hit.hit_side_seg, hit.hit_side );
 }
 
 // Apply movement with FVI-based collision detection and wall sliding

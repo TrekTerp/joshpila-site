@@ -49,7 +49,9 @@ function contains(p){
     const a=Math.abs(p[e.d]-e.c[e.d]);if(a>e.half[e.d]+.009)return false;
     const i=(e.d+1)%3,j=(e.d+2)%3,x=Math.abs(p[i]-e.c[i]),y=Math.abs(p[j]-e.c[j]);
     if(x>portal||y>portal||x+y>2*portal-cornerBevel)return false;
-    return !e.lock||e.open>.985||a>.34;
+    if(!e.lock||a>.23||e.open>=1)return true;
+    const across=e.d===0?2:0; // Horizontal panel axis, including vertical passages.
+    return Math.abs(p[across]-e.c[across])<portal*e.open;
   });
 }
 function fits(p,r){
@@ -221,7 +223,7 @@ function update(dt){
   const input=(a,b)=>Number(keys.has(a))-Number(keys.has(b));
   const yaw=-input("KeyL","KeyJ")*1.72*dt-look[0]-touchTurn[0]*dt*2.4;
   const pitch=input("KeyI","KeyK")*1.55*dt-look[1]-touchTurn[1]*dt*1.9;
-  const roll=input("KeyQ","KeyE")*2.03*dt;
+  const roll=input("KeyQ","KeyE")*2.45*dt;
   look=[0,0];if(yaw||pitch||roll)S.q=unit(qmul(S.q,orientation(yaw,pitch,roll)));
   const forward=rotate(S.q,[0,0,-1]),right=rotate(S.q,[1,0,0]),up=rotate(S.q,[0,1,0]);
   const vertical=Number(pressed("Space"))-Number(pressed("ShiftLeft","ShiftRight","KeyC"));
@@ -232,7 +234,7 @@ function update(dt){
   for(const e of world.edges)if(e.lock){
     const allowed=needKey(e);
     if(allowed)e.open=Math.min(1,e.open+dt*2.3);
-    else if(dist(S.p,e.c)<5.1&&elapsed-lastKeyNotice>3){
+    else if(dist(S.p,e.c)<8&&elapsed-lastKeyNotice>3){
       notify(e.lock==="breach"?"Pressure seal • opens on reactor failure":e.lock.toUpperCase()+" access key required",1.8);
       lastKeyNotice=elapsed;
     }

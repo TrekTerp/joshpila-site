@@ -539,7 +539,12 @@ function do_door_open( door_num ) {
 	const d = ActiveDoors[ door_num ];
 	const frameTime = _FrameTime();
 
-	d.time += frameTime;
+	// Run the normal motor faster on visible, unlocked doors. The timer stays
+	// in clip seconds so reversals, saved doors and paired leaves share a frame.
+	const lead = _Walls[ d.front_wallnum[ 0 ] ];
+	const clip = WallAnims[ lead.clip_num ];
+	const ordinary = clip && !(clip.flags & WCF_HIDDEN) && !(lead.flags & WALL_DOOR_LOCKED);
+	d.time += frameTime * (ordinary ? 1.45 : 1);
 	let completedParts = 0;
 
 	for ( let p = 0; p < d.n_parts; p ++ ) {
@@ -1184,6 +1189,23 @@ export function wall_set_explode_wall_callback( fn ) {
 
 }
 
+function doorAccessMessage( wall ) {
+	if ( wall.keys === KEY_BLUE && _playerKeys?.()?.blue !== true ) return 'You need the BLUE key!';
+	if ( wall.keys === KEY_RED && _playerKeys?.()?.red !== true ) return 'You need the RED key!';
+	if ( wall.keys === KEY_GOLD && _playerKeys?.()?.gold !== true ) return 'You need the YELLOW key!';
+	if ( wall.type === WALL_DOOR && (wall.flags & WALL_DOOR_LOCKED) !== 0 ) return 'This door is locked!';
+	return null;
+}
+
+export function wall_approach_door( segnum, sidenum ) {
+	const side = _Segments?.[segnum]?.sides[sidenum];
+	const door = _Walls?.[side?.wall_num];
+	if ( door?.type !== WALL_DOOR || (door.state !== WALL_DOOR_CLOSED && door.state !== WALL_DOOR_CLOSING) ) return;
+	const clip = WallAnims[door.clip_num];
+	if ( !clip || (clip.flags & WCF_HIDDEN) !== 0 || doorAccessMessage( door ) ) return;
+	wall_open_door( segnum, sidenum );
+}
+
 export function wall_hit_process( segnum, sidenum, damage = 20.0, playerCanOpen = true ) {
 
 	if ( _Segments === null || _Walls === null ) return WHP_NOT_SPECIAL;
@@ -1208,50 +1230,10 @@ export function wall_hit_process( segnum, sidenum, damage = 20.0, playerCanOpen 
 	// playernum != Player_num early return used for robot-fired weapons.
 	if ( playerCanOpen !== true ) return WHP_NOT_SPECIAL;
 
-	// Check key requirements
-	if ( w.keys === KEY_BLUE ) {
-
-		if ( _playerKeys === null || _playerKeys().blue !== true ) {
-
-			if ( _showMessage !== null ) _showMessage( 'You need the BLUE key!' );
-			return WHP_NO_KEY;
-
-		}
-
-	}
-
-	if ( w.keys === KEY_RED ) {
-
-		if ( _playerKeys === null || _playerKeys().red !== true ) {
-
-			if ( _showMessage !== null ) _showMessage( 'You need the RED key!' );
-			return WHP_NO_KEY;
-
-		}
-
-	}
-
-	if ( w.keys === KEY_GOLD ) {
-
-		if ( _playerKeys === null || _playerKeys().gold !== true ) {
-
-			if ( _showMessage !== null ) _showMessage( 'You need the YELLOW key!' );
-			return WHP_NO_KEY;
-
-		}
-
-	}
-
-	// Check if locked (generic lock, not key-based)
-	if ( w.type === WALL_DOOR ) {
-
-		if ( ( w.flags & WALL_DOOR_LOCKED ) !== 0 ) {
-
-			if ( _showMessage !== null ) _showMessage( 'This door is locked!' );
-			return WHP_NO_KEY;
-
-		}
-
+	const denial = doorAccessMessage( w );
+	if ( denial ) {
+		if ( _showMessage ) _showMessage( denial );
+		return WHP_NO_KEY;
 	}
 
 	// Try to open

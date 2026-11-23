@@ -33,14 +33,14 @@ import { controls_init, controls_set_resize_refs, controls_set_key_action_callba
 	controls_is_fire_down, controls_is_secondary_fire_down,
 	controls_is_action_down, controls_event_matches_action,
 	controls_get_bindable_actions, controls_get_action_primary_code, controls_set_action_primary_code } from './controls.js';
-import { PLAYER_MASS, PLAYER_DRAG, PLAYER_MAX_THRUST, PLAYER_MAX_ROTTHRUST, PLAYER_WIGGLE, PLAYER_RADIUS,
-	do_physics_sim_rot, do_physics_sim, do_physics_move, physics_reset,
+import { PLAYER_MAX_THRUST, PLAYER_MAX_ROTTHRUST,
+	do_physics_sim_rot, do_physics_sim, do_physics_move, request_approaching_door, physics_reset,
 	set_object_turnroll, getTurnroll, phys_apply_force_to_player, phys_apply_rot,
 	do_physics_align_object, physics_set_player_forward } from './physics.js';
 import { gauges_get_canvas_ctx, gauges_mark_dirty, gauges_needs_upload, gauges_get_hud_scene, gauges_get_hud_camera } from './gauges.js';
 import { gr_string } from './font.js';
 import { NORMAL_FONT, CURRENT_FONT, SUBTITLE_FONT, GAME_FONT } from './gamefont.js';
-import { config_get_invert_mouse_y, config_set_invert_mouse_y,
+import { config_get_auto_level, config_set_auto_level, config_get_invert_mouse_y, config_set_invert_mouse_y,
 	config_get_texture_filtering, config_set_texture_filtering,
 	config_get_digi_volume, config_set_digi_volume,
 	config_get_music_volume, config_set_music_volume,
@@ -722,7 +722,7 @@ function updateCamera( dt ) {
 	// --- Rotational physics (ported from do_physics_sim_rot) ---
 
 	// Compute rotational thrust from input
-	let rotThrust_x = 0, rotThrust_y = 0, rotThrust_z = 0;
+	let rotThrust_x = 0, rotThrust_y = 0;
 
 	// Mouse look → rotational thrust (when pointer locked)
 	const mouse = controls_consume_mouse();
@@ -741,11 +741,10 @@ function updateCamera( dt ) {
     rotThrust_y += ((keysLook.KeyJ ? 1 : 0) - (keysLook.KeyL ? 1 : 0)) * PLAYER_MAX_ROTTHRUST;
     rotThrust_x += ((keysLook.KeyI ? 1 : 0) - (keysLook.KeyK ? 1 : 0)) * PLAYER_MAX_ROTTHRUST;
 
-	const manualRollActive = ( controls_is_action_down( 'roll_left' ) === true || controls_is_action_down( 'roll_right' ) === true );
-
-	// Keyboard roll (Q/E)
-	if ( controls_is_action_down( 'roll_left' ) === true ) rotThrust_z += PLAYER_MAX_ROTTHRUST;
-	if ( controls_is_action_down( 'roll_right' ) === true ) rotThrust_z -= PLAYER_MAX_ROTTHRUST;
+	const rollInput = Number( controls_is_action_down( 'roll_left' ) ) -
+		Number( controls_is_action_down( 'roll_right' ) );
+	// The ship's bank thrust is specified in turns. Camera angular velocity is radians/s.
+	const rotThrust_z = rollInput * PLAYER_MAX_ROTTHRUST * 2 * Math.PI;
 
 	// Apply rotational drag + thrust (ported from do_physics_sim_rot in PHYSICS.C)
 	const playerRotVel = do_physics_sim_rot( rotThrust_x, rotThrust_y, rotThrust_z, dt );
@@ -765,8 +764,8 @@ function updateCamera( dt ) {
 	camera.rotateZ( getTurnroll() );
 
 	// Auto-level the ship toward current segment orientation (ported from PHYSICS.C line 1049).
-	// Manual roll input (Q/E) takes precedence so auto-level doesn't counter-steer in the same frame.
-	if ( manualRollActive !== true ) {
+	// With the assist enabled, let an intentional roll coast to a stop first.
+	if ( config_get_auto_level() && rollInput === 0 && Math.abs( playerRotVel.z ) < 0.05 ) {
 
 		do_physics_align_object( camera, playerSegnum, dt );
 
@@ -875,13 +874,14 @@ function updateCamera( dt ) {
 	}
 
 	// Linear physics simulation (ported from do_physics_sim in PHYSICS.C)
-	const frame = do_physics_sim( thrust_x, thrust_y, thrust_z, up_dx, up_dy, up_dz, dt );
+	const frame = do_physics_sim( thrust_x, thrust_y, thrust_z, dt );
 
 	// Apply movement with FVI-based collision detection
 	const p0_x = camera.position.x;
 	const p0_y = camera.position.y;
 	const p0_z = - camera.position.z;
 
+	request_approaching_door( p0_x, p0_y, p0_z, frame, playerSegnum, dt );
 	const moveResult = do_physics_move( p0_x, p0_y, p0_z, frame.x, frame.y, frame.z, playerSegnum, dt, playerObjnum );
 
 	// Apply result: convert back to Three.js coordinates
@@ -1856,6 +1856,7 @@ const PAUSE_SETTINGS_ITEMS = [
 	{ label: 'REVERSE STEREO', id: 'reverse_stereo' },
 	{ label: 'SOUND CHANNELS', id: 'sound_channels' },
 	{ label: 'INVERT MOUSE', id: 'invert_mouse' },
+	{ label: 'AUTO-LEVEL', id: 'auto_level' },
 	{ label: 'TEXTURE FILTERING', id: 'texture_filtering' },
 	{ label: 'CONFIGURE KEYS', id: 'configure_keys' },
 ];
@@ -1875,6 +1876,8 @@ function getPauseSettingValue( id ) {
 		return config_get_music_volume() + '/' + CONFIG_VOLUME_MAX;
 
 	}
+
+	if ( id === 'auto_level' ) return config_get_auto_level() ? 'ON' : 'OFF';
 
 	if ( id === 'invert_mouse' ) {
 
@@ -1937,6 +1940,8 @@ function togglePauseSetting( id ) {
 			( config_get_music_volume() + 1 ) % ( CONFIG_VOLUME_MAX + 1 )
 		);
 	}
+
+	if ( id === 'auto_level' ) config_set_auto_level( !config_get_auto_level() );
 
 	if ( id === 'invert_mouse' ) {
 
@@ -2027,10 +2032,12 @@ function renderPauseSettings() {
 	if ( normalFont === null || currentFont === null ) return;
 
 	const titleFont = subtitleFont !== null ? subtitleFont : normalFont;
-	const titleY = 60;
+	const itemHeight = normalFont.ft_h + 4;
+	const menuHeight = titleFont.ft_h + 16 + PAUSE_SETTINGS_ITEMS.length * itemHeight +
+		(smallFont ? 10 + smallFont.ft_h : 0);
+	const titleY = Math.max( 0, Math.floor( (PAUSE_H - menuHeight) / 2 ) );
 	gr_string( imageData, titleFont, 0x8000, titleY, 'SETTINGS', _gamePalette );
 
-	const itemHeight = normalFont.ft_h + 4;
 	const itemsStartY = titleY + titleFont.ft_h + 16;
 
 	for ( let i = 0; i < PAUSE_SETTINGS_ITEMS.length; i ++ ) {

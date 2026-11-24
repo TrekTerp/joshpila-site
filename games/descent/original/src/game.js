@@ -28,11 +28,11 @@ import { digi_play_sample, digi_play_sample_once, digi_update_listener, digi_pau
 	SOUND_BAD_SELECTION, SOUND_DROP_BOMB } from './digi.js';
 import { songs_pause, songs_resume_playback, songs_stop_if_silent } from './songs.js';
 import { Polygon_models, polyobj_calc_gun_points } from './polyobj.js';
-import { automap_enter, automap_exit, automap_frame, automap_set_externals, automap_reset, getIsAutomap, getAutomapScene } from './automap.js';
+import { automap_enter, automap_exit, automap_key, getIsAutomap } from './automap.js';
 import { updateMineVisibility } from './render.js';
 import { lighting_add_muzzle_flash } from './lighting.js';
 import { controls_init, controls_set_resize_refs, controls_set_key_action_callback,
-	controls_get_keys, controls_consume_mouse, controls_consume_wheel, controls_is_pointer_locked,
+	controls_get_keys, controls_clear_input, controls_consume_mouse, controls_is_pointer_locked,
 	controls_is_fire_down, controls_is_secondary_fire_down,
 	controls_is_action_down, controls_event_matches_action,
 	controls_get_bindable_actions, controls_get_action_primary_code, controls_set_action_primary_code } from './controls.js';
@@ -329,7 +329,7 @@ export function game_init() {
 	let lastCycle = -Infinity, bank, accumulated = 0, lastWheel = -Infinity;
 	controls_init(renderer.domElement, event => {
 		if (isPaused || transitionSuspended || playerDead || !playerControlsEnabled) return true;
-		if (getIsAutomap()) return false;
+		if (getIsAutomap()) return true;
 		const delta = event.deltaY || (event.shiftKey ? event.deltaX : 0);
 		if (!delta) return true;
 		const time = event.timeStamp;
@@ -352,7 +352,11 @@ export function game_init() {
 	// (browser consumes Escape key to exit pointer lock, so keydown may not fire)
 	document.addEventListener( 'pointerlockchange', () => {
 
-		if ( document.pointerLockElement === null && isPaused !== true && playerDead !== true &&
+		if ( document.pointerLockElement === null && expectingMapUnlock ) {
+            expectingMapUnlock = false;
+            return;
+        }
+        if ( document.pointerLockElement === null && isPaused !== true && playerDead !== true &&
 			transitionSuspended !== true && getIsAutomap() !== true ) {
 
 			setUserPauseState( true );
@@ -362,8 +366,7 @@ export function game_init() {
 
 	} );
 
-	// Wire up automap externals
-	automap_set_externals( { scene: scene, camera: camera } );
+	document.getElementById('open-survey')?.addEventListener('click', toggleAutomap);
 
 	// Expose for debugging
 	window.__renderer = renderer;
@@ -459,8 +462,6 @@ export function game_set_mine( group ) {
 	mineGroup = group;
 	scene.add( mineGroup );
 
-	// Update automap with new mine group reference
-	automap_set_externals( { mineGroup: mineGroup } );
 
 }
 
@@ -476,7 +477,11 @@ export function game_loop( time ) {
 	requestAnimationFrame( game_loop );
 	showHotbar(!transitionSuspended && !isPaused && !playerDead && playerControlsEnabled && !getIsAutomap());
 
-	// Blocking title/score/briefing flows freeze the old world's clock as well
+    // Survey controls own the screen. Keep the ship, AI and reactor clock at the
+    // exact frame from which the pilot opened it.
+    if (getIsAutomap()) { lastTime = time; return; }
+
+    // Blocking title/score/briefing flows freeze the old world's clock as well
 	// as its subsystems.  Keep lastTime current so resuming cannot produce a
 	// large catch-up frame.
 	if ( transitionSuspended === true || isPaused === true ) {
@@ -512,18 +517,7 @@ export function game_loop( time ) {
 
 	}
 
-	// D1 keeps sound at the player while the automap uses a separate camera.
-	if ( getIsAutomap() === true && playerObject !== null ) {
-
-		digi_update_listener(
-			playerObject.pos_x, playerObject.pos_y, playerObject.pos_z,
-			playerObject.segnum,
-			playerObject.orient_rvec_x,
-			playerObject.orient_rvec_y,
-			playerObject.orient_rvec_z
-		);
-
-	} else if ( camera !== null ) {
+	if ( camera !== null ) {
 
 		digi_update_listener(
 			camera.position.x, camera.position.y, - camera.position.z,
@@ -568,9 +562,8 @@ export function game_loop( time ) {
 	}
 
 	// Endlevel movement is performed by the frame callback rather than
-	// updateCamera().  Keep the canonical player object on that camera too, but
-	// never copy the automap camera back into the gameplay object.
-	if ( getIsAutomap() !== true && playerPoseExternallyDriven !== true ) {
+	// updateCamera(). Keep the canonical player object on that camera too.
+	if ( playerPoseExternallyDriven !== true ) {
 
 		sync_player_object( false );
 
@@ -596,7 +589,6 @@ _rearViewQuat.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI );
 
 function flightWindowHeight() {
 
-	if ( getIsAutomap() ) return GAME_HEIGHT;
 	if ( Cockpit_mode === CM_FULL_COCKPIT || Cockpit_mode === CM_REAR_VIEW ) return 140;
 	if ( Cockpit_mode === CM_STATUS_BAR ) return 160;
 	return GAME_HEIGHT;
@@ -646,9 +638,8 @@ function renderFrame() {
 
 	const windowHeight = flightWindowHeight();
 	const viewCamera = getFlightViewCamera( windowHeight );
-	const isAutomap = getIsAutomap();
 
-	lightWeapons( scene, viewCamera, laser_get_active_weapons(), isAutomap );
+	lightWeapons( scene, viewCamera, laser_get_active_weapons() );
 
 	if ( windowHeight < GAME_HEIGHT ) {
 
@@ -684,11 +675,11 @@ function renderFrame() {
 
 	} else {
 
-		// Full screen or automap: standard single-pass render
-		renderer.render( isAutomap ? getAutomapScene() : scene, viewCamera );
+		// Full screen: standard single-pass render
+		renderer.render( scene, viewCamera );
 
-		// HUD overlay (skip during automap)
-		if ( isAutomap !== true && hudScene !== null && hudCamera !== null ) {
+		// HUD overlay
+		if ( hudScene !== null && hudCamera !== null ) {
 
 			renderer.autoClear = false;
 			renderer.render( hudScene, hudCamera );
@@ -706,25 +697,6 @@ function updateCamera( dt ) {
 
 	if ( camera === null ) return;
 
-	// --- Automap camera: delegated to automap.js ---
-	if ( getIsAutomap() === true ) {
-
-		const mouse = controls_consume_mouse();
-		const wheel = controls_consume_wheel();
-		const keys = controls_get_keys();
-		const fireDown = controls_is_fire_down();
-
-		automap_frame( dt, mouse, wheel, keys, controls_is_pointer_locked(), fireDown );
-
-		// Extract forward/up for audio listener (keep audio positioned at player)
-		// Use camera's current orientation (set by automap_frame)
-		_forward.set( 0, 0, - 1 ).applyQuaternion( camera.quaternion );
-		_right.set( 1, 0, 0 ).applyQuaternion( camera.quaternion );
-		_up.set( 0, 1, 0 ).applyQuaternion( camera.quaternion );
-		return;
-
-	}
-
 	if ( playerDead === true ) {
 
 		// Still extract forward/up vectors for audio listener, but skip movement
@@ -739,7 +711,6 @@ function updateCamera( dt ) {
 
 		// Keep input deltas from accumulating while controls are disabled (cutscenes/endlevel).
 		controls_consume_mouse();
-		controls_consume_wheel();
 		camera.getWorldDirection( _forward );
 		_right.set( 1, 0, 0 ).applyQuaternion( camera.quaternion );
 		_up.set( 0, 1, 0 ).applyQuaternion( camera.quaternion );
@@ -1415,7 +1386,18 @@ function handleKeyAction( e ) {
 	// also select a weapon, open the automap, or pause on that same input.
 	if ( playerDead === true ) return;
 
-	// Weapon selection: 1-5 for primary weapons
+    const mapKey = controls_event_matches_action(e, 'toggle_automap');
+    if (mapKey || getIsAutomap()) {
+        if (mapKey || e.code === 'Escape') {
+            e.preventDefault();
+            if (!e.repeat) toggleAutomap();
+        } else {
+            automap_key(e);
+        }
+        return;
+    }
+
+    // Weapon selection: 1-5 for primary weapons
 	// waitForRearm=true adds 1s delay before firing (ported from select_weapon in WEAPON.C)
 	{
 
@@ -1457,14 +1439,6 @@ function handleKeyAction( e ) {
 			Flare_create( _fireDir.x, _fireDir.y, _fireDir.z, gp.x, gp.y, gp.z, spawnSeg );
 
 		}
-
-	}
-
-	// Tab to toggle automap
-	if ( controls_event_matches_action( e, 'toggle_automap' ) === true ) {
-
-		e.preventDefault();
-		toggleAutomap();
 
 	}
 
@@ -1733,7 +1707,7 @@ export function game_set_automap() {
 
 	// Reset automap and cockpit mode on level change.  A save loaded from the
 	// pause menu keeps user-pause ownership until the load has fully succeeded.
-	automap_reset();
+	if (getIsAutomap()) leaveSurvey(false);
 	Cockpit_mode = CM_FULL_COCKPIT;
 	Rear_view = false;
 
@@ -2461,19 +2435,25 @@ export function game_set_load_callback( cb ) {
 
 }
 
+let recaptureAfterSurvey = false;
+let expectingMapUnlock = false;
+function leaveSurvey(recapture) {
+    automap_exit();
+    controls_clear_input();
+    digi_resume_all();
+    lastTime = 0;
+    if (recapture && recaptureAfterSurvey) renderer.domElement.requestPointerLock?.()?.catch?.(() => {});
+    recaptureAfterSurvey = false;
+}
 function toggleAutomap() {
-	controls_consume_wheel();
-
-	if ( camera === null ) return;
-
-	if ( getIsAutomap() !== true ) {
-
-		automap_enter();
-
-	} else {
-
-		automap_exit();
-
-	}
-
+    if (getIsAutomap()) { leaveSurvey(true); return; }
+    if (!camera || transitionSuspended || isPaused || playerDead || !playerControlsEnabled) return;
+    if (!automap_enter(camera, playerSegnum, toggleAutomap)) return;
+    controls_clear_input();
+    digi_pause_all();
+    recaptureAfterSurvey = document.pointerLockElement === renderer.domElement;
+    if (recaptureAfterSurvey) {
+        expectingMapUnlock = true;
+        document.exitPointerLock();
+    }
 }

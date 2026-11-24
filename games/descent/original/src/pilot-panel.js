@@ -62,7 +62,7 @@ export function showPilotControls({training = false, hangar = false, configure} 
                 ['Forward / reverse', 'W / S or ↑ / ↓'], ['Slide left / right', 'A / D or ← / →'], ['Rise / sink', 'Space / Shift or C'],
                 ['Roll left / right', 'Q / E'], ['Aim', 'Mouse or I J K L'], ['Fire primary', 'Left click, Z or Ctrl'],
                 ['Fire missile', 'Right click or X'], ['Laser / Spread cannon', '1 / 2'], ['Flare', 'F'],
-                ['Map', 'Tab'], ['Rotate / zoom map', 'Drag or arrows / wheel or + and −'],
+                ['Map', 'M / Tab'], ['Rotate / zoom map', 'Drag or arrows / wheel or + and −'],
                 ['Graphics', 'F8 or V'], ['Pause', 'Esc or P']
             ]);
             return;
@@ -82,8 +82,9 @@ export function showPilotControls({training = false, hangar = false, configure} 
             ...SECONDARY_NAMES.map((name, i) => [name, String((i + 6) % 10)])
         ]);
         addRows(content, 'Navigation & cockpit', [
-            ['Automap', boundKeys('toggle_automap')], ['Rotate map', 'Captured mouse'],
-            ['Zoom map', 'Wheel or W / S'], ['Pan map', 'A / D and Space / Shift'],
+            ['Automap', boundKeys('toggle_automap')], ['Orbit map', 'Drag or arrow keys'],
+            ['Zoom map', 'Wheel, + / − or W / S'], ['Pan map', 'Shift-drag, right-drag or A / D and Space / Shift'],
+            ['Fit explored mine / center ship', 'F / Home'], ['Cycle landmarks', '[ / ]'],
             ['Rear view', boundKeys('toggle_rear_view')], ['Cockpit layout', boundKeys('toggle_cockpit')],
             ['Graphics', 'F8'], ['Pause / save / load', boundKeys('pause_game')]
         ]);

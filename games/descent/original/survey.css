@@ -1,0 +1,48 @@
+#mine-survey {
+    position: fixed; inset: 0; z-index: 220; display: grid; grid-template-rows: auto minmax(0,1fr) auto;
+    background: #09151a; color: #e1ecec; font: 14px system-ui,sans-serif; color-scheme: dark;
+    --survey-rule: #2c4148; --survey-muted: #a7bcc1;
+}
+#mine-survey header, #mine-survey footer {
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:12px clamp(12px,3vw,38px); background:#101e24;
+}
+#mine-survey header {border-bottom:1px solid var(--survey-rule)}
+#mine-survey h1 {margin:0;font-size:clamp(18px,2.3vw,28px);font-weight:650;letter-spacing:-.035em}
+#survey-meta {margin:2px 0 0;color:var(--survey-muted);font:12px ui-monospace,monospace}
+#mine-survey button, #mine-survey select {
+    background:#192c33;color:#e1ecec;border:1px solid #405960;border-radius:4px;
+    padding:7px 10px;font:600 13px system-ui,sans-serif;cursor:pointer;
+}
+#mine-survey button:hover, #mine-survey select:hover {background:#29424a}
+#mine-survey :focus-visible {outline:2px solid #f4bc74;outline-offset:2px}
+#survey-close {white-space:nowrap}
+#survey-body {position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,210px);min-height:0}
+#survey-view {position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 40%,#142831 0%,#09171d 68%,#071218 100%)}
+#survey-canvas {width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#survey-canvas:active {cursor:grabbing}
+#survey-landmarks {overflow:auto;border-left:1px solid var(--survey-rule);padding:18px 12px;background:#0d1b21}
+#survey-landmarks h2 {margin:0 5px 12px;font:600 13px system-ui,sans-serif;color:var(--survey-muted)}
+#survey-list {display:grid;gap:4px}
+#survey-list button {display:flex;align-items:center;gap:9px;text-align:left;
+    background:transparent;border:1px solid transparent;font-weight:500;padding:6px;line-height:1.15}
+#survey-list button[aria-pressed="true"] {border-color:#4d7479;background:#1a3139}
+.survey-symbol {width:22px;height:22px;display:inline-grid;place-items:center;flex:none;border:1px solid currentColor;
+    border-radius:4px;font:bold 13px ui-monospace,monospace;background:#0b1a20}
+#survey-list .survey-distance {margin-left:auto;color:#abc0c4;font:11px ui-monospace,monospace}
+#survey-tools {position:absolute;left:12px;bottom:12px;display:flex;gap:4px}
+#survey-tools button {background:#11242cf0}
+#survey-tools .zoom {width:33px;padding:5px;font-size:17px}
+#survey-picker {display:none;min-width:0;max-width:45%}
+#mine-survey footer {border-top:1px solid var(--survey-rule);color:var(--survey-muted);font-size:12px;flex-wrap:wrap;gap:5px 12px}
+#mine-survey footer strong {font-weight:600;color:#dfebec}
+.survey-frontier {display:inline-block;width:16px;vertical-align:middle;border-top:2px dashed #91b9b7;margin-right:4px}
+@media(max-width:640px),(max-height:420px) {
+    #survey-body {grid-template-columns:1fr}
+    #survey-landmarks {display:none}
+    #survey-picker {display:block}
+    #mine-survey header,#mine-survey footer {padding:8px 10px;gap:6px}
+    #mine-survey h1 {font-size:17px}
+    #mine-survey footer {font-size:11px}
+    #survey-tools {left:8px;bottom:8px}
+}

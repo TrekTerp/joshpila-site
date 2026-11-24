@@ -127,7 +127,7 @@ let selected=0;
 function brief(i){
   selected=i;phase="brief";const m=MINES[i];
   panel("FLIGHT SCHOOL / DRILL 0"+(i+1),m.name,"<p>"+drills[i][1]+"</p><p class='small'>"+
-    (i===0?"W/S thrust · A/D slide · Mouse or IJKL aim · Click or Z fires · Tab opens the map.":m.briefing)+"</p>"+
+    (i===0?"W/S thrust · A/D slide · Mouse or IJKL aim · Click or Z fires · M or Tab opens the map.":m.briefing)+"</p>"+
     (hasSave()?"<p class='small'>Launching a drill replaces the current training checkpoint.</p>":""),
     b("Launch drill","launch","primary")+b("Back","training"));
 }
@@ -254,7 +254,7 @@ function trainingHint(room){
     if(room.type==="charge")return "Hover over the lit floor ring to recharge energy.";
   }
   if(level===1&&room.id==="pump"&&!S.keys.includes("blue"))return "The shaft opens in the floor. Look down or sink through it.";
-  if(level===2&&room.id==="atrium"&&S.keys.length===0)return "Follow the west gantry. Tab opens the 3D survey map.";
+  if(level===2&&room.id==="atrium"&&S.keys.length===0)return "Follow the west gantry. M or Tab opens the 3D survey map.";
   if(room.type==="core"&&S.core>0)return "Destroy the rotating orange reactor. Missiles hit harder.";
   return "";
 }
@@ -306,11 +306,11 @@ function frame(stamp){
   }else if(styleDirty&&S&&renderer){renderFlight();}
 }
 const gameKeys=new Set(["KeyW","KeyA","KeyS","KeyD","KeyR","KeyC","KeyQ","KeyE","ArrowLeft","ArrowRight","ArrowUp","ArrowDown",
-  "Space","ShiftLeft","ShiftRight","ControlLeft","ControlRight","KeyI","KeyJ","KeyK","KeyL","KeyX","KeyZ","F8","KeyF","KeyP","KeyV","Digit1","Digit2","Tab","Escape"]);
+  "Space","ShiftLeft","ShiftRight","ControlLeft","ControlRight","KeyI","KeyJ","KeyK","KeyL","KeyX","KeyZ","F8","KeyF","KeyP","KeyV","Digit1","Digit2","Tab","KeyM","Escape"]);
 document.addEventListener("keydown",e=>{
   if($("pilot-panel").open)return;
   if(phase==="map"){
-    if(["Tab","Escape","KeyP"].includes(e.code)){e.preventDefault();if(!e.repeat)startFlight("",true);return;}
+    if(["Tab","KeyM","Escape","KeyP"].includes(e.code)){e.preventDefault();if(!e.repeat)startFlight("",true);return;}
     const d=.09;if(e.code==="ArrowLeft")mapYaw-=d;if(e.code==="ArrowRight")mapYaw+=d;
     if(e.code==="ArrowUp")mapPitch=clamp(mapPitch+d,-1.5,1.5);if(e.code==="ArrowDown")mapPitch=clamp(mapPitch-d,-1.5,1.5);
     if(e.code==="Equal")mapScale=clamp(mapScale*1.1,.45,4);if(e.code==="Minus")mapScale=clamp(mapScale/1.1,.45,4);
@@ -322,7 +322,7 @@ document.addEventListener("keydown",e=>{
     if(e.code==="KeyP"&&phase==="pause"&&!e.repeat)startFlight("",true);return;
   }
   if(!gameKeys.has(e.code))return;e.preventDefault();keys.add(e.code);if(e.repeat)return;
-  if(e.code==="Tab")openMap();if(e.code==="Escape"||e.code==="KeyP")pause();
+  if(e.code==="Tab"||e.code==="KeyM")openMap();if(e.code==="Escape"||e.code==="KeyP")pause();
   if(["KeyV","F8"].includes(e.code))setStyle(!modern);if(e.code==="KeyF")flare();
   if(e.code==="Digit1")S.weapon=1;if(e.code==="Digit2"){if(S.spread)S.weapon=2;else notify("Spread cannon not yet recovered",1.3);}
 });

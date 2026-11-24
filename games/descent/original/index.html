@@ -9,6 +9,7 @@
 <title>Descent • Original campaign</title>
 <link rel="stylesheet" href="../pilot.css">
 <link rel="stylesheet" href="./hotbar.css">
+<link rel="stylesheet" href="./survey.css">
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -44,10 +45,24 @@ body.locked #flight-tools{display:none}
 </head>
 <body>
 <nav id="flight-tools" aria-label="Campaign controls">
-<a href="../index.html">Hangar</a><button id="mode" title="Switch graphics, F8">Classic · F8</button>
+<a href="../index.html">Hangar</a><button id="open-survey">Map</button><button id="mode" title="Switch graphics, F8">Classic · F8</button>
 </nav>
 <dialog id="pilot-panel" aria-labelledby="pilot-title"></dialog>
 <aside id="weapon-hotbar" aria-label="Weapon loadout" hidden></aside>
+<section id="mine-survey" aria-labelledby="survey-title" hidden>
+  <header><div><h1 id="survey-title">Mine survey</h1><p id="survey-meta"></p></div>
+    <select id="survey-picker" aria-label="Focus a landmark"></select>
+    <button id="survey-close" type="button">Return to flight</button></header>
+  <div id="survey-body"><div id="survey-view">
+    <canvas id="survey-canvas" tabindex="-1" aria-label="3D map of explored tunnels. Drag or use the arrow keys to rotate."></canvas>
+    <div id="survey-tools" aria-label="Map view">
+      <button class="zoom" data-view="out" aria-label="Zoom out">−</button><button class="zoom" data-view="in" aria-label="Zoom in">+</button>
+      <button data-view="fit" title="Fit explored mine (F)">Fit mine</button><button data-view="ship" title="Center on ship (Home)">Center ship</button>
+    </div></div>
+    <aside id="survey-landmarks"><h2>Discovered landmarks</h2><div id="survey-list"></div></aside></div>
+  <footer><span><strong>Drag</strong> orbit · <strong>Shift-drag</strong> pan · <strong>Wheel</strong> zoom</span>
+    <span><i class="survey-frontier"></i> Unexplored passage</span></footer>
+</section>
 <div id="notice" role="status"></div>
 <div id="status" role="status">Loading original campaign…</div>
 <div id="recover" hidden><a href="../">Hangar</a><a href="./?data=custom&amp;start=1">Select game files</a><a href="./?start=1">Play shareware</a></div>

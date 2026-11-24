@@ -48,7 +48,7 @@ import { SUBTITLE_FONT, GAME_FONT } from './gamefont.js';
 import { Segments, Vertices, Num_segments, Highest_segment_index, Side_to_verts, Walls, Num_walls, FrameTime, GameTime, set_GameTime, Automap_visited, Textures, Objects } from './mglobal.js';
 import { get_seg_masks, find_point_seg, find_connected_distance, compute_center_point_on_side,
 	gameseg_set_connected_distance_doorway } from './gameseg.js';
-import { automap_set_player_start } from './automap.js';
+import { automap_set_level } from './automap.js';
 import { fuelcen_init, fuelcen_reset, fuelcen_set_externals, fuelcen_frame_process,
 	fuelcen_get_save_state, fuelcen_restore_save_state,
 	SEGMENT_IS_FUELCEN } from './fuelcen.js';
@@ -2601,12 +2601,11 @@ function loadLevelData( levelFile, levelName ) {
 			savedPlayerObjnum = gameData.playerObjnum;
 			game_set_player_start( gameData.playerObj, gameData.playerObjnum );
 
-			// Mark starting segment as visited for automap, and remember it so the
-			// automap can highlight the start room in magenta (AUTOMAP.C:1071).
+			// The survey records the mine entry separately from the live ship position.
 			if ( gameData.playerObj.segnum >= 0 ) {
 
 				Automap_visited[ gameData.playerObj.segnum ] = 1;
-				automap_set_player_start( gameData.playerObj.segnum );
+				automap_set_level( gameData.playerObj.segnum, currentLevelName, currentLevelNum );
 
 			}
 

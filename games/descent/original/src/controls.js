@@ -13,7 +13,7 @@ import {
 const keys = {};
 let mouseX = 0;
 let mouseY = 0;
-let wheelDelta = 0;
+
 let isPointerLocked = false;
 
 // Weapon firing state
@@ -78,10 +78,7 @@ export function controls_init( domElement, onFlightWheel ) {
 
 	window.addEventListener( 'keydown', onKeyDown );
 	window.addEventListener( 'keyup', onKeyUp );
-    window.addEventListener('blur', () => {
-        for (const code of Object.keys(keys)) keys[code] = false;
-        fireButtonDown = secondaryFireButtonDown = false;
-    });
+    window.addEventListener('blur', controls_clear_input);
 	window.addEventListener( 'resize', onResize );
 
 	domElement.addEventListener( 'click', () => {
@@ -101,8 +98,8 @@ export function controls_init( domElement, onFlightWheel ) {
 
 	document.addEventListener( 'mousemove', onMouseMove );
 	document.addEventListener('wheel', e => {
-		if (document.getElementById('pilot-panel')?.open || e.ctrlKey) return;
-		if (onFlightWheel(e) === false) wheelDelta += e.deltaY;
+		if (document.getElementById('pilot-panel')?.open || e.target.closest?.('#mine-survey') || e.ctrlKey) return;
+		onFlightWheel(e);
 		e.preventDefault();
 	}, {passive: false});
 
@@ -132,7 +129,11 @@ export function controls_is_pointer_locked() { return isPointerLocked; }
 export function controls_is_fire_down() { return fireButtonDown || keys.KeyZ === true; }
 export function controls_is_secondary_fire_down() { return secondaryFireButtonDown || keys.KeyX === true; }
 export function controls_set_secondary_fire_down( v ) { secondaryFireButtonDown = v; }
-export function controls_consume_wheel() { const d = wheelDelta; wheelDelta = 0; return d; }
+export function controls_clear_input() {
+    for (const code of Object.keys(keys)) keys[code] = false;
+    fireButtonDown = secondaryFireButtonDown = false;
+    mouseX = mouseY = 0;
+}
 
 export function controls_get_bindable_actions() {
 

@@ -32,7 +32,7 @@ function showMode(announce) {
 }
 export function showDirectFlightHint() {
     const notice = document.getElementById('notice');
-    const hint = 'Click to aim · Z / X fire · ' + boundKeys('pause_game') + ' opens saves and controls';
+    const hint = 'Click to aim · Z / X fire · ' + boundKeys('toggle_automap') + ' opens map · ' + boundKeys('pause_game') + ' opens saves and controls';
     notice.textContent = hint;
     const dismiss = () => {
         if (notice.textContent === hint) notice.textContent = '';
@@ -150,8 +150,8 @@ function tintFor(w) {
     return 0xff963e;
 }
 
-export function lightWeapons(scene,camera,weapons,automap) {
-    if (!state.value || automap) {
+export function lightWeapons(scene,camera,weapons) {
+    if (!state.value) {
         if(halos) halos.visible=false;
         return;
     }

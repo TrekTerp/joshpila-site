@@ -24,7 +24,7 @@ const DEFAULT_KEY_BINDINGS = Object.freeze( {
 	cruise_faster: Object.freeze( [ 'KeyR' ] ),
 	cruise_slower: Object.freeze( [ 'KeyT' ] ),
 	fire_flare: Object.freeze( [ 'KeyF' ] ),
-	toggle_automap: Object.freeze( [ 'Tab' ] ),
+	toggle_automap: Object.freeze( [ 'KeyM', 'Tab' ] ),
 	toggle_cockpit: Object.freeze( [ 'F3' ] ),
 	reset_cruise: Object.freeze( [ 'Backspace' ] ),
 	toggle_rear_view: Object.freeze( [ 'KeyH' ] ),
@@ -113,6 +113,12 @@ function saveKeyBindingsFromData( data ) {
 
 	}
 
+    // Add the new shortcut to the old stock Tab binding. Preserve customized
+    // map shortcuts and pilots who already assigned M to a flight action.
+    const map = _keyBindings.toggle_automap;
+    if (map.length === 1 && map[0] === 'Tab' && !Object.values(_keyBindings).some(codes => codes.includes('KeyM'))) {
+        _keyBindings.toggle_automap = DEFAULT_KEY_BINDINGS.toggle_automap.slice();
+    }
 }
 
 // Load settings from localStorage

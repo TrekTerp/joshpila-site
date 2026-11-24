@@ -87,7 +87,7 @@ h2::after{content:"";flex:1;height:1px;background:var(--line)}
   border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 
 .game[data-id="jezzball"] .label img,.game[data-id="rodents"] .label img,.game[data-id="chop"] .label img,
-.game[data-id="simtower"] .label img,
+.game[data-id="simtower"] .label img,.game[data-id="lemmings"] .label img,
 .game[data-id="descent"] .label img{image-rendering:auto}
 
 /* facts */
@@ -134,7 +134,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:v
     <div class="eyebrow">A:\&gt; <b>DIR</b> /GAMES</div>
     <h1><img id="logo" alt="Retro Disk Box" width="1260" height="234"></h1>
     <p class="tag">Taking the games of my childhood and giving them new life. Each one is evolved from the original: the classic version first, then new looks and modes on top. Each disk opens the game in a new tab.</p>
-    <div class="count" id="count">11 games on the shelf<span class="cursor"></span></div>
+    <div class="count" id="count">13 games on the shelf<span class="cursor"></span></div>
   </header>
 
   <h2>On the shelf, oldest original first</h2>
@@ -4171,6 +4171,7 @@ c0c9YUhfNJbg0UBn8FMTdzQWTJMKSmPZK6OSGECum3DHOLrnkJmCFZwq7FyZ2Q9Evq5Rge/KyJu4B01H
 LABEL_ART.fringer="labels/fringer.svg";
 LABEL_ART.descent="labels/descent.webp";
 LABEL_ART.simtower="labels/simtower.webp";
+LABEL_ART.lemmings="labels/lemmings.webp";
 const SITE="https://www.joshpila.com/games/";
 const GAMES = [
   { id:"lemonade", name:"Lemonade Stand", url:SITE+"lemonade-stand/",
@@ -4197,6 +4198,10 @@ const GAMES = [
     orig:"Windows 3.1 · 1989 · Entertainment Pack", disk:"black", stripe:"#4CAF50", label:"Pipe Dream",
     desc:"Lay pipe ahead of the goo. Timing, scoring and levels measured from the Windows original.",
     chips:["5 skins","Bonus rounds","Passwords","High scores"], status:["ok","Playable · v0.9"] },
+  { id:"lemmings", name:"Lemmings", url:SITE+"lemmings/",
+    orig:"DOS · 1991 · DMA Design / Psygnosis", disk:"black", stripe:"#77AD32", label:"Lemmings",
+    desc:"Give the green-haired crowd eight skills to get home. Build stairs over gaps, bash through walls, and dig a way out before the last lemming walks off the edge.",
+    chips:["120 original levels","Fun to Mayhem","Classic & Evolved looks"], status:["ok","Playable"] },
   { id:"scorched", name:"Scorched Earth", url:SITE+"scorched-earth/",
     orig:"DOS · 1991 · Wendell Hicks", disk:"grey", stripe:"#D9772B", label:"Scorched Earth",
     desc:"Tanks on a ridge line, taking turns. Set the angle and power, allow for the wind, and blow the hill out from under them.",

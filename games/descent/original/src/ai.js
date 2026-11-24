@@ -2,7 +2,7 @@
 // Robot AI: awareness, rotation, firing, movement
 
 import { find_point_seg, compute_center_point_on_side, compute_segment_center } from './gameseg.js';
-import { find_vector_intersection, sphere_intersects_wall, HIT_NONE, HIT_WALL, HIT_BAD_P0 } from './fvi.js';
+import { find_vector_intersection, sphere_intersects_wall, weaponSpawnSegment, objectContactRadius, HIT_OBJECT, FQ_CHECK_OBJS, FQ_ONLY_PLAYER, HIT_NONE, HIT_WALL, HIT_BAD_P0 } from './fvi.js';
 import { Laser_create_new, PARENT_ROBOT, PROXIMITY_ID, laser_get_weapon } from './laser.js';
 import { object_create_explosion, VCLIP_MORPHING_ROBOT } from './fireball.js';
 import { Weapon_info } from './weapon.js';
@@ -906,6 +906,7 @@ const PLAYER_SIZE = 2.5;
 
 // External references
 let _getPlayerPos = null;	// () => { x, y, z } in Descent coords
+let _getPlayerObject = null;
 let _getPlayerVelocity = null;	// () => { x, y, z } in Descent coords
 let _getPlayerSeg = null;	// () => segnum
 let _robots = null;			// liveRobots array
@@ -928,6 +929,7 @@ const ROBOT_BUMP_COOLDOWN = 0.25;	// seconds between robot-robot bump events
 export function ai_set_externals( ext ) {
 
 	if ( ext.getPlayerPos !== undefined ) _getPlayerPos = ext.getPlayerPos;
+	if (ext.getPlayerObject !== undefined) _getPlayerObject = ext.getPlayerObject;
 	if ( ext.getPlayerVelocity !== undefined ) _getPlayerVelocity = ext.getPlayerVelocity;
 	if ( ext.getPlayerSeg !== undefined ) _getPlayerSeg = ext.getPlayerSeg;
 	if ( ext.robots !== undefined ) _robots = ext.robots;
@@ -2663,6 +2665,7 @@ export function ai_do_frame( dt ) {
 	set_player_awareness_all();
 
 	const playerPos = _getPlayerPos();
+	const ship = _getPlayerDead?.() ? null : _getPlayerObject?.();
 
 	for ( let i = 0; i < _robots.length; i ++ ) {
 
@@ -2731,7 +2734,8 @@ export function ai_do_frame( dt ) {
 		if ( robot.obj.type !== OBJ_ROBOT || robot.aiLocal === undefined ) continue;
 		if ( robot.alive !== true && robot_has_pending_explosion( robot ) !== true ) continue;
 		ai_integrate_robot_rotation( robot, dt );
-		ai_integrate_robot_translation( robot, dt );
+		robot.aiLocal.bump_cooldown = Math.max(0, robot.aiLocal.bump_cooldown - dt);
+		ai_integrate_robot_translation( robot, dt, robot.alive && !_getPlayerDead?.() ? ship : null );
 
 	}
 
@@ -2748,6 +2752,14 @@ export function ai_do_frame( dt ) {
 	// Post-integration: resolve robot-robot overlaps
 	// Ported from: collide_robot_and_robot() in COLLIDE.C line 1023
 	ai_check_robot_robot_collisions();
+	// Old saves and robot-to-robot pushes may already overlap the ship. Repair the
+	// robot's pose against the mine, even when its velocity or impact timer is zero.
+	if (ship && !_getPlayerDead?.()) {
+		for (const robot of _robots) {
+			if (robot.alive && robot.aiLocal) separateRobotFromShip(robot, ship);
+		}
+	}
+
 
 }
 
@@ -3119,7 +3131,8 @@ function do_ai_for_robot( robot, playerPos, robotIndex, bossFrameProcessed = fal
 			if ( dot >= FIRE_DOT_THRESHOLD && ailp.next_fire <= 0 ) {
 
 				const meleeRange = obj.size + PLAYER_SIZE + 2.0;
-				if ( dist < meleeRange ) {
+				const ship = _getPlayerObject?.();
+				if ( dist < meleeRange && (!ship || hasPhysicalPathToShip(obj, ship)) ) {
 
 					recoilGun = do_ai_robot_melee_attack( robot, params );
 
@@ -3530,37 +3543,6 @@ function do_ai_for_robot( robot, playerPos, robotIndex, bossFrameProcessed = fal
 			ailp.consecutive_retries = 0;
 
 		}
-
-	}
-
-	// Robot-player bump collision check
-	// Ported from: collide_robot_and_player() in COLLIDE.C lines 1052-1066
-	if ( _onBumpPlayer !== null && ailp.bump_cooldown <= 0 ) {
-
-		const bumpDist = obj.size + PLAYER_SIZE;
-		if ( dist < bumpDist && dist > 0.01 ) {
-
-			const robotMass = ( obj.mtype != null && obj.mtype.mass > 0 ) ? obj.mtype.mass : 4.0;
-			_onBumpPlayer( robot, ailp.vel_x, ailp.vel_y, ailp.vel_z, robotMass );
-			ailp.bump_cooldown = BUMP_COOLDOWN;
-
-			// Hiding robots find new hiding spot when bumped by player
-			// Ported from: do_ai_robot_hit() AI.C line 1798
-			if ( ailp.behavior === AIB_HIDE ) {
-
-				ailp.mode = AIM_HIDE;
-				ailp.submode = AISM_GOHIDE;
-
-			}
-
-		}
-
-	}
-
-	// Decrement bump cooldown
-	if ( ailp.bump_cooldown > 0 ) {
-
-		ailp.bump_cooldown -= _dt;
 
 	}
 
@@ -4524,9 +4506,39 @@ function ai_integrate_robot_linear_velocity( robot, dt ) {
 
 }
 
+// A nearby ship may be on the far side of a grate or a closed door.
+function hasPhysicalPathToShip(obj, ship) {
+	if (ship.segnum === obj.segnum) return true;
+	const hit = find_vector_intersection(obj.pos_x, obj.pos_y, obj.pos_z,
+		ship.pos_x, ship.pos_y, ship.pos_z, obj.segnum, 0, -1, 0);
+	return hit.hit_type === HIT_NONE && hit.hit_seg === ship.segnum;
+}
+
+function separateRobotFromShip(robot, ship) {
+	const obj = robot.obj;
+	const radius = objectContactRadius(obj) + ship.size;
+	const dx = obj.pos_x - ship.pos_x, dy = obj.pos_y - ship.pos_y, dz = obj.pos_z - ship.pos_z;
+	const d2 = dx * dx + dy * dy + dz * dz;
+	if (d2 >= radius * radius) return;
+	if (!hasPhysicalPathToShip(obj, ship)) return;
+	const distance = Math.sqrt(d2), gap = radius - distance + 0.0001;
+	const nx = distance > 0.00001 ? dx / distance : -obj.orient_fvec_x;
+	const ny = distance > 0.00001 ? dy / distance : -obj.orient_fvec_y;
+	const nz = distance > 0.00001 ? dz / distance : -obj.orient_fvec_z;
+	const hit = find_vector_intersection(obj.pos_x, obj.pos_y, obj.pos_z,
+		obj.pos_x + gap * nx, obj.pos_y + gap * ny, obj.pos_z + gap * nz,
+		obj.segnum, obj.size, -1, 0);
+	if (hit.hit_seg < 0 || hit.hit_type === HIT_BAD_P0) return;
+	obj.pos_x = hit.hit_pnt_x;
+	obj.pos_y = hit.hit_pnt_y;
+	obj.pos_z = hit.hit_pnt_z;
+	relink_robot(robot, hit.hit_seg);
+	robot.mesh?.position.set(obj.pos_x, obj.pos_y, -obj.pos_z);
+}
+
 // Integrate robot velocity into position with FVI collision detection + wall sliding.
 // Ported from: PHYSICS.C do_physics_sim() wall-slide behavior.
-function ai_integrate_robot_translation( robot, dt ) {
+function ai_integrate_robot_translation( robot, dt, ship ) {
 
 	const obj = robot.obj;
 	const ailp = robot.aiLocal;
@@ -4556,8 +4568,8 @@ function ai_integrate_robot_translation( robot, dt ) {
 		const hit = find_vector_intersection(
 			p0_x, p0_y, p0_z,
 			p1_x, p1_y, p1_z,
-			curSeg, robotSize,
-			- 1, 0
+			curSeg, robotSize, robot.objnum,
+			ship ? FQ_CHECK_OBJS | FQ_ONLY_PLAYER : 0
 		);
 
 		if ( hit.hit_type === HIT_NONE ) {
@@ -4567,6 +4579,23 @@ function ai_integrate_robot_translation( robot, dt ) {
 			p0_y = hit.hit_pnt_y;
 			p0_z = hit.hit_pnt_z;
 			if ( hit.hit_seg !== - 1 ) curSeg = hit.hit_seg;
+			break;
+
+		} else if (hit.hit_type === HIT_OBJECT && ship) {
+			p0_x = hit.hit_pnt_x;
+			p0_y = hit.hit_pnt_y;
+			p0_z = hit.hit_pnt_z;
+			if (hit.hit_seg >= 0) curSeg = hit.hit_seg;
+			// The contact always clips this move; only a closing impact gives an impulse.
+			const pv = _getPlayerVelocity();
+			const closing = (ailp.vel_x - pv.x) * (ship.pos_x - p0_x) +
+				(ailp.vel_y - pv.y) * (ship.pos_y - p0_y) +
+				(ailp.vel_z - pv.z) * (ship.pos_z - p0_z);
+			if (_onBumpPlayer && ailp.bump_cooldown <= 0 && closing > 0) {
+				const mass = obj.mtype?.mass || 4;
+				_onBumpPlayer(robot, ailp.vel_x, ailp.vel_y, ailp.vel_z, mass);
+				ailp.bump_cooldown = BUMP_COOLDOWN;
+			}
 			break;
 
 		} else if ( hit.hit_type === HIT_WALL ) {
@@ -4801,7 +4830,7 @@ function ai_fire_at_player( robot, robotIndex, dir_x, dir_y, dir_z, params ) {
 	const fire_z = gp.z;
 
 	// Verify fire point is in a valid segment
-	const fireSeg = find_point_seg( fire_x, fire_y, fire_z, obj.segnum );
+	const fireSeg = weaponSpawnSegment(obj.pos_x, obj.pos_y, obj.pos_z, obj.segnum, fire_x, fire_y, fire_z);
 
 	if ( fireSeg === - 1 ) return - 1;
 

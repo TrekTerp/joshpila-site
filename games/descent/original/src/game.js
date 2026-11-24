@@ -15,7 +15,7 @@ import {
 	FrameTime, GameTime, FrameCount,
 	Automap_visited
 } from './mglobal.js';
-import { find_point_seg } from './gameseg.js';
+import { weaponSpawnSegment } from './fvi.js';
 import { wall_frame_process } from './wall.js';
 import { do_special_effects } from './effects.js';
 import { triggers_frame_process } from './switch.js';
@@ -938,7 +938,7 @@ const _gunPt = new THREE.Vector3();
 // Compute gun position in Descent world coordinates
 // gun_num indexes into Player_gun_points
 // Returns position via _gunResult (pre-allocated)
-const _gunResult = { x: 0, y: 0, z: 0 };
+const _gunResult = { x: 0, y: 0, z: 0, segnum: -1 };
 
 function getGunWorldPos( gun_num ) {
 
@@ -954,6 +954,8 @@ function getGunWorldPos( gun_num ) {
 	_gunResult.y = camera.position.y + _gunPt.y;
 	_gunResult.z = - ( camera.position.z + _gunPt.z );
 
+	_gunResult.segnum = weaponSpawnSegment(camera.position.x, camera.position.y, -camera.position.z,
+		playerSegnum, _gunResult.x, _gunResult.y, _gunResult.z);
 	return _gunResult;
 
 }
@@ -996,7 +998,7 @@ function processWeapons() {
 
 	// Compute spawn position from gun point
 	const gp0 = getGunWorldPos( gun0 );
-	const spawnSeg = find_point_seg( gp0.x, gp0.y, gp0.z, playerSegnum );
+	const spawnSeg = gp0.segnum;
 	if ( spawnSeg === - 1 ) return;
 
 	// Quad laser check
@@ -1017,7 +1019,7 @@ function processWeapons() {
 		if ( isLaser || isPlasma ) {
 
 			const gp1 = getGunWorldPos( 1 );
-			const seg1 = find_point_seg( gp1.x, gp1.y, gp1.z, playerSegnum );
+			const seg1 = gp1.segnum;
 			if ( seg1 !== - 1 ) {
 
 				// Use laser-level-aware weapon_info_index
@@ -1030,7 +1032,7 @@ function processWeapons() {
 			if ( hasQuad ) {
 
 				const gp2 = getGunWorldPos( 2 );
-				const seg2 = find_point_seg( gp2.x, gp2.y, gp2.z, playerSegnum );
+				const seg2 = gp2.segnum;
 				if ( seg2 !== - 1 ) {
 
 					Laser_create_new( _fireDir.x, _fireDir.y, _fireDir.z, gp2.x, gp2.y, gp2.z, seg2, PARENT_PLAYER, laserWiIndex, quadMultiplier, laserOffset, true );
@@ -1038,7 +1040,7 @@ function processWeapons() {
 				}
 
 				const gp3 = getGunWorldPos( 3 );
-				const seg3 = find_point_seg( gp3.x, gp3.y, gp3.z, playerSegnum );
+				const seg3 = gp3.segnum;
 				if ( seg3 !== - 1 ) {
 
 					Laser_create_new( _fireDir.x, _fireDir.y, _fireDir.z, gp3.x, gp3.y, gp3.z, seg3, PARENT_PLAYER, laserWiIndex, quadMultiplier, laserOffset, true );
@@ -1175,7 +1177,7 @@ function fireFusionShot() {
 
 	// Fire from both gun points (0 and 1)
 	const gp0 = getGunWorldPos( 0 );
-	const seg0 = find_point_seg( gp0.x, gp0.y, gp0.z, playerSegnum );
+	const seg0 = gp0.segnum;
 	if ( seg0 === - 1 ) { Fusion_charge = 0; return; }
 
 	const weapon_info_index = Primary_weapon_to_weapon_info[ FUSION_INDEX ];
@@ -1204,7 +1206,7 @@ function fireFusionShot() {
 
 	// Second bolt from gun 1
 	const gp1 = getGunWorldPos( 1 );
-	const seg1 = find_point_seg( gp1.x, gp1.y, gp1.z, playerSegnum );
+	const seg1 = gp1.segnum;
 	if ( seg1 !== - 1 ) {
 
 		const secondBolt = Laser_create_new(
@@ -1258,7 +1260,7 @@ function processSecondaryWeapons() {
 	}
 
 	const gp = getGunWorldPos( gun_num );
-	const spawnSeg = find_point_seg( gp.x, gp.y, gp.z, playerSegnum );
+	const spawnSeg = gp.segnum;
 	if ( spawnSeg === - 1 ) return;
 
 	// Parallel fire direction along player's forward vector
@@ -1448,7 +1450,7 @@ function handleKeyAction( e ) {
 
 		// Fire from gun 6 (center gun)
 		const gp = getGunWorldPos( 6 );
-		const spawnSeg = find_point_seg( gp.x, gp.y, gp.z, playerSegnum );
+		const spawnSeg = gp.segnum;
 
 		if ( spawnSeg !== - 1 ) {
 

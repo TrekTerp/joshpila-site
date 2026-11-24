@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { GameTime, Segments } from './mglobal.js';
 import { find_point_seg } from './gameseg.js';
-import { find_vector_intersection, HIT_NONE, HIT_WALL } from './fvi.js';
+import { find_vector_intersection, HIT_NONE, HIT_WALL, FQ_TRANSPOINT, weaponSpawnSegment } from './fvi.js';
 import { Weapon_info, Vclips, N_weapon_types,
 	WEAPON_RENDER_NONE, WEAPON_RENDER_LASER, WEAPON_RENDER_BLOB, WEAPON_RENDER_POLYMODEL, WEAPON_RENDER_VCLIP,
 	LASER_ID, CONCUSSION_ID, VULCAN_ID, SPREADFIRE_ID, PLASMA_ID, FUSION_ID,
@@ -318,7 +318,8 @@ function check_vector_to_sphere( p0_x, p0_y, p0_z, p1_x, p1_y, p1_z, sp_x, sp_y,
 
 		const int_dist = w_dist - shorten;
 
-		if ( int_dist > mag_d || int_dist < 0 ) {
+		if ( int_dist > mag_d ) return 0;
+		if ( int_dist <= 0 ) {
 
 			// Inside sphere — don't move
 			_sphereIntResult.hit_x = p0_x;
@@ -1608,7 +1609,7 @@ export function Laser_create_new( dir_x, dir_y, dir_z, pos_x, pos_y, pos_z, segn
 			pos_z += dir_z * totalOffset;
 
 			// Verify the new position is still in a valid segment
-			const newSeg = find_point_seg( pos_x, pos_y, pos_z, segnum );
+			const newSeg = weaponSpawnSegment(w.pos_x, w.pos_y, w.pos_z, segnum, pos_x, pos_y, pos_z);
 			if ( newSeg !== - 1 ) {
 
 				w.pos_x = pos_x;
@@ -2221,7 +2222,7 @@ export function laser_do_weapon_sequence( dt ) {
 			w.pos_x, w.pos_y, w.pos_z,
 			new_x, new_y, new_z,
 			w.segnum, wallCollisionRadius,
-			- 1, 0
+			- 1, FQ_TRANSPOINT
 		);
 
 		// Compute wall hit distance (used to compare against object hits)

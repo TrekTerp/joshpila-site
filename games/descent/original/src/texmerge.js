@@ -17,6 +17,21 @@ export function decode_tmap_num2( tmap_num2 ) {
 
 }
 
+function rotatedOffset(x, y, width, height, rotation) {
+	switch (rotation) {
+		case 1: return x * width + height - 1 - y;
+		case 2: return (height - 1 - y) * width + width - 1 - x;
+		case 3: return (width - 1 - x) * width + y;
+		default: return y * width + x;
+	}
+}
+
+export function bitmapOffset(u, v, width, height, rotation = 0) {
+	const x = Math.floor((u - Math.floor(u)) * width);
+	const y = Math.floor((v - Math.floor(v)) * height);
+	return rotatedOffset(x, y, width, height, rotation & 3);
+}
+
 // Merge two 64x64 textures: base + overlay
 // Overlay pixels with palette index 255 (transparent) are skipped
 // If overlayFlags has BM_FLAG_SUPER_TRANSPARENT set, palette index 254 also maps to transparent (255)
@@ -41,19 +56,7 @@ export function texmerge_get_cached_bitmap( basePixels, overlayPixels, overlayRo
 
 			// Compute source position based on rotation
 			// Ported from merge_textures_new() / merge_textures_super_xparent() in TEXMERGE.C
-			let sx, sy;
-
-			switch ( overlayRotation ) {
-
-				case 0: sx = x; sy = y; break;
-				case 1: sx = ( height - 1 ) - y; sy = x; break;
-				case 2: sx = ( width - 1 ) - x; sy = ( height - 1 ) - y; break;
-				case 3: sx = y; sy = ( width - 1 ) - x; break;
-				default: sx = x; sy = y;
-
-			}
-
-			const srcIdx = sy * width + sx;
+			const srcIdx = rotatedOffset(x, y, width, height, overlayRotation);
 			if ( srcIdx >= 0 && srcIdx < overlayPixels.length ) {
 
 				const pixel = overlayPixels[ srcIdx ];

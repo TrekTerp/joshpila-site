@@ -9,7 +9,7 @@ import {
 	get_seg_masks, create_abs_vertex_lists, find_point_seg,
 	get_num_faces
 } from './gameseg.js';
-import { wall_is_doorway, WID_FLY_FLAG, WID_TRANSPARENT_WALL } from './wall.js';
+import { wallHasOpeningAt, wall_is_doorway, WID_FLY_FLAG, WID_TRANSPARENT_WALL } from './wall.js';
 import {
 	Objects,
 	OBJ_NONE, OBJ_WALL, OBJ_FIREBALL, OBJ_ROBOT, OBJ_HOSTAGE, OBJ_PLAYER,
@@ -32,6 +32,7 @@ export const FQ_CHECK_OBJS = 1;
 export const FQ_TRANSWALL = 2;
 export const FQ_TRANSPOINT = 4;
 export const FQ_GET_SEGLIST = 8;
+export const FQ_ONLY_PLAYER = 16; // Restrict an object sweep to the ship during robot translation.
 
 export const MAX_FVI_SEGS = 100;
 
@@ -239,7 +240,8 @@ function check_vector_to_sphere_1( p0_x, p0_y, p0_z, p1_x, p1_y, p1_z,
 		const shorten = Math.sqrt( sphere_rad * sphere_rad - dist * dist );
 		const int_dist = w_dist - shorten;
 
-		if ( int_dist < 0 || int_dist > mag_d ) {
+		if ( int_dist > mag_d ) return 0;
+		if ( int_dist <= 0 ) {
 
 			// Inside sphere — return start point
 			_obj_int_result.x = p0_x;
@@ -263,19 +265,14 @@ function check_vector_to_sphere_1( p0_x, p0_y, p0_z, p1_x, p1_y, p1_z,
 // ---- check_vector_to_object ----
 // Ported from: FVI.C lines 835-850
 // Wrapper that adjusts sizes for special cases
-function check_vector_to_object( p0_x, p0_y, p0_z, p1_x, p1_y, p1_z,
-	rad, obj, otherobj ) {
+export function objectContactRadius(obj, radius = obj.size) {
+	return obj.type === OBJ_ROBOT && Robot_info[obj.id]?.attack_type
+		? radius * 0.75 : radius;
+}
 
-	let size = obj.size;
+function check_vector_to_object( p0_x, p0_y, p0_z, p1_x, p1_y, p1_z, rad, obj ) {
 
-	// Attack-type robots (claw guys) get 3/4 radius
-	if ( obj.type === OBJ_ROBOT && Robot_info[ obj.id ] !== undefined &&
-		Robot_info[ obj.id ].attack_type !== 0 ) {
-
-		size = ( size * 3 ) / 4;
-
-	}
-
+	const size = objectContactRadius(obj);
 	return check_vector_to_sphere_1(
 		p0_x, p0_y, p0_z, p1_x, p1_y, p1_z,
 		obj.pos_x, obj.pos_y, obj.pos_z,
@@ -817,6 +814,7 @@ function fvi_sub( p0_x, p0_y, p0_z, startseg, p1_x, p1_y, p1_z, rad, thisobjnum,
 			if ( obj === undefined ) break;
 
 			const nextObj = obj.next;
+			if ((flags & FQ_ONLY_PLAYER) && obj.type !== OBJ_PLAYER) { objnum = nextObj; continue; }
 
 			// Skip dead objects
 			if ( ( obj.flags & OF_SHOULD_BE_DEAD ) !== 0 ) { objnum = nextObj; continue; }
@@ -880,28 +878,10 @@ function fvi_sub( p0_x, p0_y, p0_z, startseg, p1_x, p1_y, p1_z, rad, thisobjnum,
 
 			}
 
-			// Radius fudge for attack-type robots
-			let fudged_rad = rad;
-
-			if ( thisobjnum > - 1 ) {
-
-				const thisobj = Objects[ thisobjnum ];
-
-				if ( thisobj !== undefined && thisobj.type === OBJ_ROBOT &&
-					Robot_info[ thisobj.id ] !== undefined &&
-					Robot_info[ thisobj.id ].attack_type !== 0 ) {
-
-					fudged_rad = ( rad * 3 ) / 4;
-
-				}
-
-			}
-
-			// Check sphere intersection
+			const mover = thisobjnum >= 0 ? Objects[thisobjnum] : null;
 			const d = check_vector_to_object(
 				p0_x, p0_y, p0_z, p1_x, p1_y, p1_z,
-				fudged_rad, obj,
-				( thisobjnum > - 1 ) ? Objects[ thisobjnum ] : null
+				mover ? objectContactRadius(mover, rad) : rad, obj
 			);
 
 			if ( d > 0 && d < closest_d ) {
@@ -975,9 +955,13 @@ function fvi_sub( p0_x, p0_y, p0_z, startseg, p1_x, p1_y, p1_z, rad, thisobjnum,
 					const wid_flag = wall_is_doorway( startseg, side );
 					const newsegnum = seg.children[ side ];
 
-					if ( ( ( wid_flag & WID_FLY_FLAG ) !== 0 ||
-						( wid_flag === WID_TRANSPARENT_WALL && ( flags & FQ_TRANSWALL ) !== 0 ) ) &&
-						IS_CHILD( newsegnum ) === true ) {
+					const norm = seg.sides[side].normals[face];
+					const throughTexture = (flags & FQ_TRANSPOINT) !== 0 && (wid_flag & WID_FLY_FLAG) === 0 &&
+						IS_CHILD(newsegnum) && wallHasOpeningAt(startseg, side, face,
+							_plane_int_result.x - norm.x * rad, _plane_int_result.y - norm.y * rad,
+							_plane_int_result.z - norm.z * rad);
+					if ( IS_CHILD(newsegnum) && ((wid_flag & WID_FLY_FLAG) !== 0 || throughTexture ||
+						(wid_flag === WID_TRANSPARENT_WALL && (flags & FQ_TRANSWALL) !== 0)) ) {
 
 						// Can fly through — recurse into child segment
 
@@ -1201,6 +1185,15 @@ function fvi_sub( p0_x, p0_y, p0_z, startseg, p1_x, p1_y, p1_z, rad, thisobjnum,
 	_fvi_sub_result.n_segs = n_segs;
 	_fvi_nest_count --;
 
+}
+
+// A muzzle or the front offset of a weapon model may cross a segment boundary.
+// Use the same grate test here as in flight so an offset can't skip a solid bar.
+export function weaponSpawnSegment(x, y, z, segnum, endX, endY, endZ) {
+	if (segnum < 0 || segnum >= Num_segments) return -1;
+	if (get_seg_masks(endX, endY, endZ, segnum, 0).centermask === 0) return segnum;
+	const hit = find_vector_intersection(x, y, z, endX, endY, endZ, segnum, 0, -1, FQ_TRANSPOINT);
+	return hit.hit_type === HIT_NONE ? hit.hit_seg : -1;
 }
 
 // ---- find_vector_intersection ----

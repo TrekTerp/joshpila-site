@@ -5,6 +5,9 @@ import {
 	MAX_SIDES_PER_SEGMENT, IS_CHILD
 } from './segment.js';
 import { digi_play_sample_world } from './digi.js';
+import {sideHitUV} from './gameseg.js';
+import {bitmapOffset} from './texmerge.js';
+import {BM_FLAG_TRANSPARENT, BM_FLAG_SUPER_TRANSPARENT} from './piggy.js';
 import { laser_kill_stuck_on_wall } from './laser.js';
 
 // Wall types
@@ -1276,6 +1279,37 @@ export function wall_toggle( segnum, sidenum ) {
 
 	}
 
+}
+
+// PIG pixel indices are immutable. Keep decoded RLE data only for sampled bitmaps.
+const sampledBitmaps = new WeakMap();
+function sampleBitmap(index, uv, rotation) {
+	const bm = _pigFile?.bitmaps[index];
+	if (!bm) return -1;
+	let pixels = sampledBitmaps.get(bm);
+	if (!pixels) {
+		pixels = _pigFile.getBitmapPixels(index);
+		if (!pixels) return -1;
+		sampledBitmaps.set(bm, pixels);
+	}
+	return pixels[bitmapOffset(uv.u, uv.v, bm.width, bm.height, rotation)];
+}
+
+export function wallHasOpeningAt(segnum, sidenum, face, x, y, z) {
+	const seg = _Segments[segnum], side = seg.sides[sidenum];
+	if (!_pigFile || !_Textures) return false;
+	const base = _Textures[side.tmap_num];
+	const overlayId = _Textures[side.tmap_num2 & 0x3fff];
+	const hasBaseHoles = Boolean(_pigFile.bitmapFlags[base] & BM_FLAG_TRANSPARENT);
+	if (!hasBaseHoles && !(side.tmap_num2 && (_pigFile.bitmapFlags[overlayId] & BM_FLAG_SUPER_TRANSPARENT))) return false;
+	const uv = sideHitUV(seg, sidenum, face, x, y, z, true);
+	if (!uv) return false;
+	if (side.tmap_num2 & 0x3fff) {
+		const pixel = sampleBitmap(overlayId, uv, side.tmap_num2 >>> 14);
+		if (pixel === 254 && (_pigFile.bitmapFlags[overlayId] & BM_FLAG_SUPER_TRANSPARENT)) return true;
+		if (pixel !== 255) return false;
+	}
+	return hasBaseHoles && sampleBitmap(base, uv, 0) === 255;
 }
 
 // Check if a wall side has transparent textures

@@ -481,6 +481,33 @@ export function create_abs_vertex_lists( segnum, sidenum ) {
 
 }
 
+// Interpolate native texture coordinates on the same two triangles used to draw a side.
+// Flat sides have only one collision face, so select the rendered triangle at the hit.
+export function sideHitUV(seg, sidenum, face, x, y, z, resolveQuad = false) {
+	const side = seg.sides[sidenum];
+	const sv = Side_to_verts[sidenum];
+	const normal = side.normals[side.type === SIDE_IS_QUAD ? 0 : face];
+	const ax = Math.abs(normal.x), ay = Math.abs(normal.y), az = Math.abs(normal.z);
+	const drop = ax >= ay && ax >= az ? 0 : ay >= az ? 1 : 2;
+	const i = drop === 0 ? 1 : 0, j = drop === 2 ? 1 : 2;
+	const first = (side.type === SIDE_IS_TRI_13 ? 3 : 0) + face * 2;
+	const a = first % 4, b = (first + 1) % 4, c = (first + 2) % 4;
+	const va = 3 * seg.verts[sv[a]], vb = 3 * seg.verts[sv[b]], vc = 3 * seg.verts[sv[c]];
+	const abI = Vertices[vb+i] - Vertices[va+i], abJ = Vertices[vb+j] - Vertices[va+j];
+	const acI = Vertices[vc+i] - Vertices[va+i], acJ = Vertices[vc+j] - Vertices[va+j];
+	const pI = (i === 0 ? x : y) - Vertices[va+i], pJ = (j === 1 ? y : z) - Vertices[va+j];
+	const det = abI * acJ - abJ * acI;
+	if (Math.abs(det) < 1e-8) return null;
+	const wb = (pI * acJ - pJ * acI) / det;
+	if (resolveQuad && side.type === SIDE_IS_QUAD && face === 0 && wb < 0) {
+		return sideHitUV(seg, sidenum, 1, x, y, z);
+	}
+	const wc = (abI * pJ - abJ * pI) / det;
+	const ua = side.uvls[a], ub = side.uvls[b], uc = side.uvls[c];
+	return {u: ua.u + wb * (ub.u - ua.u) + wc * (uc.u - ua.u),
+		v: ua.v + wb * (ub.v - ua.v) + wc * (uc.v - ua.v)};
+}
+
 // ---- Collision detection functions ----
 // Ported from: descent-master/MAIN/GAMESEG.C get_seg_masks(), trace_segs(), find_point_seg()
 

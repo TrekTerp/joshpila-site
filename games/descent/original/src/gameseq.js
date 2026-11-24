@@ -2783,6 +2783,7 @@ function loadLevelData( levelFile, levelName ) {
 
 	// Initialize robot AI
 	ai_set_externals( {
+		getPlayerObject: game_get_player_object,
 		getPlayerPos: getPlayerPos,
 		getPlayerVelocity: getPlayerVelocity,
 		getPlayerSeg: getPlayerSegnum,
@@ -2993,6 +2994,7 @@ function loadLevelData( levelFile, levelName ) {
 					if ( robot.alive !== true || robot.objnum !== hitObjectNum ) continue;
 
 					const ailp = robot.aiLocal;
+					if (ailp?.bump_cooldown > 0) return false;
 					const vel_x = ailp !== undefined ? ailp.vel_x : 0;
 					const vel_y = ailp !== undefined ? ailp.vel_y : 0;
 					const vel_z = ailp !== undefined ? ailp.vel_z : 0;
@@ -3002,10 +3004,9 @@ function loadLevelData( levelFile, levelName ) {
 						hit_x, hit_y, hit_z, player_segnum
 					);
 
-					// AI still has a temporary endpoint fallback for robots that move into a
-					// stationary player. Suppress a duplicate event later in this frame.
+					// Share the impact timer with the robot sweep on the same simulation tick.
 					if ( ailp !== undefined ) ailp.bump_cooldown = 0.5;
-					return playerDead !== true;
+					return false;
 
 				}
 

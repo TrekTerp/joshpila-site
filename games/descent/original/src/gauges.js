@@ -153,8 +153,8 @@ let _lives = 3;
 // Accumulates palette add values and decays at DIMINISH_RATE units/sec
 
 const DIMINISH_RATE = 16;	// Palette decay rate (units/second, from GAME.C line 2153)
+const MAX_HIT_FLASH = 20; // One normal hit, fading in 1.25 seconds of flight.
 let _paletteRedAdd = 0;
-let _paletteGreenAdd = 0;
 let _paletteBlueAdd = 0;
 
 // White-out flash for mine destruction (0.0 to 1.0)
@@ -292,21 +292,29 @@ export function gauges_add_score_points( points ) {
 
 }
 
-export function gauges_flash_damage( color ) {
+export function gauges_flash_damage( color, damage = 5 ) {
 
-	// Ported from: PALETTE_FLASH_ADD in COLLIDE.C
-	// Each hit adds ~20 units to palette (f2i(damage*4) where typical damage=5)
-	// Decay at DIMINISH_RATE (16) units/sec matches original fade timing
 	if ( color === 'blue' ) {
 
-		_paletteBlueAdd += 20;
+		_paletteBlueAdd = MAX_HIT_FLASH;
 
 	} else {
 
-		_paletteRedAdd += 20;
+		// Scrapes and bumps can arrive every frame. Accumulate by shield damage
+		// and cap the stored value so a burst cannot queue minutes of red.
+		if ( ! ( damage > 0 ) ) return;
+		_paletteRedAdd = Math.min( MAX_HIT_FLASH, _paletteRedAdd + 4 * damage );
 
 	}
 
+	_dirty = true;
+
+}
+
+export function gauges_clear_damage_flash() {
+
+	_paletteRedAdd = 0;
+	_paletteBlueAdd = 0;
 	_dirty = true;
 
 }
@@ -396,12 +404,11 @@ export function gauges_draw( dt, endlevelActive = false ) {
 
 	// Diminish palette effects toward normal
 	// Ported from: diminish_palette_towards_normal() in GAME.C lines 2157-2184
-	if ( _paletteRedAdd > 0 || _paletteGreenAdd > 0 || _paletteBlueAdd > 0 ) {
+	if ( _paletteRedAdd > 0 || _paletteBlueAdd > 0 ) {
 
 		const dec = DIMINISH_RATE * dt;
-		if ( _paletteRedAdd > 0 ) { _paletteRedAdd -= dec; if ( _paletteRedAdd < 0 ) _paletteRedAdd = 0; }
-		if ( _paletteGreenAdd > 0 ) { _paletteGreenAdd -= dec; if ( _paletteGreenAdd < 0 ) _paletteGreenAdd = 0; }
-		if ( _paletteBlueAdd > 0 ) { _paletteBlueAdd -= dec; if ( _paletteBlueAdd < 0 ) _paletteBlueAdd = 0; }
+		_paletteRedAdd = Math.max( 0, _paletteRedAdd - dec );
+		_paletteBlueAdd = Math.max( 0, _paletteBlueAdd - dec );
 		_dirty = true;
 
 	}
@@ -516,12 +523,12 @@ export function gauges_draw( dt, endlevelActive = false ) {
 	// Ported from: gr_palette_step_up() — palette add values map to overlay alpha
 	if ( _paletteRedAdd > 0 || _paletteBlueAdd > 0 ) {
 
-		// Max palette add ~64 maps to ~0.5 alpha overlay
-		const r = Math.min( _paletteRedAdd / 64.0, 1.0 );
-		const b = Math.min( _paletteBlueAdd / 64.0, 1.0 );
+		// Use the original 6-bit palette scale for the HUD tint.
+		const r = _paletteRedAdd / 64.0;
+		const b = _paletteBlueAdd / 64.0;
 		const alpha = Math.max( r, b ) * 0.4;
 		ctx.globalAlpha = alpha;
-		ctx.fillStyle = ( b > r ) ? '#0044ff' : '#ff0000';
+		ctx.fillStyle = ( b >= r ) ? '#0044ff' : '#ff0000';
 		ctx.fillRect( 0, 0, COCKPIT_W, COCKPIT_H );
 		ctx.globalAlpha = 1.0;
 

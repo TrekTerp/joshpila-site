@@ -58,7 +58,7 @@ import { Robot_info, N_robot_types, AIS_REST, AIS_SRCH } from './robot.js';
 import { do_morph_frame, start_robot_morph, finish_robot_morphs_for_save } from './morph.js';
 import { create_n_segment_path, aipath_snapshot_robot_path,
 	aipath_restore_robot_path } from './aipath.js';
-import { gauges_init, gauges_update, gauges_flash_damage, gauges_set_white_flash, gauges_draw, gauges_set_externals, gauges_add_score_points, gauges_set_cockpit_mode, gauges_set_countdown_seconds } from './gauges.js';
+import { gauges_init, gauges_update, gauges_flash_damage, gauges_clear_damage_flash, gauges_set_white_flash, gauges_draw, gauges_set_externals, gauges_add_score_points, gauges_set_cockpit_mode, gauges_set_countdown_seconds } from './gauges.js';
 import { hud_show_message } from './hud.js';
 import { powerup_set_externals, powerup_place, powerup_place_hostage, powerup_do_frame, powerup_cleanup, powerup_get_live, spawnDroppedPowerup, buildSpriteTexture } from './powerup.js';
 import { hostage_get_in_level, hostage_get_level_saved, hostage_get_total_saved,
@@ -279,12 +279,6 @@ function updateHUD() {
 		cloakTimeRemaining: playerCloakTime,
 		invulnerableTimeRemaining: playerInvulnerableTime
 	} );
-
-}
-
-function flashDamage( color ) {
-
-	gauges_flash_damage( color );
 
 }
 
@@ -1404,6 +1398,7 @@ function resetPlayerLoadoutForNewShip() {
 
 function respawnPlayer() {
 
+	gauges_clear_damage_flash();
 	cleanupPlayerDeathVisual();
 	playerLives --;
 
@@ -2468,6 +2463,7 @@ function loadLevelData( levelFile, levelName ) {
 
 	levelFile.seek( gamedata_offset );
 	const gameData = load_game_data( levelFile );
+	gauges_clear_damage_flash();
 
 	// Store level name for bonus screen
 	// Ported from: Current_level_name in GAMESEQ.C line 336
@@ -2532,7 +2528,7 @@ function loadLevelData( levelFile, levelName ) {
 
 			playerShields -= amount;
 			updateHUD();
-			flashDamage();
+			gauges_flash_damage( 'red', amount );
 
 			if ( playerShields < 0 && playerDead !== true ) {
 
@@ -2696,7 +2692,7 @@ function loadLevelData( levelFile, levelName ) {
 		getScene: getScene,
 		updateHUD: updateHUD,
 		showMessage: showMessage,
-		flashDamage: flashDamage,
+		flashDamage: gauges_flash_damage,
 		startPlayerDeath: startPlayerDeath,
 		startSelfDestruct: startSelfDestruct,
 		spawnDroppedPowerup: spawnDroppedPowerup,
@@ -2771,7 +2767,7 @@ function loadLevelData( levelFile, levelName ) {
 	game_set_fusion_externals( {
 		getPlayerEnergy: () => playerEnergy,
 		setPlayerEnergy: ( e ) => { playerEnergy = e; },
-		flashDamage: flashDamage,
+		flashDamage: gauges_flash_damage,
 		updateHUD: updateHUD,
 		applyPlayerDamage: ( damage ) => { apply_damage_to_player( damage ); },
 		getPlayerQuadLasers: () => playerQuadLasers
@@ -2934,7 +2930,7 @@ function loadLevelData( levelFile, levelName ) {
 
 				playerShields -= damage;
 				updateHUD();
-				flashDamage();
+				gauges_flash_damage( 'red', damage );
 
 				if ( playerShields < 0 && playerDead !== true ) {
 

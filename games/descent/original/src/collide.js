@@ -367,7 +367,7 @@ export function collide_player_and_clutter( clutterObj, collision_x, collision_y
 // ---------------------------------------------------------------
 export function apply_damage_to_player( damage ) {
 
-	if ( _getPlayerShields === null ) return;
+	if ( _getPlayerShields === null || ! ( damage > 0 ) ) return;
 
 	const shields = _getPlayerShields();
 	if ( shields < 0 ) return;		// Already dead
@@ -382,7 +382,7 @@ export function apply_damage_to_player( damage ) {
 
 	_setPlayerShields( shields - damage );
 
-	if ( _flashDamage !== null ) _flashDamage();
+	if ( _flashDamage !== null ) _flashDamage( 'red', damage );
 	if ( _updateHUD !== null ) _updateHUD();
 
 	if ( _getPlayerShields() < 0 ) {
@@ -1418,7 +1418,7 @@ export function scrape_object_on_wall( playerSeg, dt ) {
 				_setPlayerShields( _getPlayerShields() - damage );
 
 			}
-			if ( _flashDamage !== null ) _flashDamage();
+			if ( _flashDamage !== null ) _flashDamage( 'red', damage );
 			if ( _updateHUD !== null ) _updateHUD();
 
 			// Push away from the damaging face with the source's small randomized

@@ -41,7 +41,22 @@ body.locked #flight-tools{display:none}
 #recover a{color:white;background:#1b3237;padding:8px 12px;margin:3px;border-radius:3px}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
-<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js"}}</script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.js",
+    "./src/automap.js": "./src/automap.js?rev=mine-survey-1",
+    "./src/config.js": "./src/config.js?rev=mine-survey-1",
+    "./src/controls.js": "./src/controls.js?rev=mine-survey-1",
+    "./src/flight-display.js": "./src/flight-display.js?rev=mine-survey-1",
+    "./src/game.js": "./src/game.js?rev=mine-survey-1",
+    "./src/gameseq.js": "./src/gameseq.js?rev=mine-survey-1",
+    "./src/menu.js": "./src/menu.js?rev=mine-survey-1",
+    "./src/pilot-panel.js": "./src/pilot-panel.js?rev=mine-survey-1",
+    "./src/survey-geometry.js": "./src/survey-geometry.js?rev=mine-survey-1"
+  }
+}
+</script>
 </head>
 <body>
 <nav id="flight-tools" aria-label="Campaign controls">

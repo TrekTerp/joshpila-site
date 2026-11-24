@@ -3,6 +3,9 @@
 
 import * as THREE from 'three';
 import { createFlightRenderer } from './software-renderer.js';
+import {showHotbar} from './hotbar.js';
+import {showPilotControls} from './pilot-panel.js';
+import {cycleWeapon} from './laser.js';
 import { lightWeapons } from './flight-display.js';
 import { laser_get_active_weapons } from './laser.js';
 
@@ -75,8 +78,7 @@ let _pauseCanvas = null;
 let _pauseCtx = null;
 let _pauseWrapper = null;
 let _pauseSelectedIndex = 0;
-let _pauseStatusText = null;	// temporary status message ("GAME SAVED!", etc.)
-let _pauseStatusTimer = 0;
+
 let _pauseState = 'menu';	// 'menu', 'settings', or 'bindings'
 let _settingsSelectedIndex = 0;
 let _settingsItemYPositions = [];
@@ -91,6 +93,7 @@ const PAUSE_MENU_ITEMS = [
 	{ label: 'RESUME', id: 'resume' },
 	{ label: 'SAVE GAME', id: 'save' },
 	{ label: 'LOAD GAME', id: 'load' },
+	{ label: 'CONTROLS', id: 'controls' },
 	{ label: 'SETTINGS', id: 'settings' },
 	{ label: 'QUIT TO MENU', id: 'quit' },
 ];
@@ -323,7 +326,25 @@ export function game_init() {
 	scene.add( camera );
 
 	// Input handling (ported from CONTROLS.C)
-	controls_init( renderer.domElement );
+	let lastCycle = -Infinity, bank, accumulated = 0, lastWheel = -Infinity;
+	controls_init(renderer.domElement, event => {
+		if (isPaused || transitionSuspended || playerDead || !playerControlsEnabled) return true;
+		if (getIsAutomap()) return false;
+		const delta = event.deltaY || (event.shiftKey ? event.deltaX : 0);
+		if (!delta) return true;
+		const time = event.timeStamp;
+		const distance = delta * [1, 16, 160][event.deltaMode || 0];
+		if (event.shiftKey !== bank || Math.sign(distance) !== Math.sign(accumulated) || time - lastWheel > 180) accumulated = 0;
+		accumulated += distance;
+		if (event.shiftKey !== bank || time - lastWheel > 180 || (Math.abs(accumulated) >= 45 && time - lastCycle >= 65)) {
+			cycleWeapon(event.shiftKey, Math.sign(delta));
+			lastCycle = time;
+			accumulated = 0;
+		}
+		lastWheel = time;
+		bank = event.shiftKey;
+		return true;
+	});
 	controls_set_resize_refs( camera, renderer );
 	controls_set_key_action_callback( handleKeyAction );
 
@@ -453,6 +474,7 @@ export function game_set_mine_visible( visible ) {
 export function game_loop( time ) {
 
 	requestAnimationFrame( game_loop );
+	showHotbar(!transitionSuspended && !isPaused && !playerDead && playerControlsEnabled && !getIsAutomap());
 
 	// Blocking title/score/briefing flows freeze the old world's clock as well
 	// as its subsystems.  Keep lastTime current so resuming cannot produce a
@@ -725,8 +747,6 @@ function updateCamera( dt ) {
 
 	}
 
-	// Consume wheel delta to prevent it building up during gameplay
-	controls_consume_wheel();
 
 	// --- Rotational physics (ported from do_physics_sim_rot) ---
 
@@ -1813,7 +1833,7 @@ function renderPauseMenu() {
 
 	// Draw "PAUSED" title using subtitle font (or normal font fallback)
 	const titleFont = subtitleFont !== null ? subtitleFont : normalFont;
-	const titleY = 60;
+	const titleY = 46;
 	gr_string( imageData, titleFont, 0x8000, titleY, 'PAUSED', _gamePalette );
 
 	// Draw menu items below the title
@@ -1822,26 +1842,7 @@ function renderPauseMenu() {
 
 	for ( let i = 0; i < PAUSE_MENU_ITEMS.length; i ++ ) {
 
-		let label = PAUSE_MENU_ITEMS[ i ].label;
-
-		// Override label with status text for save/load feedback
-		if ( _pauseStatusText !== null ) {
-
-			if ( PAUSE_MENU_ITEMS[ i ].id === 'save' && _pauseStatusText === 'GAME SAVED!' ) {
-
-				label = _pauseStatusText;
-
-			} else if ( PAUSE_MENU_ITEMS[ i ].id === 'save' && _pauseStatusText === 'SAVE FAILED' ) {
-
-				label = _pauseStatusText;
-
-			} else if ( PAUSE_MENU_ITEMS[ i ].id === 'load' && _pauseStatusText === 'NO SAVE FOUND' ) {
-
-				label = _pauseStatusText;
-
-			}
-
-		}
+		const label = PAUSE_MENU_ITEMS[ i ].label;
 
 		const isSelected = ( i === _pauseSelectedIndex );
 		const font = isSelected ? currentFont : normalFont;
@@ -2303,64 +2304,19 @@ function onPauseMouseClick( e ) {
 
 }
 
-function onPauseMenuSelect( idx ) {
+async function onPauseMenuSelect( idx ) {
 
 	const id = PAUSE_MENU_ITEMS[ idx ].id;
 	if ( transitionSuspended === true && id !== 'load' && id !== 'quit' ) return;
 
 	if ( id === 'resume' ) {
-
 		resumeGame();
-
 	} else if ( id === 'save' ) {
-
-		if ( _onSaveGame !== null ) {
-
-			const result = _onSaveGame();
-			_pauseStatusText = result === true ? 'GAME SAVED!' : 'SAVE FAILED';
-			renderPauseMenu();
-			clearTimeout( _pauseStatusTimer );
-			_pauseStatusTimer = setTimeout( function () {
-
-				_pauseStatusText = null;
-				renderPauseMenu();
-
-			}, 2000 );
-
-		}
-
+		await _onSaveGame?.();
 	} else if ( id === 'load' ) {
-
-		if ( _onLoadGame !== null ) {
-
-			const result = _onLoadGame();
-
-			if ( result !== true ) {
-
-				_pauseStatusText = transitionSuspended === true
-					? 'LOAD FAILED - QUIT TO MENU'
-					: 'NO SAVE FOUND';
-				renderPauseMenu();
-				if ( transitionSuspended !== true ) {
-
-					clearTimeout( _pauseStatusTimer );
-					_pauseStatusTimer = setTimeout( function () {
-
-						_pauseStatusText = null;
-						renderPauseMenu();
-
-					}, 2000 );
-
-				}
-
-			} else {
-
-				resumeGame();
-
-			}
-
-		}
-
+		if (await _onLoadGame?.()) resumeGame();
+	} else if ( id === 'controls' ) {
+		showPilotControls({configure: () => togglePauseSetting('configure_keys')});
 	} else if ( id === 'settings' ) {
 
 		_pauseState = 'settings';
@@ -2387,8 +2343,6 @@ function showPauseMenu() {
 	_pauseState = 'menu';
 	_bindingsSelectedIndex = 0;
 	_bindingCaptureAction = null;
-	_pauseStatusText = null;
-	clearTimeout( _pauseStatusTimer );
 	renderPauseMenu();
 	_pauseWrapper.style.display = 'flex';
 
@@ -2506,6 +2460,7 @@ export function game_set_load_callback( cb ) {
 }
 
 function toggleAutomap() {
+	controls_consume_wheel();
 
 	if ( camera === null ) return;
 

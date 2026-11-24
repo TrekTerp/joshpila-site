@@ -1,0 +1,11 @@
+#weapon-hotbar{position:fixed;z-index:12;pointer-events:none;user-select:none;bottom:max(4px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(570px,97vw);font:600 clamp(10px,1.25vw,12px)/1.15 system-ui,sans-serif;color:#e4f5ef;text-shadow:0 1px 2px #000}
+body:not([data-mode=evolved]) #weapon-hotbar{display:none}
+.weapon-row{display:grid;grid-template-columns:.93fr repeat(5,1fr);gap:2px;margin-top:2px}
+.weapon-row>span,.weapon-row>b{background:#0b151bea;border:1px solid #62777a;padding:3px 5px;min-width:0;border-radius:2px}
+.weapon-row>b{background:#0e2329eb;color:#b8e1da;align-content:center}
+.weapon-row>span>b{margin-right:.34em;color:#b0d6cf;font:700 .9em monospace}
+.weapon-row small{display:block;font:500 .86em/1.1 system-ui,sans-serif;margin-top:1px}
+.weapon-row .locked{background:#0d1419e3;color:#a0aaa9;border-color:#3f494e}
+.weapon-row .empty{color:#ffc198}
+.weapon-row .selected{border-color:#ffd088;box-shadow:inset 3px 0 #f3b85f;background:#3a3024f2}
+@media(max-width:480px){.weapon-row{grid-template-columns:.86fr repeat(5,1fr);gap:1px}.weapon-row>span,.weapon-row>b{padding:3px 2px}.weapon-row .selected{box-shadow:inset 0 -2px #f3b85f}}

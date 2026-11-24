@@ -62,6 +62,12 @@ kbd{color:#d9eae6;background:#172429;border:1px solid #4c6265;border-radius:3px;
 @media(max-height:550px){.home-copy{margin-top:4vh;margin-bottom:0}.lede{margin:10px 0 12px;font-size:15px}.main-actions{margin-top:12px}
 footer{bottom:2vh;padding-top:6px}.panel{padding:15px 20px}h1{font-size:clamp(48px,9vw,80px)}#mast{top:3vh}.hero-art:after{opacity:.9}}
 
+#campaign-resume{margin-top:15px}
+#campaign-resume small{display:block;margin-top:5px;color:#d3e3de;font-size:13px}
+#home:has(#campaign-resume:not([hidden])) .main-actions{margin-top:9px}
+#home:has(#campaign-resume:not([hidden])) #original{background:#101a1fe8;color:#e5ece8;border-color:#889596}
+@media(max-height:600px){#home:has(#campaign-resume:not([hidden])) .home-copy{max-height:73dvh;overflow-y:auto;margin:0 0 0 6vw}
+#home:has(#campaign-resume:not([hidden])) .lede{margin:6px 0}#campaign-resume{margin-top:6px}}
 .minor-links{display:flex;align-items:center;gap:0 18px;flex-wrap:wrap}.minor-links .text-action{font-size:13px}
 
 .footer-actions{display:flex;gap:20px}

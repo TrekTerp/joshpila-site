@@ -1788,7 +1788,7 @@ export function collide_player_and_powerup( powerup ) {
 
 					_setPlayerPrimaryFlags( _getPlayerPrimaryFlags() | 2 );
 					_setPlayerVulcanAmmo( Math.min( _getPlayerVulcanAmmo() + VULCAN_WEAPON_AMMO_AMOUNT, VULCAN_AMMO_MAX ) );
-					if ( _showMessage !== null ) _showMessage( 'Vulcan Cannon!' );
+					if ( _showMessage !== null ) _showMessage( 'Vulcan Cannon · select 2' );
 					used = 1;
 
 				} else if ( _getPlayerVulcanAmmo() < VULCAN_AMMO_MAX ) {
@@ -1809,7 +1809,7 @@ export function collide_player_and_powerup( powerup ) {
 				if ( ( _getPlayerPrimaryFlags() & 4 ) === 0 ) {
 
 					_setPlayerPrimaryFlags( _getPlayerPrimaryFlags() | 4 );
-					if ( _showMessage !== null ) _showMessage( 'Spreadfire Cannon!' );
+					if ( _showMessage !== null ) _showMessage( 'Spreadfire Cannon · select 3' );
 					used = 1;
 
 				} else if ( pick_up_energy() === true ) {
@@ -1830,7 +1830,7 @@ export function collide_player_and_powerup( powerup ) {
 				if ( ( _getPlayerPrimaryFlags() & 8 ) === 0 ) {
 
 					_setPlayerPrimaryFlags( _getPlayerPrimaryFlags() | 8 );
-					if ( _showMessage !== null ) _showMessage( 'Plasma Cannon!' );
+					if ( _showMessage !== null ) _showMessage( 'Plasma Cannon · select 4' );
 					used = 1;
 
 				} else if ( pick_up_energy() === true ) {
@@ -1851,7 +1851,7 @@ export function collide_player_and_powerup( powerup ) {
 				if ( ( _getPlayerPrimaryFlags() & 16 ) === 0 ) {
 
 					_setPlayerPrimaryFlags( _getPlayerPrimaryFlags() | 16 );
-					if ( _showMessage !== null ) _showMessage( 'Fusion Cannon!' );
+					if ( _showMessage !== null ) _showMessage( 'Fusion Cannon · select 5' );
 					used = 1;
 
 				} else if ( pick_up_energy() === true ) {
@@ -1984,7 +1984,7 @@ export function collide_player_and_powerup( powerup ) {
 				if ( _getPlayerVulcanAmmo() < VULCAN_AMMO_MAX ) {
 
 					_setPlayerVulcanAmmo( Math.min( _getPlayerVulcanAmmo() + VULCAN_AMMO_AMOUNT, VULCAN_AMMO_MAX ) );
-					if ( _showMessage !== null ) _showMessage( 'Vulcan Ammo!' );
+					if ( _showMessage !== null ) _showMessage( (_getPlayerPrimaryFlags() & 2) ? 'Vulcan ammo' : 'Ammo stored · find Vulcan Cannon' );
 					used = 1;
 
 				} else {

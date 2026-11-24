@@ -16,7 +16,7 @@ import { do_main_menu } from './menu.js';
 import { gamefont_init } from './gamefont.js';
 import { gameseq_set_externals, gameseq_get_difficulty, gameseq_set_difficulty,
 	gameseq_get_secondary_ammo, gameseq_set_sound_initialized,
-	loadLevel, quickStartLevel, loadGame } from './gameseq.js';
+	loadLevel, quickStartLevel, loadGame, campaignSlots } from './gameseq.js';
 import { mission_get_level_name } from './mission.js';
 import { CONFIG_VOLUME_MAX, config_get_digi_volume, config_get_music_volume,
 	config_get_reverse_stereo, config_on_digi_volume_changed,
@@ -26,6 +26,7 @@ import { CONFIG_VOLUME_MAX, config_get_digi_volume, config_get_music_volume,
 const status = document.getElementById( 'status' );
 
 let hogFile = null;
+let archiveKey = null;
 let pigFile = null;
 let palette = null;
 
@@ -43,6 +44,7 @@ async function loadGameData() {
 
     setStatus('Loading mine archives…');
     const files = await loadCampaignFiles();
+    archiveKey = files.archiveKey;
     hogFile = new HogFile();
     pigFile = new PigFile();
     if (!hogFile.init(files.hog) || !pigFile.init(files.pig)) {
@@ -164,6 +166,7 @@ async function startGame() {
 
 	// Wire up gameseq with loaded data
 	gameseq_set_externals( {
+		archiveKey,
 		hogFile: hogFile,
 		pigFile: pigFile,
 		palette: palette,
@@ -173,6 +176,13 @@ async function startGame() {
 
 	// --- Title sequence: logos → menu → briefing → gameplay ---
 
+    const resume = new URLSearchParams(location.search).get('resume');
+    if (resume) {
+        hide_title_canvas();
+        if (!await loadGame(resume)) throw new Error('This save could not be loaded. Return to the hangar to choose a save.');
+        showDirectFlightHint();
+        return;
+    }
     if (directLaunch) {
         gameseq_set_difficulty(selectedDifficulty);
         gameseq_get_secondary_ammo()[0] = 2 + 4 - selectedDifficulty;
@@ -193,7 +203,7 @@ async function startGame() {
 	songs_play_song( SONG_TITLE, true );
 
 	// Show main menu (NEW GAME → difficulty selection)
-	const menuResult = await do_main_menu( hogFile, gameseq_get_difficulty(), palette, loadGame );
+	const menuResult = await do_main_menu( hogFile, gameseq_get_difficulty(), palette, () => campaignSlots('load') );
 	if (menuResult.action === 'loaded') { hide_title_canvas(); return; }
 	gameseq_set_difficulty( menuResult.difficulty );
 

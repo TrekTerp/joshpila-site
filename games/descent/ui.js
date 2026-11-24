@@ -43,12 +43,39 @@ function sfx(type,g=1){
   if(type==="alarm")tone(480,386,.24,"triangle",.34);
   if(type==="flare")tone(460,190,.10,"sine",.32);
 }
+const pilotPanels=import("./original/src/pilot-panel.js");
+const campaignStore=import("./original/src/campaign-saves.js");
+let latestCampaign;
+function resumeLink(record){
+  const link=new URL(record.campaign==="descent_savegame"?$("original").href:$("registered").href);
+  link.searchParams.set("campaign",record.campaign);
+  link.searchParams.set("resume",record.slot);
+  return link.href;
+}
+async function refreshCampaign(){
+  try {
+    const store=await campaignStore,records=await store.listSaves();
+    latestCampaign=records[0];
+    if(latestCampaign){
+      $("campaign-progress").textContent=(latestCampaign.campaign===store.sharewareKey?"Shareware":"Registered")+" · "+
+        store.describeSave(latestCampaign);
+      $("continue-campaign").href=resumeLink(latestCampaign);
+    }
+    $("campaign-resume").hidden=!latestCampaign;
+    $("choose-campaign").hidden=!records.length;
+  } catch { $("choose-campaign").hidden=false; }
+}
+window.addEventListener("pageshow",refreshCampaign);
+$("choose-campaign").onclick=async()=> (await pilotPanels).showSavePanel({mode:"load",load:record=>{
+  location.href=resumeLink(record);return true;
+}});
 function campaignLinks(){
   const opts=new URLSearchParams({mode:modern?"evolved":"classic"});
   if(!soundOn)opts.set("muted","1");
   $("originalMenu").href="original/index.html?"+opts;
   opts.set("start","1");$("original").href="original/index.html?"+opts;
   opts.set("data","custom");$("registered").href="original/index.html?"+opts;
+  if(latestCampaign)$("continue-campaign").href=resumeLink(latestCampaign);
 }
 function setStyle(value){
   const changed=modern!==value;
@@ -104,13 +131,8 @@ function brief(i){
     (hasSave()?"<p class='small'>Launching a drill replaces the current training checkpoint.</p>":""),
     b("Launch drill","launch","primary")+b("Back","training"));
 }
-function controls(){
-  previousScreen=phase;phase="controls";
-  const bindings=[["Forward / reverse","W / S"],["Slide left / right","A / D"],["Rise / sink","Space / Shift"],["Roll left / right","Q / E"],
-    ["Aim","Mouse / IJKL"],["Primary weapon","Click / Z"],["Missile","Right click / X"],[previousScreen==="menu"?"Weapon select":"Laser / spread",previousScreen==="menu"?"Number keys":"1 / 2"],["Launch flare","F"],["Survey map","Tab"],
-    ["Switch graphics","F8"],["Pause","P / Esc"]];
-  panel("PILOT REFERENCE","Flight controls","<div class='cols'>"+bindings.map(([l,k])=>"<div class='bind'><span>"+l+"</span><kbd>"+k+"</kbd></div>").join("")+
-    "</div><p class='small'>Movement follows the ship’s orientation. Release thrust to slow to a hover. If mouse capture is unavailable, use IJKL to aim.</p>",b("Back","controlsBack","primary"));
+async function controls(){
+  (await pilotPanels).showPilotControls({training:phase!=="menu",hangar:phase==="menu"});
 }
 function pause(){
   if(phase!=="flight")return;saveFlight();phase="pause";clearControls();releaseMouse();showPause();
@@ -286,6 +308,7 @@ function frame(stamp){
 const gameKeys=new Set(["KeyW","KeyA","KeyS","KeyD","KeyR","KeyC","KeyQ","KeyE","ArrowLeft","ArrowRight","ArrowUp","ArrowDown",
   "Space","ShiftLeft","ShiftRight","ControlLeft","ControlRight","KeyI","KeyJ","KeyK","KeyL","KeyX","KeyZ","F8","KeyF","KeyP","KeyV","Digit1","Digit2","Tab","Escape"]);
 document.addEventListener("keydown",e=>{
+  if($("pilot-panel").open)return;
   if(phase==="map"){
     if(["Tab","Escape","KeyP"].includes(e.code)){e.preventDefault();if(!e.repeat)startFlight("",true);return;}
     const d=.09;if(e.code==="ArrowLeft")mapYaw-=d;if(e.code==="ArrowRight")mapYaw+=d;

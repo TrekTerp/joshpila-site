@@ -63,6 +63,38 @@ export const WEAPON_SELECT_CHANGED = 0;
 export const WEAPON_SELECT_ALREADY = 1;
 export const WEAPON_SELECT_UNAVAILABLE = - 1;
 
+// Firing and the loadout display use the same difficulty-adjusted energy cost.
+function primaryEnergyCost(type) {
+    const cost = type < N_weapon_types ? Weapon_info[type].energy_usage : 0;
+    return (cost > 0 ? cost : 1) * Math.min(1, (getDifficultyLevel() + 2) / 4);
+}
+
+// 0 = missing weapon, 1 = insufficient ammunition or energy, 2 = ready.
+export function weaponReadiness(secondary, slot) {
+    const flags = secondary ? _getPlayerSecondaryFlags?.() : _getPlayerPrimaryFlags?.();
+    if (!(flags & (1 << slot))) return 0;
+    const energy = _getPlayerEnergy?.() ?? 0;
+    if (secondary) {
+        const info = Weapon_info[Secondary_weapon_to_weapon_info[slot]];
+        return info && (_getPlayerSecondaryAmmo?.(slot) ?? 0) >= Math.max(1, info.ammo_usage) &&
+            energy >= info.energy_usage ? 2 : 1;
+    }
+    if (slot === 1) return (_getVulcanAmmo?.() ?? 0) > 0 ? 2 : 1;
+    const type = slot === 0 ? (_getPlayerLaserLevel?.() ?? 0) : Primary_weapon_to_weapon_info[slot];
+    return energy >= (slot === 4 ? 2 : primaryEnergyCost(type)) ? 2 : 1;
+}
+
+export function cycleWeapon(secondary, direction) {
+    const active = secondary ? Secondary_weapon : Primary_weapon;
+    for (let step = 1; step < 5; step++) {
+        const next = (active + direction * step + 5) % 5;
+        if (weaponReadiness(secondary, next) !== 2) continue;
+        if (secondary) set_secondary_weapon(next, true);
+        else set_primary_weapon(next, true);
+        return;
+    }
+}
+
 // Player weapon flags getter (set via laser_set_externals)
 let _getPlayerPrimaryFlags = null;
 let _getPlayerSecondaryFlags = null;
@@ -1660,26 +1692,7 @@ export function Laser_player_fire( dir_x, dir_y, dir_z, pos_x, pos_y, pos_z, seg
 		if ( _getPlayerEnergy !== null && _setPlayerEnergy !== null ) {
 
 			const energy = _getPlayerEnergy();
-			let energyCost = 0;
-
-			if ( weapon_info_index < N_weapon_types ) {
-
-				energyCost = Weapon_info[ weapon_info_index ].energy_usage;
-
-			}
-
-			// Default cost if not specified
-			if ( energyCost <= 0 ) energyCost = 1.0;
-
-			// Lower difficulty = cheaper energy cost
-			// Ported from: do_laser_firing_player() in LASER.C line 1058
-			// Trainee(0): 50%, Rookie(1): 75%, Hotshot+(2+): 100%
-			const difficulty = getDifficultyLevel();
-			if ( difficulty < 2 ) {
-
-				energyCost = energyCost * ( difficulty + 2 ) / 4;
-
-			}
+			const energyCost = primaryEnergyCost(weapon_info_index);
 
 			if ( energy < energyCost ) {
 

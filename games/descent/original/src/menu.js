@@ -507,67 +507,7 @@ export async function do_main_menu( hogFile, defaultDifficulty, gamePalette, res
 
 		}
 
-		// Show "no saved games" message briefly
-		async function showLoadGameMessage() {
 
-			// Restore background
-			titleCtx.putImageData( _bgImageData, 0, 0 );
-			const imageData = titleCtx.getImageData( 0, 0, titleCanvas.width, titleCanvas.height );
-
-			const subtitleFont = SUBTITLE_FONT();
-			const smallFont = GAME_FONT();
-
-			if ( subtitleFont !== null ) {
-
-				gr_string( imageData, subtitleFont, 0x8000, 80, 'LOAD GAME', gamePalette );
-
-			}
-
-			if ( smallFont !== null ) {
-
-				gr_string( imageData, smallFont, 0x8000, 100, 'NO SAVED GAMES', gamePalette );
-
-			}
-
-			titleCtx.putImageData( imageData, 0, 0 );
-
-			// Wait for key/click or 2 second timeout
-			await new Promise( ( waitResolve ) => {
-
-				let resolved = false;
-				let timer = null;
-
-				const finish = () => {
-
-					if ( resolved === true ) return;
-					resolved = true;
-					if ( timer !== null ) clearTimeout( timer );
-					document.removeEventListener( 'keydown', onKeyLocal );
-					titleInner.removeEventListener( 'click', onClickLocal );
-					waitResolve();
-
-				};
-
-				const onKeyLocal = ( e ) => {
-
-					e.preventDefault();
-					finish();
-
-				};
-
-				const onClickLocal = () => {
-
-					finish();
-
-				};
-
-				document.addEventListener( 'keydown', onKeyLocal );
-				titleInner.addEventListener( 'click', onClickLocal );
-				timer = setTimeout( finish, 2000 );
-
-			} );
-
-		}
 
 		async function handleMenuSelect( index ) {
 
@@ -613,12 +553,12 @@ export async function do_main_menu( hogFile, defaultDifficulty, gamePalette, res
 
 			} else if ( id === 'load_game' ) {
 
-				if (restoreSave?.()) {
+				if (await restoreSave?.()) {
                     cleanup();
                     resolve({action:'loaded'});
                     return;
                 }
-                await showLoadGameMessage();
+
 
 			}
 

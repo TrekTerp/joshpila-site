@@ -1,4 +1,6 @@
 // Load the unchanged DOS shareware archive or a pair selected from local storage.
+import {isSharewarePigSize, isSupportedCampaignPigSize} from './piggy.js';
+import {identifyArchives, matchesArchives} from './campaign-saves.js';
 const view = new URLSearchParams(location.search);
 export const directLaunch = view.get('start') === '1';
 export const selectedDifficulty = Math.max(0, Math.min(4,
@@ -50,6 +52,11 @@ async function readLocalFiles() {
     const panel = document.getElementById('picker');
     const form = document.getElementById('files-form');
     const message = document.getElementById('file-message');
+    const expected = view.get('campaign');
+    if (view.has('resume')) {
+        message.value = 'Select the same HOG and PIG to resume your saved flight.';
+        form.querySelector('button').textContent = 'Resume saved flight';
+    }
     panel.hidden = false;
     return new Promise(resolve => {
         form.onsubmit = async event => {
@@ -65,11 +72,13 @@ async function readLocalFiles() {
                 }
                 const [h, p] = await Promise.all([hog.arrayBuffer(), pig.arrayBuffer()]);
                 if (!layoutOK(h)) throw new Error('The HOG archive is incomplete or invalid.');
-                if (![2509799,2529454,5092871,4920305,5039735].includes(p.byteLength)) {
+                if (!isSupportedCampaignPigSize(p.byteLength)) {
                     throw new Error('Select a DOS Descent 1.4/1.5 PIG or a DOS shareware PIG.');
                 }
+                const key = await identifyArchives(isSharewarePigSize(p.byteLength), h, p);
+                if (expected && !matchesArchives(expected, key)) throw new Error('These archives do not match this saved campaign. Choose the original pair.');
                 panel.hidden = true;
-                resolve({hog:h,pig:p});
+                resolve({hog:h,pig:p,archiveKey:key});
             } catch (error) {
                 message.value = error.message;
             } finally {

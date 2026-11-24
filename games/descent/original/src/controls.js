@@ -74,7 +74,7 @@ export function controls_set_key_action_callback( cb ) {
 }
 
 // Initialize input handlers
-export function controls_init( domElement ) {
+export function controls_init( domElement, onFlightWheel ) {
 
 	window.addEventListener( 'keydown', onKeyDown );
 	window.addEventListener( 'keyup', onKeyUp );
@@ -100,7 +100,11 @@ export function controls_init( domElement ) {
 	} );
 
 	document.addEventListener( 'mousemove', onMouseMove );
-	document.addEventListener( 'wheel', onWheel, { passive: false } );
+	document.addEventListener('wheel', e => {
+		if (document.getElementById('pilot-panel')?.open || e.ctrlKey) return;
+		if (onFlightWheel(e) === false) wheelDelta += e.deltaY;
+		e.preventDefault();
+	}, {passive: false});
 
 	// Fire button (left mouse)
 	document.addEventListener( 'mousedown', onMouseDown );
@@ -208,6 +212,7 @@ export function controls_consume_mouse() {
 
 function onKeyDown( e ) {
 
+	if (document.getElementById('pilot-panel')?.open) return;
 	keys[ e.code ] = true;
 
 	// Delegate key actions (weapon selection, automap) to game.js callback
@@ -293,12 +298,5 @@ function onMouseMove( e ) {
 		mouseY += e.movementY;
 
 	}
-
-}
-
-function onWheel( e ) {
-
-	wheelDelta += e.deltaY;
-	e.preventDefault();
 
 }

@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10151a">
 <title>Descent | Reactor Run</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="pilot.css">
 </head>
 <body>
 <main id="app">
@@ -31,10 +31,12 @@
       <button class="styleClassic" data-style="classic" aria-pressed="false">Classic</button>
       <button class="styleEvolved" data-style="evolved" aria-pressed="true">Evolved</button>
     </div></div>
+    <div id="campaign-resume" hidden><a id="continue-campaign" class="primary">Continue campaign</a><small id="campaign-progress"></small></div>
     <div class="main-actions"><a class="primary" id="original" href="original/">Original campaign</a>
       <button class="secondary" id="training">Training mines</button></div>
     <div class="minor-links"><a id="originalMenu" class="text-action" href="original/">1995 title &amp; menus</a>
     <a class="text-action" id="registered" href="original/index.html?data=custom&amp;start=1">Use registered game files</a>
+    <button id="choose-campaign" class="text-action" hidden>Load campaign save</button>
     <button id="resumeHome" class="text-action" hidden>Resume training</button></div>
   </div>
   <footer><span>Fan remake <b>/</b> Descent by Parallax Software</span><span class="footer-actions"><a href="../">Retro games</a><button id="homeControls">Pilot controls</button><button id="homeCredits">Credits</button></span></footer>
@@ -58,6 +60,7 @@
     <small>Drag or use arrows to rotate · Scroll or + / − to zoom</small><button id="closeMap">Return to flight</button></div>
 </section>
 </main>
+<dialog id="pilot-panel" aria-labelledby="pilot-title"></dialog>
 <script src="missions.js"></script><script src="training-art.js"></script><script src="render.js"></script>
 <script src="game.js"></script><script src="models.js"></script><script src="ui.js"></script>
 </body></html>

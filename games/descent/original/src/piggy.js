@@ -49,6 +49,14 @@ const D1_10_BIG_PIGSIZE = 7640220;		// v1.0 before RLE compression
 const D1_PIGSIZE = 4920305;			// v1.4 - 1.5 registered
 const D1_OEM_PIGSIZE = 5039735;			// v1.0 OEM
 
+export function isSharewarePigSize(size) {
+	return size === D1_SHARE_PIGSIZE || size === D1_SHARE_10_PIGSIZE || size === D1_SHARE_BIG_PIGSIZE;
+}
+
+export function isSupportedCampaignPigSize(size) {
+	return isSharewarePigSize(size) || size === D1_PIGSIZE || size === D1_OEM_PIGSIZE;
+}
+
 // DiskBitmapHeader: { name[8], dflags, width, height, flags, avg_color, offset(int) }
 // Total: 8 + 1 + 1 + 1 + 1 + 1 + 4 = 17 bytes
 
@@ -116,7 +124,7 @@ export class PigFile {
 		let Pigdata_start = 0;
 		this.isShareware = false;
 
-		if ( fileSize === D1_SHARE_PIGSIZE || fileSize === D1_SHARE_10_PIGSIZE || fileSize === D1_SHARE_BIG_PIGSIZE ) {
+		if ( isSharewarePigSize(fileSize) ) {
 
 			// Shareware PIG: no Pigdata_start header, no HAM data
 			// File starts directly with N_bitmaps, N_sounds

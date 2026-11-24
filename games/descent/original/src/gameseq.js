@@ -5,6 +5,9 @@ import * as THREE from 'three';
 import { fitRobotArmor } from './equipment-art.js';
 import { load_mine_data_compiled_old, load_mine_data_compiled_new } from './gamemine.js';
 import { buildMineGeometry, clearRenderCaches, updateDoorMesh, updateEclipTexture, setWallMeshVisible, rebuildSideOverlay, getVisibleSegments, updateDynamicLighting } from './render.js';
+import {campaignKey, readSave, writeSave} from './campaign-saves.js';
+import {updateHotbar} from './hotbar.js';
+import {showSavePanel} from './pilot-panel.js';
 import { game_init, game_update_mine_visibility, game_set_mine, game_set_mine_visible, game_loop, game_set_player_start, game_set_player_dead, game_set_controls_enabled, game_reset_physics, game_sync_player_object, game_set_external_player_pose, game_set_player_pose_driven, game_set_viewer_segnum, game_update_audio_listener_from_player, game_set_transition_suspended, game_get_player_object, getScene, getCamera, getPlayerPos, getPlayerSegnum, setPlayerSegnum, game_set_frame_callback, game_set_pre_ai_frame_callback, game_set_automap, game_set_fusion_externals, game_set_quit_callback, game_set_cockpit_mode_callback, game_set_save_callback, game_set_load_callback, game_set_palette, Missile_gun } from './game.js';
 import { load_game_data, get_Gamesave_num_org_robots } from './gamesave.js';
 import { Polygon_models, SHAREWARE_MODEL_TABLE, buildModelMesh, buildAnimatedModelMesh,
@@ -72,13 +75,14 @@ import { mission_init, mission_get_last_level, mission_get_level_name, mission_i
 
 // External references (injected from main.js)
 let _hogFile = null;
+let _archiveKey = null;
 let _pigFile = null;
 let _palette = null;
 let _setStatus = null;
 
 export function gameseq_set_externals( ext ) {
 
-	if ( ext.hogFile !== undefined ) _hogFile = ext.hogFile;
+	if ( ext.hogFile !== undefined ) { _hogFile = ext.hogFile; _archiveKey = ext.archiveKey || null; }
 	if ( ext.pigFile !== undefined ) _pigFile = ext.pigFile;
 	if ( ext.palette !== undefined ) _palette = ext.palette;
 	if ( ext.setStatus !== undefined ) _setStatus = ext.setStatus;
@@ -409,9 +413,12 @@ function getHighestScore() {
 
 // --- Save / Load game ---
 // Ported from: GAMESAVE.C save/restore functionality
-// Uses localStorage for checkpoint-style saves (saves player state + current level)
 function campaignSaveKey() {
-    return _pigFile?.isShareware ? 'descent_savegame' : 'descent_registered_' + _hogFile.buffer.byteLength;
+    return _archiveKey || campaignKey(_pigFile.isShareware, _hogFile.buffer.byteLength);
+}
+
+export function campaignSlots(mode) {
+    return showSavePanel({mode, campaign: campaignSaveKey(), save: saveGame, load: row => loadGame(row.slot)});
 }
 
 function snapshotJointAngles( angles ) {
@@ -654,7 +661,7 @@ function syncRobotMeshOrientation( robot ) {
 
 }
 
-function saveGame() {
+async function saveGame(slot, expectedTime) {
 
 	const pp = getPlayerPos();
 	if ( pp === null ) return false;
@@ -843,28 +850,28 @@ function saveGame() {
 
 	try {
 
-		localStorage.setItem( campaignSaveKey(), JSON.stringify( saveData ) );
+		await writeSave(campaignSaveKey(), slot, saveData, currentLevelName, expectedTime);
 		console.log( 'SAVE: Game saved at level ' + currentLevelNum );
 		return true;
 
 	} catch ( e ) {
 
 		console.error( 'SAVE: Failed to save game:', e );
+		if (slot !== 'auto' && e.name === 'SlotChanged') throw e;
 		return false;
 
 	}
 
 }
 
-export function loadGame() {
+export async function loadGame(slot) {
 
 	try {
 
-		const json = localStorage.getItem( campaignSaveKey() );
-		if ( json === null ) return false;
-
-		const saveData = JSON.parse( json );
-		if ( saveData.version !== 1 && saveData.version !== 2 ) return false;
+		const saveData = await readSave(campaignSaveKey(), slot);
+		if (!saveData) return false;
+		const name = mission_get_level_name(saveData.level);
+		if (!name || !_hogFile.findFile(name)) return false;
 
 		console.log( 'LOAD: Loading saved game from level ' + saveData.level );
 
@@ -890,11 +897,12 @@ export function loadGame() {
 		currentLevelNum = saveData.level;
 		beginGameplayTeardown();
 		_lastLevelLoadSucceeded = false;
-		const advancePromise = advanceLevel();
-		advancePromise.catch( e => console.error( 'LOAD: Failed to load game:', e ) );
+		if (gameInitialized) await advanceLevel();
+		else {
+			songs_play_level_song(currentLevelNum);
+			loadLevel(name, currentLevelNum);
+		}
 
-		// Save loads skip briefing awaits, so advanceLevel reaches loadLevelData
-		// synchronously.  Only dismiss the pause UI after that final boundary.
 		if ( _lastLevelLoadSucceeded !== true ) {
 
 			// Do not let a later restart treat a failed payload as a pending restore.
@@ -3058,8 +3066,8 @@ function loadLevelData( levelFile, levelName ) {
 		game_set_cockpit_mode_callback( function ( mode ) { gauges_set_cockpit_mode( mode ); } );
 
 		// Register save/load callbacks for pause menu
-		game_set_save_callback( saveGame );
-		game_set_load_callback( loadGame );
+		game_set_save_callback( () => campaignSlots('save') );
+		game_set_load_callback( () => campaignSlots('load') );
 
 		// Pass palette to game.js for bitmap font rendering in pause menu
 		game_set_palette( _palette );
@@ -3075,7 +3083,8 @@ function loadLevelData( levelFile, levelName ) {
 	updateHUD();
 
 	// Restore saved game state if loading a save
-	if ( _pendingSaveRestore !== null ) {
+	const restoring = _pendingSaveRestore !== null;
+	if ( restoring ) {
 
 		const sd = _pendingSaveRestore;
 
@@ -3604,6 +3613,7 @@ function loadLevelData( levelFile, levelName ) {
 	set_sound_sources();
 	game_set_transition_suspended( false );
 	_lastLevelLoadSucceeded = true;
+	if (!restoring) saveGame('auto').then(ok => { if (!ok) showMessage('Autosave failed. Check browser storage.'); });
 
 }
 
@@ -3658,6 +3668,7 @@ function processExplodingRobots( dt ) {
 
 // --- Frame callback: check powerup collection + reactor status ---
 function onFrameCallback( dt ) {
+	updateHotbar(playerEnergy, playerVulcanAmmo, playerSecondaryAmmo, playerLaserLevel, playerQuadLasers);
 
 	processExplodingRobots( dt );
 
@@ -4806,7 +4817,7 @@ export async function restartGame() {
 	songs_play_song( SONG_TITLE, true );
 	show_title_canvas();
 
-	const menuResult = await do_main_menu( _hogFile, Difficulty_level, _palette, loadGame );
+	const menuResult = await do_main_menu( _hogFile, Difficulty_level, _palette, () => campaignSlots('load') );
 	if (menuResult.action === 'loaded') { hide_title_canvas(); return; }
 	Difficulty_level = menuResult.difficulty;
 

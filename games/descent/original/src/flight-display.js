@@ -1,5 +1,6 @@
 // Presentation layer for the original campaign. Gameplay never reads these values.
 import * as THREE from 'three';
+import {boundKeys} from './pilot-panel.js';
 import {config_set_texture_filtering} from './config.js';
 
 const selection = new URLSearchParams(location.search).get('mode');
@@ -31,7 +32,7 @@ function showMode(announce) {
 }
 export function showDirectFlightHint() {
     const notice = document.getElementById('notice');
-    const hint = 'Click the view for mouse aim, or use IJKL · Z/X fire · Tab map · F8 graphics';
+    const hint = 'Click to aim · Z / X fire · ' + boundKeys('pause_game') + ' opens saves and controls';
     notice.textContent = hint;
     const dismiss = () => {
         if (notice.textContent === hint) notice.textContent = '';

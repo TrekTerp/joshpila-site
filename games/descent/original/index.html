@@ -7,6 +7,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Descent • Original campaign</title>
+<link rel="stylesheet" href="../pilot.css">
+<link rel="stylesheet" href="./hotbar.css">
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -44,9 +46,11 @@ body.locked #flight-tools{display:none}
 <nav id="flight-tools" aria-label="Campaign controls">
 <a href="../index.html">Hangar</a><button id="mode" title="Switch graphics, F8">Classic · F8</button>
 </nav>
+<dialog id="pilot-panel" aria-labelledby="pilot-title"></dialog>
+<aside id="weapon-hotbar" aria-label="Weapon loadout" hidden></aside>
 <div id="notice" role="status"></div>
 <div id="status" role="status">Loading original campaign…</div>
-<div id="recover" hidden><a href="./?data=custom&amp;start=1">Select game files</a><a href="./?start=1">Play shareware</a></div>
+<div id="recover" hidden><a href="../">Hangar</a><a href="./?data=custom&amp;start=1">Select game files</a><a href="./?start=1">Play shareware</a></div>
 <section id="picker" hidden>
 <article><h1>Load your Descent campaign</h1>
 <p>Select the matching files from your DOS Descent installation. Registered versions 1.4 and 1.5 are supported. The files stay in this tab.</p>

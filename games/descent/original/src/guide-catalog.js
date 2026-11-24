@@ -58,7 +58,11 @@ function readEncounters(file) {
         for (let i=0;i<n;i++) {
             file.seek(start+i*size);
             const flags=file.readUInt();
-            for (let id=0;id<N_robot_types;id++) if (flags & (1<<id)) { record(id,'generator'); defaults.add(id); }
+            for (let id=0;id<N_robot_types;id++) if (flags & (1<<id)) {
+                // Matcens give the Class 3 Gopher the same retreat behavior as its mine placements.
+                record(id,id===10?'mine-layer':'generator');
+                defaults.add(id);
+            }
         }
     }
     // A destroyed carrier can release another robot even when the child has no placed object.
@@ -78,7 +82,7 @@ function readEncounters(file) {
 function dossier(id, first, methods, pig, palette) {
     const r=Robot_info[id], model=Polygon_models[r.model_num];
     const mounts=r.compiled?r.n_guns:model.n_guns;
-    const melee=r.attack_type===1, bomber=methods.has('mine-layer')&&!methods.has('placed')&&!methods.has('generator');
+    const melee=r.attack_type===1, bomber=methods.has('mine-layer') && methods.size===1;
     const unarmed=!melee && !bomber && !mounts;
     const weaponId=bomber?16:r.weapon_type, w=Weapon_info[weaponId];
     const blast=!melee && !unarmed && w?.damage_radius>0;

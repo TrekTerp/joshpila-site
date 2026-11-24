@@ -503,6 +503,22 @@ export function create_n_segment_path( robot, path_length, avoid_seg, can_open_d
 
 }
 
+// A pursuer in the current segment is behind or alongside the robot. Only a
+// segment still ahead on the route can cut off its escape.
+export function escape_path_blocked( robot, playerSeg ) {
+
+	const path = robot.aiLocal;
+	if ( playerSeg < 0 || playerSeg === robot.obj.segnum || path.hide_index < 0 ) return false;
+	const step = path.PATH_DIR < 0 ? -1 : 1;
+	for ( let i = path.cur_path_index; i >= 0 && i < path.path_length; i += step ) {
+
+		if ( Point_segs[ path.hide_index + i ].segnum === playerSeg ) return true;
+
+	}
+	return false;
+
+}
+
 // Set robot velocity and orientation toward a goal point — velocity-based movement
 // Ported from: ai_path_set_orient_and_vel() in AIPATH.C lines 1071-1128
 // Instead of teleporting the robot, sets velocity toward the goal and lets

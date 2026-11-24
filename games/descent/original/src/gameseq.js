@@ -589,46 +589,56 @@ function restoreRobotAIState( robot, snapshot ) {
 	if ( ailp === undefined || ailp === null || snapshot === null ||
 		typeof snapshot !== 'object' ) return;
 
-	restoreRobotAIInteger( ailp, snapshot, 'mode', 'mode', 0, 7 );
 	restoreRobotAIInteger( ailp, snapshot, 'playerAwarenessType', 'player_awareness_type', 0, 4 );
 	restoreRobotAIInteger( ailp, snapshot, 'previousVisibility', 'previous_visibility', 0, 2 );
 	restoreRobotAIInteger( ailp, snapshot, 'rapidfireCount', 'rapidfire_count', 0, 255 );
 	restoreRobotAIInteger( ailp, snapshot, 'skipAICount', 'skip_ai_count', 0, 255 );
 	restoreRobotAIInteger( ailp, snapshot, 'currentGun', 'current_gun', 0, 255 );
-	restoreRobotAIInteger( ailp, snapshot, 'behavior', 'behavior', 0x80, 0x85 );
-	restoreRobotAIInteger( ailp, snapshot, 'submode', 'submode', 0, 1 );
-	restoreRobotAIInteger( ailp, snapshot, 'goalSide', 'goal_side', - 1, 5 );
-	restoreRobotAIInteger( ailp, snapshot, 'prevMode', 'prev_mode', 0, 7 );
-	restoreRobotAIInteger( ailp, snapshot, 'consecutiveRetries', 'consecutive_retries', 0, 0x7fff );
-	restoreRobotAIInteger( ailp, snapshot, 'goalSegment', 'goal_segment', - 1, Highest_segment_index );
-	restoreRobotAIInteger( ailp, snapshot, 'hideSegment', 'hide_segment', - 1, Highest_segment_index );
 
 	restoreRobotAIFinite( ailp, snapshot, 'playerAwarenessTime', 'player_awareness_time' );
 	restoreRobotAIFinite( ailp, snapshot, 'nextFire', 'next_fire' );
 	restoreRobotAIFinite( ailp, snapshot, 'timePlayerSeen', 'time_player_seen' );
 	restoreRobotAIFinite( ailp, snapshot, 'timePlayerSoundAttacked', 'time_player_sound_attacked' );
 	restoreRobotAIFinite( ailp, snapshot, 'nextMiscSoundTime', 'next_misc_sound_time' );
-	restoreRobotAIFinite( ailp, snapshot, 'pathRegenTimer', 'path_regen_timer' );
 	restoreRobotAIFinite( ailp, snapshot, 'bumpCooldown', 'bump_cooldown' );
 	restoreRobotAIFinite( ailp, snapshot, 'rotvelX', 'rotvel_x' );
 	restoreRobotAIFinite( ailp, snapshot, 'rotvelY', 'rotvel_y' );
 	restoreRobotAIFinite( ailp, snapshot, 'rotvelZ', 'rotvel_z' );
 	restoreRobotAIFinite( ailp, snapshot, 'bombDropTimer', 'bomb_drop_timer' );
 
-	if ( typeof snapshot.modeIsRunFrom === 'boolean' ) {
+	// Older saves kept zero defaults and read the mine's behavior byte as signed. Their
+	// routes and modes were built for the wrong behavior. Keep the navigation
+	// initialized from the mine while restoring the saved combat state above.
+	const legacyBehavior = ( snapshot.behavior === 0 && ailp.behavior === 0x81 ) ||
+		( Number.isInteger( snapshot.behavior ) && snapshot.behavior < 0 && snapshot.behavior + 256 === ailp.behavior );
+	if ( !legacyBehavior ) {
 
-		ailp.mode_is_run_from = snapshot.modeIsRunFrom;
+		restoreRobotAIInteger( ailp, snapshot, 'mode', 'mode', 0, 7 );
+		restoreRobotAIInteger( ailp, snapshot, 'behavior', 'behavior', 0x80, 0x85 );
+		restoreRobotAIInteger( ailp, snapshot, 'submode', 'submode', 0, 1 );
+		restoreRobotAIInteger( ailp, snapshot, 'goalSide', 'goal_side', - 1, 5 );
+		restoreRobotAIInteger( ailp, snapshot, 'prevMode', 'prev_mode', 0, 7 );
+		restoreRobotAIInteger( ailp, snapshot, 'consecutiveRetries', 'consecutive_retries', 0, 0x7fff );
+		restoreRobotAIInteger( ailp, snapshot, 'goalSegment', 'goal_segment', - 1, Highest_segment_index );
+		restoreRobotAIInteger( ailp, snapshot, 'hideSegment', 'hide_segment', - 1, Highest_segment_index );
+		restoreRobotAIFinite( ailp, snapshot, 'pathRegenTimer', 'path_regen_timer' );
 
-	}
-	if ( typeof snapshot.needsNewPath === 'boolean' ) {
+		if ( typeof snapshot.modeIsRunFrom === 'boolean' ) {
 
-		ailp.needs_new_path = snapshot.needsNewPath;
+			ailp.mode_is_run_from = snapshot.modeIsRunFrom;
 
-	}
+		}
+		if ( typeof snapshot.needsNewPath === 'boolean' ) {
 
-	if ( Object.prototype.hasOwnProperty.call( snapshot, 'path' ) ) {
+			ailp.needs_new_path = snapshot.needsNewPath;
 
-		aipath_restore_robot_path( ailp, snapshot.path );
+		}
+
+		if ( Object.prototype.hasOwnProperty.call( snapshot, 'path' ) ) {
+
+			aipath_restore_robot_path( ailp, snapshot.path );
+
+		}
 
 	}
 

@@ -361,7 +361,7 @@ export function read_object( fp, version ) {
 		case CT_AI: {
 
 			const ai = new AIInfo();
-			ai.behavior = fp.readByte();
+			ai.behavior = fp.readUByte(); // AIB_* codes occupy 0x80 through 0x85.
 
 			for ( let i = 0; i < MAX_AI_FLAGS; i ++ ) {
 

@@ -17,7 +17,7 @@ import { Vertices, Segments, Num_segments, Walls, GameTime } from './mglobal.js'
 import { IS_CHILD, MAX_SIDES_PER_SEGMENT } from './segment.js';
 import { wall_open_door, wall_is_doorway, WID_FLY_FLAG, WALL_DOOR, WALL_DOOR_CLOSED, WALL_DOOR_LOCKED, KEY_NONE } from './wall.js';
 import { create_path_to_player, create_path_to_station, create_n_segment_path,
-	ai_follow_path, check_line_of_sight, aipath_reset,
+	ai_follow_path, escape_path_blocked, check_line_of_sight, aipath_reset,
 	aipath_set_externals, aipath_set_frame_count } from './aipath.js';
 import { Polygon_models, polyobj_set_anim_angles, polyobj_set_cloak,
 	polyobj_update_cloak_render } from './polyobj.js';
@@ -1121,6 +1121,8 @@ export function init_robots_for_level() {
 		// Set initial mode and behavior based on object's ctype (from level file)
 		// Ported from: init_ai_object() in AI.C lines 610-676
 		const ctype = robot.obj.ctype;
+		// Some retail mines leave this byte at zero. D1 initializes them as normal robots.
+		if ( ctype !== null && ctype.behavior === 0 ) ctype.behavior = AIB_NORMAL;
 		const behavior = ( ctype !== null ) ? ctype.behavior : AIB_NORMAL;
 		robot.aiLocal.behavior = behavior;
 
@@ -3183,51 +3185,17 @@ function do_ai_for_robot( robot, playerPos, robotIndex, bossFrameProcessed = fal
 
 		}
 
-		// Create escape path if none or path ended
-		if ( ailp.path_length === 0 || ailp.needs_new_path === true ) {
+		// Keep following an escape route while the player pursues from the same
+		// segment. Restarting at its first waypoint every frame can pin a robot.
+		const playerSeg = _getPlayerSeg !== null ? _getPlayerSeg() : -1;
+		const blocked = visibility > 0 && ailp.path_regen_timer <= 0 && escape_path_blocked( robot, playerSeg );
+		if ( ailp.path_length === 0 || ailp.needs_new_path || blocked ) {
 
 			ailp.needs_new_path = false;
-			const playerSeg = _getPlayerSeg !== null ? _getPlayerSeg() : - 1;
 			create_n_segment_path( robot, AVOID_SEG_LENGTH, playerSeg, canOpenDoors );
 			ailp.mode = AIM_RUN_FROM_OBJECT;
 			ailp.mode_is_run_from = true;
-
-		}
-
-		// Check if player is on the escape path (ahead of robot)
-		// If so, create new escape path immediately
-		// Ported from: AIPATH.C lines 918-950
-		if ( visibility > 0 && ailp.path_length > 0 ) {
-
-			const playerSeg = _getPlayerSeg !== null ? _getPlayerSeg() : - 1;
-			if ( playerSeg !== - 1 ) {
-
-				let playerOnPath = false;
-				const baseIdx = ailp.hide_index;
-				for ( let pi = ailp.cur_path_index; pi < ailp.path_length; pi ++ ) {
-
-					const psIdx = baseIdx + pi;
-					if ( psIdx >= 0 && psIdx < 2500 ) {
-
-						// Access Point_segs — import not available, use segnum check
-						// We can't directly access Point_segs from ai.js, so check via create_n_segment_path
-						// Simplification: just regenerate if player segment == goal
-						break;
-
-					}
-
-				}
-
-				// If player is very close and in the same segment, definitely reroute
-				if ( playerSeg === obj.segnum && dist < 30.0 ) {
-
-					create_n_segment_path( robot, AVOID_SEG_LENGTH, - 1, canOpenDoors );
-					ailp.mode = AIM_RUN_FROM_OBJECT;
-					ailp.mode_is_run_from = true;
-
-				}
-
-			}
+			ailp.path_regen_timer = 0.5;
 
 		}
 

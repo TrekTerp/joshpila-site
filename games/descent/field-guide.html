@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10191d"><title>Field guide | Descent</title>
+<link rel="icon" href="/icons/games.svg"><link rel="stylesheet" href="field-guide.css">
+<script type="importmap">{"imports":{"three":"./original/vendor/three/three.module.js","./original/src/campaign-data.js":"./original/src/campaign-data.js?rev=field-guide-1"}}</script>
+</head>
+<body>
+<header class="mast"><a href="./" class="hangar">‹ &nbsp; Hangar</a><span>Descent <b>/</b> Reactor Run</span></header>
+<main>
+<div class="head"><h1>Field guide</h1>
+<nav aria-label="Game edition"><a href="field-guide.html" data-set="shareware">Shareware</a>
+<a href="?data=custom" data-set="registered">Registered files</a><a href="?set=training" data-set="training">Training mines</a></nav></div>
+<p id="status" role="status">Opening field guide…</p>
+<section id="picker" hidden><h2>Open your registered field guide</h2>
+<p>Choose the HOG and PIG from your Descent installation. Both files stay in this tab.</p>
+<form id="files-form"><label>Descent HOG<input name="hog" type="file" accept=".hog" required></label>
+<label>Descent PIG<input name="pig" type="file" accept=".pig" required></label>
+<button type="submit">Read files</button><output id="file-message" role="status"></output></form></section>
+<section id="guide" aria-label="Field guide cards" hidden>
+<nav class="sections" aria-label="Guide sections">
+<button type="button" data-section="Robots">Robots</button><button type="button" data-section="Weapons">Weapons</button>
+<button type="button" data-section="Powerups">Powerups</button></nav>
+<article class="record">
+<div id="stage" class="stage"><div class="reticle" aria-hidden="true"></div>
+<canvas id="model" tabindex="0" aria-label="Inspection view. Drag or use the arrow keys to rotate. Scroll or use plus and minus to zoom."></canvas>
+<p id="unpictured" hidden></p><div class="stage-top"><span id="model-id"></span><button id="reset" title="Restore model orientation and zoom">Reset view</button></div>
+<div class="stage-foot"><span id="gesture">Drag to rotate · Scroll to zoom</span><span id="skin"></span></div></div>
+<div class="card-copy"><div class="catalog-tag" id="category"></div><h2 id="robot-name" aria-live="polite"></h2>
+<p id="field-note"></p>
+<dl class="facts" id="facts"></dl>
+<label class="setting">Difficulty <select id="difficulty"></select></label>
+</div></article>
+<div class="index-head"><h2 id="index-name">Robot index</h2><div class="stepper">
+<button id="prev" aria-label="Previous card">‹</button><span id="position"></span>
+<button id="next" aria-label="Next card">›</button></div></div>
+<div id="index" aria-label="Choose a card"></div>
+</section>
+</main>
+<script type="module" src="original/src/field-guide.js"></script>
+</body></html>

@@ -7,7 +7,7 @@ export const selectedDifficulty = Math.max(0, Math.min(4,
     Number.parseInt(view.get('difficulty') ?? '1', 10) || 0));
 
 async function readShareware() {
-    const response = await fetch('./desc14sw.tar.gz');
+    const response = await fetch(new URL('../desc14sw.tar.gz', import.meta.url));
     if (!response.ok) throw new Error('The bundled shareware download failed.');
     const raw = new Uint8Array(await response.arrayBuffer());
     const compressed = raw[0] === 0x1f && raw[1] === 0x8b;
